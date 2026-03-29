@@ -1,0 +1,84 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: technexus
+      POSTGRES_USER: technexus
+      POSTGRES_PASSWORD: technexus
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5433:5432"
+    volumes:
+      - laptop-store_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    profiles: ["cache"]
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "6379:6379"
+    volumes:
+      - technexus_redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: technexus
+      DB_PASSWORD: technexus
+      DB_NAME: technexus
+      JWT_SECRET: technexus-super-secret-jwt
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:8080
+      EMAIL_FROM: notifications@technexus.local
+      REDIS_ENABLED: "false"
+      REDIS_URL: redis://redis:6379
+      CACHE_TTL_PRODUCTS: 120
+      CACHE_TTL_CATEGORIES: 300
+      CACHE_TTL_PROFILE: 90
+      CACHE_TTL_SEARCH: 60
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 300
+      AUTH_RATE_LIMIT_MAX_REQUESTS: 20
+      DB_MAX_RETRIES: 30
+      DB_RETRY_DELAY_MS: 2000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  laptop-store_postgres_data:
+    name: laptop-store_postgres_data
+  technexus_redis_data:
+    name: technexus_redis_data
