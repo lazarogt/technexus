@@ -4,9 +4,7 @@ COPY package*.json ./
 RUN npm ci --fetch-retries=5 --fetch-retry-maxtimeout=120000 --fetch-timeout=300000
 
 FROM base AS dev
-RUN apk add --no-cache chromium nss freetype harfbuzz ca-certificates ttf-freefont
 COPY . .
-ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 EXPOSE 5173
 CMD ["npm", "run", "dev"]
 
