@@ -1,4 +1,28 @@
-export const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:3000`;
+const configuredApiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").trim().replace(/\/+$/, "");
+
+export class ApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+const inferApiBaseUrl = () => {
+  if (typeof window === "undefined") {
+    return "http://localhost:4000";
+  }
+
+  if (window.location.hostname === "frontend") {
+    return "http://backend:4000";
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:4000`;
+};
+
+export const apiBaseUrl = configuredApiBaseUrl || inferApiBaseUrl();
 
 export const currencyFormatter = new Intl.NumberFormat("es-MX", {
   style: "currency",
@@ -59,7 +83,7 @@ export async function apiRequest<T>(path: string, options: RequestInit = {}): Pr
         ? data.message
         : "Unexpected request error.";
 
-    throw new Error(message);
+    throw new ApiError(response.status, message);
   }
 
   return data as T;

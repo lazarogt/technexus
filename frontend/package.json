@@ -5,19 +5,29 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0 --port 5173",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 4173"
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "audit:visual": "node scripts/visual-audit.mjs"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.59.20",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.1",
+    "react-window": "^1.8.10",
     "swr": "^2.2.5"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/react-window": "^1.8.8",
     "@vitejs/plugin-react": "^4.3.4",
+    "axe-core": "^4.10.2",
+    "autoprefixer": "^10.4.20",
+    "playwright": "^1.53.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2",
     "vite": "^5.4.11"
   }

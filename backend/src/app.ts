@@ -7,10 +7,24 @@ import routes from "./routes";
 
 export const createApp = () => {
   const app = express();
-  const corsOrigin = process.env.CORS_ORIGIN ?? "http://localhost:8080";
+  const corsOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:8080")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
   const uploadsDirectory = path.join(process.cwd(), "uploads");
 
-  app.use(cors({ origin: corsOrigin }));
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (!origin || corsOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      }
+    })
+  );
   app.use(express.json());
   app.use(requestLoggingMiddleware);
   app.use(apiRateLimit);

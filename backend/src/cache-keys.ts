@@ -15,6 +15,7 @@ const normalizeSearch = (search?: string | null): string => {
 export const cachePrefixes = {
   categories: "catalog:categories:",
   products: "catalog:products:",
+  productDetail: "catalog:product:",
   search: "catalog:search:",
   profile: "profile:user="
 } as const;
@@ -31,6 +32,10 @@ export const getProductsCacheKey = (input: ProductCacheKeyInput): string => {
   const prefix = normalizedSearch ? cachePrefixes.search : cachePrefixes.products;
 
   return `${prefix}page=${input.page}:limit=${input.limit}:category=${input.categoryId ?? "all"}:search=${encodeURIComponent(normalizedSearch || "all")}:sort=${input.sort ?? "latest"}`;
+};
+
+export const getProductDetailCacheKey = (productId: string): string => {
+  return `${cachePrefixes.productDetail}${productId}`;
 };
 
 export const getProfileCacheKey = (userId: string, role: UserRole): string => {

@@ -69,6 +69,31 @@ export type CartSummary = {
   total: number;
 };
 
+export type GroupedCartSeller = {
+  sellerId: string;
+  sellerName: string;
+  items: CartItem[];
+  subtotal: number;
+};
+
+export type GuestCheckoutForm = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+};
+
+export type CheckoutPayload = {
+  buyerPhone: string;
+  shippingAddress: string;
+  shippingCost: number;
+};
+
+export type CheckoutResponse = {
+  message: string;
+  order: Order;
+};
+
 export type OrderItem = {
   id: string;
   productId: string;
@@ -88,6 +113,10 @@ export type Order = {
   userId: string;
   userName: string;
   userEmail: string;
+  userPhone?: string | null;
+  shippingAddress?: string | null;
+  shippingCost?: number | null;
+  paymentMethod?: string | null;
   total: number;
   status: OrderStatus;
   createdAt: string;
@@ -171,6 +200,18 @@ export type EmailOutboxWorkerHealth = {
   status: "healthy" | "degraded" | "down";
 };
 
+export type MetricsSnapshot = {
+  email_outbox_total: number;
+  email_outbox_pending: number;
+  email_outbox_failed: number;
+  email_outbox_sent: number;
+  email_send_success_total: number;
+  email_send_failure_total: number;
+  email_retry_total: number;
+  worker_uptime_seconds: number;
+  avg_email_processing_time_ms: number;
+};
+
 export type AuthResponse = {
   token: string;
   user: UserProfile;
@@ -229,6 +270,17 @@ export type MessageContact = {
   email: string;
 };
 
+export type SellerSummary = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  productCount: number;
+  activeListings: number;
+  orderCount: number;
+  revenue: number;
+};
+
 export const tokenStorageKey = "technexus_auth_token";
 
 export const defaultRegisterForm = {
@@ -253,6 +305,13 @@ export const defaultProductForm = {
   price: "",
   stock: "",
   categoryId: ""
+};
+
+export const defaultGuestCheckoutForm: GuestCheckoutForm = {
+  name: "",
+  email: "",
+  phone: "",
+  address: ""
 };
 
 export const defaultMessageForm = {

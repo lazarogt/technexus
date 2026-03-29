@@ -11,6 +11,7 @@ import {
 import {
   cachePrefixes,
   getCategoriesCacheKey,
+  getProductDetailCacheKey,
   getProductsCacheKey,
   getProfileCacheKey,
   getProfileCachePrefix
@@ -574,6 +575,7 @@ router.post(
       const category = await createCategory(name);
       await invalidateCachePrefix(cachePrefixes.categories);
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -627,6 +629,7 @@ router.put(
 
       await invalidateCachePrefix(cachePrefixes.categories);
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -674,6 +677,7 @@ router.delete(
 
       await invalidateCachePrefix(cachePrefixes.categories);
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -765,6 +769,44 @@ router.get("/products", async (req, res) => {
   }
 });
 
+router.get("/products/:id", async (req, res) => {
+  const productId = getValidatedUuid(req.params.id);
+
+  if (!productId) {
+    res.status(400).json({ message: "Product id is invalid." });
+    return;
+  }
+
+  try {
+    const product = await getOrSetCachedJson({
+      key: getProductDetailCacheKey(productId),
+      ttlSeconds: cacheTtls.products,
+      loader: async () => {
+        const productRecord = await findProductById(productId);
+
+        if (!productRecord) {
+          throw new Error("PRODUCT_NOT_FOUND");
+        }
+
+        return productRecord;
+      }
+    });
+
+    res.status(200).json({ product });
+  } catch (error) {
+    if (error instanceof Error && error.message === "PRODUCT_NOT_FOUND") {
+      res.status(404).json({ message: "Product was not found." });
+      return;
+    }
+
+    logger.error("Product detail fetch error", {
+      productId,
+      error: error instanceof Error ? error.message : "unknown_error"
+    });
+    res.status(500).json({ message: "Unable to load the product right now." });
+  }
+});
+
 router.post(
   "/products",
   requireAuth,
@@ -810,6 +852,7 @@ router.post(
       });
 
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -928,6 +971,7 @@ router.put(
       }
 
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -995,6 +1039,7 @@ router.delete(
 
       await deleteStoredFiles(existingProduct.images);
       await invalidateCachePrefix(cachePrefixes.products);
+      await invalidateCachePrefix(cachePrefixes.productDetail);
       await invalidateCachePrefix(cachePrefixes.search);
 
       if (req.auth?.role === "admin") {
@@ -1026,7 +1071,7 @@ router.delete(
 );
 
 router.post(
-  "/cart/add",
+  "/cart",
   requireAuth,
   authorizeRoles("customer", "seller", "admin"),
   async (req, res) => {
@@ -1078,7 +1123,7 @@ router.get(
 );
 
 router.delete(
-  "/cart/remove",
+  "/cart",
   requireAuth,
   authorizeRoles("customer", "seller", "admin"),
   async (req, res) => {
