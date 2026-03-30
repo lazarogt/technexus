@@ -1,36 +1,38 @@
 import { createApp } from "./app";
-import { connectToCache } from "./cache";
-import { connectToDatabase } from "./db";
-import { initEmailService } from "./email";
-import { startEmailOutboxWorker } from "./email-outbox";
-import { createLogger, installConsoleLogger } from "./logger";
-import { ensureUploadsDirectory } from "./uploads";
+import { env } from "./utils/config";
+import { logger } from "./utils/logger";
+import { bootstrapApplication, shutdownApplication } from "./services/bootstrap.service";
+import { initializeEmailService } from "./services/email.service";
 
-installConsoleLogger();
-
-const logger = createLogger("api");
 const app = createApp();
-const port = Number(process.env.PORT ?? 3000);
 
-const startServer = async (): Promise<void> => {
-  try {
-    ensureUploadsDirectory();
-    await connectToDatabase();
-    await connectToCache();
-    await initEmailService();
-    startEmailOutboxWorker();
+async function start() {
+  await bootstrapApplication();
+  await initializeEmailService();
 
-    app.listen(port, "0.0.0.0", () => {
-      logger.info("Backend listening", {
-        url: `http://0.0.0.0:${port}`
-      });
+  const server = app.listen(env.BACKEND_PORT, "0.0.0.0", () => {
+    logger.info({ port: env.BACKEND_PORT }, "TechNexus backend listening");
+  });
+
+  const close = async () => {
+    server.close(async () => {
+      await shutdownApplication();
+      process.exit(0);
     });
-  } catch (error) {
-    logger.error("Unable to start backend", {
-      error: error instanceof Error ? error.message : "Unknown startup error"
-    });
-    process.exit(1);
-  }
-};
+  };
 
-void startServer();
+  process.on("SIGINT", () => {
+    void close();
+  });
+  process.on("SIGTERM", () => {
+    void close();
+  });
+}
+
+void start().catch((error) => {
+  logger.error(
+    { error: error instanceof Error ? error.message : "Unknown startup error" },
+    "Unable to start backend"
+  );
+  process.exit(1);
+});

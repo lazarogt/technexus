@@ -1,35 +1,23 @@
 FROM node:22-alpine AS base
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --fetch-retries=5 --fetch-retry-maxtimeout=120000 --fetch-timeout=300000
-
-FROM base AS dev
-COPY package.json tsconfig.json ./
-COPY src ./src
-COPY scripts ./scripts
-COPY seed-assets ./seed-assets
-RUN chmod +x ./scripts/backend-entrypoint.sh
-EXPOSE 4000
-ENTRYPOINT ["./scripts/backend-entrypoint.sh"]
-CMD ["npm", "run", "dev"]
+COPY package.json package-lock.json* ./
+RUN npm install
 
 FROM base AS builder
-COPY package.json tsconfig.json ./
-COPY src ./src
+COPY tsconfig.json ./
+COPY prisma ./prisma
 COPY scripts ./scripts
-COPY seed-assets ./seed-assets
-RUN npm run build && npm prune --omit=dev
+COPY src ./src
+RUN npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=4000
+COPY --from=base /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY package.json ./
+COPY package.json tsconfig.json ./
+COPY prisma ./prisma
 COPY scripts ./scripts
-COPY seed-assets ./seed-assets
-RUN chmod +x ./scripts/backend-entrypoint.sh
 EXPOSE 4000
-ENTRYPOINT ["./scripts/backend-entrypoint.sh"]
-CMD ["npm", "start"]
+CMD ["sh", "-c", "npm run db:deploy && npm run db:seed && npm start"]
+

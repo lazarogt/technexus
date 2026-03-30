@@ -1,37 +1,46 @@
-import cors from "cors";
+import fs from "node:fs";
 import express from "express";
-import path from "path";
-import { requestLoggingMiddleware } from "./logger";
-import { apiRateLimit, authRateLimit } from "./rate-limit";
-import routes from "./routes";
+import cors from "cors";
+import helmet from "helmet";
+import pinoHttp from "pino-http";
+import { env } from "./utils/config";
+import { logger } from "./utils/logger";
+import { optionalActor } from "./middlewares/auth.middleware";
+import { generalRateLimit } from "./middlewares/rate-limit.middleware";
+import { errorMiddleware, notFoundMiddleware } from "./middlewares/error.middleware";
+import { apiRouter, legacyRouter } from "./routes";
 
 export const createApp = () => {
+  fs.mkdirSync(env.uploadsDir, { recursive: true });
+
   const app = express();
-  const corsOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:8080")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-  const uploadsDirectory = path.join(process.cwd(), "uploads");
 
   app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin || corsOrigins.includes(origin)) {
-          callback(null, true);
-          return;
-        }
-
-        callback(null, false);
-      }
+    pinoHttp({
+      logger
     })
   );
-  app.use(express.json());
-  app.use(requestLoggingMiddleware);
-  app.use(apiRateLimit);
-  app.use("/register", authRateLimit);
-  app.use("/login", authRateLimit);
-  app.use("/uploads", express.static(uploadsDirectory));
-  app.use(routes);
+  app.use(helmet());
+  app.use(
+    cors({
+      origin: env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
+      credentials: true
+    })
+  );
+  app.use(generalRateLimit);
+  app.use(express.json({ limit: "2mb" }));
+  app.use(express.urlencoded({ extended: true }));
+  app.use(optionalActor);
+
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+  app.use("/uploads", express.static(env.uploadsDir));
+  app.use("/api", apiRouter);
+  app.use("/", legacyRouter);
+  app.use(notFoundMiddleware);
+  app.use(errorMiddleware);
 
   return app;
 };
+

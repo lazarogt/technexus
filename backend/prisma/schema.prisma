@@ -1,0 +1,255 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  seller
+  customer
+}
+
+enum ProductImageKind {
+  upload
+  url
+}
+
+enum PaymentMethod {
+  cash_on_delivery
+}
+
+enum OrderStatus {
+  pending
+  paid
+  shipped
+  delivered
+}
+
+enum EmailOutboxRecipientType {
+  buyer
+  seller
+}
+
+enum EmailOutboxStatus {
+  pending
+  sent
+  failed
+}
+
+model User {
+  id                  String        @id @default(uuid()) @db.Uuid
+  name                String
+  email               String        @unique
+  passwordHash        String
+  role                UserRole
+  isBlocked           Boolean       @default(false)
+  deletedAt           DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  products            Product[]     @relation("SellerProducts")
+  locations           Location[]    @relation("SellerLocations")
+  carts               Cart[]        @relation("UserCarts")
+  orders              Order[]       @relation("UserOrders")
+  sellerOrderItems    OrderItem[]   @relation("SellerOrderItems")
+  sellerEmailOutbox   EmailOutbox[] @relation("SellerOutbox")
+}
+
+model GuestSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  expiresAt  DateTime
+  deletedAt  DateTime?
+  carts      Cart[]
+  orders     Order[]
+}
+
+model Category {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String    @unique
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Product {
+  id          String         @id @default(uuid()) @db.Uuid
+  name        String
+  description String
+  price       Decimal        @db.Decimal(12, 2)
+  stock       Int
+  deletedAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  categoryId  String         @db.Uuid
+  sellerId    String         @db.Uuid
+  category    Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  seller      User           @relation("SellerProducts", fields: [sellerId], references: [id], onDelete: Restrict)
+  images      ProductImage[]
+  inventories Inventory[]
+  lowStockAlerts LowStockAlert[]
+  orderItems  OrderItem[]
+  cartItems   CartItem[]
+
+  @@index([categoryId, deletedAt])
+  @@index([sellerId, deletedAt])
+  @@index([createdAt])
+}
+
+model ProductImage {
+  id        String           @id @default(uuid()) @db.Uuid
+  productId String           @db.Uuid
+  url       String
+  kind      ProductImageKind
+  position  Int              @default(0)
+  createdAt DateTime         @default(now())
+  product   Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, position])
+}
+
+model Location {
+  id          String      @id @default(uuid()) @db.Uuid
+  name        String
+  address     String?
+  deletedAt   DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  sellerId    String?     @db.Uuid
+  seller      User?       @relation("SellerLocations", fields: [sellerId], references: [id], onDelete: SetNull)
+  inventories Inventory[]
+
+  @@index([sellerId, deletedAt])
+}
+
+model Inventory {
+  id               String          @id @default(uuid()) @db.Uuid
+  productId        String          @db.Uuid
+  locationId       String          @db.Uuid
+  quantity         Int
+  lowStockThreshold Int            @default(5)
+  deletedAt        DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  product          Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location         Location        @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  alerts           LowStockAlert[]
+
+  @@unique([productId, locationId])
+  @@index([productId, deletedAt])
+  @@index([locationId, deletedAt])
+}
+
+model LowStockAlert {
+  id              String    @id @default(uuid()) @db.Uuid
+  inventoryId     String    @db.Uuid
+  productId       String    @db.Uuid
+  triggeredQty    Int
+  threshold       Int
+  resolvedAt      DateTime?
+  createdAt       DateTime  @default(now())
+  inventory       Inventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  product         Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId, resolvedAt])
+  @@index([inventoryId, resolvedAt])
+}
+
+model Cart {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String?       @unique @db.Uuid
+  guestSessionId String?       @unique @db.Uuid
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User?         @relation("UserCarts", fields: [userId], references: [id], onDelete: Cascade)
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: Cascade)
+  items          CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  cartId    String   @db.Uuid
+  productId String   @db.Uuid
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+  @@index([cartId])
+}
+
+model Order {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String?       @db.Uuid
+  guestSessionId String?       @db.Uuid
+  buyerName      String
+  buyerEmail     String
+  buyerPhone     String?
+  shippingAddress Json?
+  shippingCost   Decimal       @db.Decimal(12, 2)
+  itemsSubtotal  Decimal       @db.Decimal(12, 2)
+  total          Decimal       @db.Decimal(12, 2)
+  paymentMethod  PaymentMethod @default(cash_on_delivery)
+  status         OrderStatus   @default(pending)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  user           User?         @relation("UserOrders", fields: [userId], references: [id], onDelete: SetNull)
+  guestSession   GuestSession? @relation(fields: [guestSessionId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
+  emailOutbox    EmailOutbox[]
+
+  @@index([userId, createdAt])
+  @@index([guestSessionId, createdAt])
+  @@index([status, createdAt])
+}
+
+model OrderItem {
+  id                 String   @id @default(uuid()) @db.Uuid
+  orderId            String   @db.Uuid
+  productId          String   @db.Uuid
+  sellerId           String   @db.Uuid
+  productName        String
+  productDescription String
+  sellerName         String
+  sellerEmail        String
+  quantity           Int
+  price              Decimal  @db.Decimal(12, 2)
+  subtotal           Decimal  @db.Decimal(12, 2)
+  images             Json
+  createdAt          DateTime @default(now())
+  order              Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product            Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  seller             User     @relation("SellerOrderItems", fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([sellerId])
+}
+
+model EmailOutbox {
+  id             String                   @id @default(uuid()) @db.Uuid
+  orderId        String                   @db.Uuid
+  recipientType  EmailOutboxRecipientType
+  recipientEmail String
+  sellerId       String?                  @db.Uuid
+  subject        String
+  html           String
+  text           String
+  status         EmailOutboxStatus        @default(pending)
+  attempts       Int                      @default(0)
+  lastError      String?
+  nextAttemptAt  DateTime?                @default(now())
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  order          Order                    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  seller         User?                    @relation("SellerOutbox", fields: [sellerId], references: [id], onDelete: SetNull)
+
+  @@index([status, nextAttemptAt])
+  @@index([orderId])
+}

@@ -1,17 +1,15 @@
 services:
   postgres:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-technexus}
-      POSTGRES_USER: ${POSTGRES_USER:-technexus}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-technexus}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - technexus_postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
@@ -22,9 +20,9 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     profiles: ["cache"]
-    command: ["redis-server", "--appendonly", "yes"]
     ports:
       - "${REDIS_PORT:-6380}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - technexus_redis_data:/data
     healthcheck:
@@ -36,99 +34,29 @@ services:
   backend:
     build:
       context: ./backend
-      target: dev
+      target: runner
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_INTERNAL_PORT: 5432
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      PORT: 4000
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER:-technexus}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-technexus}
-      DB_NAME: ${POSTGRES_DB:-technexus}
-      JWT_SECRET: ${JWT_SECRET:-technexus-super-secret-jwt}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://frontend:5173}
-      EMAIL_FROM: ${EMAIL_FROM:-notifications@technexus.local}
-      REDIS_ENABLED: ${REDIS_ENABLED:-false}
-      REDIS_URL: redis://redis:6379
-      CACHE_TTL_PRODUCTS: ${CACHE_TTL_PRODUCTS:-120}
-      CACHE_TTL_CATEGORIES: ${CACHE_TTL_CATEGORIES:-300}
-      CACHE_TTL_PROFILE: ${CACHE_TTL_PROFILE:-90}
-      CACHE_TTL_SEARCH: ${CACHE_TTL_SEARCH:-60}
-      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
-      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-300}
-      AUTH_RATE_LIMIT_MAX_REQUESTS: ${AUTH_RATE_LIMIT_MAX_REQUESTS:-20}
-      DB_MAX_RETRIES: ${DB_MAX_RETRIES:-30}
-      DB_RETRY_DELAY_MS: ${DB_RETRY_DELAY_MS:-2000}
-      PASSWORD_SALT_ROUNDS: ${PASSWORD_SALT_ROUNDS:-12}
     ports:
       - "${BACKEND_PORT:-4000}:4000"
     volumes:
-      - ./backend:/app
-      - backend_node_modules:/app/node_modules
-      - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    command: ["npm", "run", "dev"]
+      - ./backend/uploads:/app/uploads
+      - ./backend/logs:/app/logs
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/products?limit=1 >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 20
 
-  frontend:
-    build:
-      context: ./frontend
-      target: dev
-    restart: unless-stopped
-    depends_on:
-      backend:
-        condition: service_healthy
-    environment:
-      NODE_ENV: ${NODE_ENV:-development}
-      VITE_PROXY_TARGET: http://backend:4000
-    ports:
-      - "${FRONTEND_PORT:-5173}:5173"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
-      - ./output:/app/output
-    command: ["npm", "run", "dev"]
-
-  visual-audit:
-    build:
-      context: ./frontend
-      target: audit
-    profiles: ["audit"]
-    depends_on:
-      backend:
-        condition: service_healthy
-      frontend:
-        condition: service_started
-    environment:
-      BASE_URL: http://frontend:5173
-      API_URL: http://backend:4000
-      OUTPUT_DIR: /app/output/playwright
-      PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: /usr/bin/chromium-browser
-      TECHNEXUS_ADMIN_EMAIL: ${TECHNEXUS_ADMIN_EMAIL:-admin@example.com}
-      TECHNEXUS_ADMIN_PASSWORD: ${TECHNEXUS_ADMIN_PASSWORD:-Admin1234!}
-      TECHNEXUS_SELLER_EMAIL: ${TECHNEXUS_SELLER_EMAIL:-seller@example.com}
-      TECHNEXUS_SELLER_PASSWORD: ${TECHNEXUS_SELLER_PASSWORD:-Seller1234!}
-      TECHNEXUS_CUSTOMER_EMAIL: ${TECHNEXUS_CUSTOMER_EMAIL:-customer@example.com}
-      TECHNEXUS_CUSTOMER_PASSWORD: ${TECHNEXUS_CUSTOMER_PASSWORD:-Customer1234!}
-    volumes:
-      - ./output:/app/output
-    command: ["npm", "run", "audit:visual"]
-
 volumes:
   technexus_postgres_data:
-    name: technexus_postgres_data
   technexus_redis_data:
-    name: technexus_redis_data
-  backend_node_modules:
-    name: technexus_backend_node_modules
-  frontend_node_modules:
-    name: technexus_frontend_node_modules
+

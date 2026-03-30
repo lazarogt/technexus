@@ -1,0 +1,623 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+import bcrypt from "bcryptjs";
+import request from "supertest";
+import { beforeAll, beforeEach, afterAll, describe, expect, it, vi } from "vitest";
+
+const {
+  sentEmails
+} = vi.hoisted(() => ({
+  sentEmails: [] as Array<{
+    to: string;
+    subject: string;
+    html: string;
+    text: string;
+  }>
+}));
+
+vi.mock("../src/services/email.service", async () => {
+  return {
+    initializeEmailService: vi.fn().mockResolvedValue(true),
+    sendEmail: vi.fn(async (input: { to: string; subject: string; html: string; text: string }) => {
+      sentEmails.push(input);
+      return { status: "sent" as const };
+    })
+  };
+});
+
+type AppModule = typeof import("../src/app");
+type PrismaModule = typeof import("../src/services/prisma.service");
+type CacheModule = typeof import("../src/services/cache.service");
+type OutboxModule = typeof import("../src/services/outbox.service");
+type ConfigModule = typeof import("../src/utils/config");
+type LoggedEmail = (typeof sentEmails)[number];
+
+let appModule: AppModule;
+let prismaModule: PrismaModule;
+let cacheModule: CacheModule;
+let outboxModule: OutboxModule;
+let configModule: ConfigModule;
+let api: ReturnType<typeof request>;
+let sampleImagePath: string;
+let tempDir: string;
+
+const pngFixtureBase64 =
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn0jUsAAAAASUVORK5CYII=";
+
+const runBackendCommand = (...args: string[]) => {
+  execFileSync("node", args, {
+    cwd: path.resolve(process.cwd()),
+    env: {
+      ...process.env,
+      NODE_ENV: "test",
+      REDIS_ENABLED: "false"
+    },
+    stdio: "inherit"
+  });
+};
+
+const authHeader = (token: string) => ({
+  Authorization: `Bearer ${token}`
+});
+
+const resetUploads = async () => {
+  await fs.rm(configModule.env.uploadsDir, { recursive: true, force: true });
+  await fs.mkdir(configModule.env.uploadsDir, { recursive: true });
+};
+
+const resetDatabase = async () => {
+  await prismaModule.prisma.$executeRawUnsafe(`
+    TRUNCATE TABLE
+      "EmailOutbox",
+      "OrderItem",
+      "Order",
+      "CartItem",
+      "Cart",
+      "LowStockAlert",
+      "Inventory",
+      "ProductImage",
+      "Product",
+      "Location",
+      "Category",
+      "GuestSession",
+      "User"
+    RESTART IDENTITY CASCADE
+  `);
+
+  const passwordHash = await bcrypt.hash(
+    configModule.env.TECHNEXUS_ADMIN_PASSWORD,
+    configModule.env.PASSWORD_SALT_ROUNDS
+  );
+
+  await prismaModule.prisma.user.create({
+    data: {
+      name: "TechNexus Admin",
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL.toLowerCase(),
+      passwordHash,
+      role: "admin",
+      isBlocked: false
+    }
+  });
+
+  await cacheModule.cacheService.clear();
+  sentEmails.length = 0;
+  await resetUploads();
+};
+
+const registerUser = async (input: {
+  name: string;
+  email: string;
+  password: string;
+  role: "seller" | "customer";
+}) => {
+  const response = await api.post("/api/auth/register").send(input);
+  expect(response.status).toBe(201);
+  return response.body as {
+    token: string;
+    user: { id: string; email: string; role: string };
+  };
+};
+
+const loginUser = async (input: { email: string; password: string }, basePath = "/api/auth/login") => {
+  const response = await api.post(basePath).send(input);
+  expect(response.status).toBe(200);
+  return response.body as {
+    token: string;
+    user: { id: string; email: string; role: string };
+  };
+};
+
+const createAdminCategory = async (token: string, name = "Components") => {
+  const response = await api
+    .post("/api/categories")
+    .set(authHeader(token))
+    .send({ name });
+
+  expect(response.status).toBe(201);
+  return response.body.category as { id: string; name: string };
+};
+
+const createProductWithUpload = async (input: {
+  token: string;
+  name: string;
+  description: string;
+  price: string;
+  stock: string;
+  categoryId: string;
+}) => {
+  const response = await api
+    .post("/api/products")
+    .set(authHeader(input.token))
+    .field("name", input.name)
+    .field("description", input.description)
+    .field("price", input.price)
+    .field("stock", input.stock)
+    .field("categoryId", input.categoryId)
+    .attach("images", sampleImagePath);
+
+  expect(response.status).toBe(201);
+  return response.body.product as {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    sellerId: string;
+    images: string[];
+  };
+};
+
+const createProductWithUrl = async (input: {
+  token: string;
+  name: string;
+  description: string;
+  price: string;
+  stock: string;
+  categoryId: string;
+  imageUrl: string;
+}) => {
+  const response = await api
+    .post("/api/products")
+    .set(authHeader(input.token))
+    .field("name", input.name)
+    .field("description", input.description)
+    .field("price", input.price)
+    .field("stock", input.stock)
+    .field("categoryId", input.categoryId)
+    .field("imageUrls", JSON.stringify([input.imageUrl]));
+
+  expect(response.status).toBe(201);
+  return response.body.product as {
+    id: string;
+    name: string;
+    price: number;
+    stock: number;
+    sellerId: string;
+    images: string[];
+  };
+};
+
+beforeAll(async () => {
+  process.env.NODE_ENV = "test";
+  process.env.REDIS_ENABLED = "false";
+
+  runBackendCommand("./scripts/prisma.cjs", "migrate", "deploy");
+  runBackendCommand("node_modules/tsx/dist/cli.mjs", "prisma/seed.ts");
+
+  appModule = await import("../src/app");
+  prismaModule = await import("../src/services/prisma.service");
+  cacheModule = await import("../src/services/cache.service");
+  outboxModule = await import("../src/services/outbox.service");
+  configModule = await import("../src/utils/config");
+
+  await prismaModule.connectDatabase();
+  await cacheModule.cacheService.connect();
+
+  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "technexus-smoke-"));
+  sampleImagePath = path.join(tempDir, "sample.png");
+  await fs.writeFile(sampleImagePath, Buffer.from(pngFixtureBase64, "base64"));
+
+  api = request(appModule.createApp());
+}, 60_000);
+
+beforeEach(async () => {
+  await resetDatabase();
+});
+
+afterAll(async () => {
+  if (cacheModule?.cacheService) {
+    await cacheModule.cacheService.disconnect();
+  }
+  if (prismaModule?.prisma) {
+    await prismaModule.prisma.$disconnect();
+  }
+  if (tempDir) {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  }
+  if (configModule?.env?.uploadsDir) {
+    await fs.rm(configModule.env.uploadsDir, { recursive: true, force: true });
+  }
+}, 30_000);
+
+describe("TechNexus smoke suite", () => {
+  it("verifies authentication, JWT protection and role restrictions", async () => {
+    // Admin login uses the seeded account and should yield a working JWT.
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+    const seller = await registerUser({
+      name: "Seller One",
+      email: "seller.one@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const customer = await registerUser({
+      name: "Customer One",
+      email: "customer.one@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+
+    const guestResponse = await api.post("/api/auth/guest").send({});
+    expect(guestResponse.status).toBe(201);
+    expect(guestResponse.body.token).toEqual(expect.any(String));
+    expect(guestResponse.body.guestSessionId).toEqual(expect.any(String));
+
+    const profileResponse = await api
+      .get("/api/auth/profile")
+      .set(authHeader(customer.token));
+    expect(profileResponse.status).toBe(200);
+    expect(profileResponse.body.user.email).toBe("customer.one@example.com");
+
+    const invalidTokenResponse = await api
+      .get("/api/auth/profile")
+      .set(authHeader("invalid-token"));
+    expect(invalidTokenResponse.status).toBe(401);
+
+    const adminUsersResponse = await api
+      .get("/api/users")
+      .set(authHeader(admin.token));
+    expect(adminUsersResponse.status).toBe(200);
+    expect(adminUsersResponse.body.users).toHaveLength(3);
+
+    const customerForbiddenResponse = await api
+      .get("/api/users")
+      .set(authHeader(customer.token));
+    expect(customerForbiddenResponse.status).toBe(403);
+
+    const guestForbiddenResponse = await api
+      .get("/api/users")
+      .set(authHeader(guestResponse.body.token));
+    expect(guestForbiddenResponse.status).toBe(401);
+
+    const sellerForbiddenCategoryResponse = await api
+      .post("/api/categories")
+      .set(authHeader(seller.token))
+      .send({ name: "Forbidden Category" });
+    expect(sellerForbiddenCategoryResponse.status).toBe(403);
+  });
+
+  it("verifies seller product CRUD, upload storage, image URLs and list/read endpoints", async () => {
+    // Sellers should be able to create products with uploaded files and remote URLs.
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+    const seller = await registerUser({
+      name: "Seller Two",
+      email: "seller.two@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const customer = await registerUser({
+      name: "Customer Two",
+      email: "customer.two@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    const category = await createAdminCategory(admin.token, "Audio");
+
+    const uploadedProduct = await createProductWithUpload({
+      token: seller.token,
+      name: "Studio Headphones",
+      description: "Closed-back headphones for monitoring.",
+      price: "129.99",
+      stock: "6",
+      categoryId: category.id
+    });
+
+    expect(uploadedProduct.images[0]).toMatch(/^\/uploads\//);
+    await expect(
+      fs.access(path.join(configModule.env.uploadsDir, path.basename(uploadedProduct.images[0])))
+    ).resolves.toBeUndefined();
+
+    const urlProduct = await createProductWithUrl({
+      token: seller.token,
+      name: "USB Microphone",
+      description: "Podcast microphone with USB connectivity.",
+      price: "89.50",
+      stock: "4",
+      categoryId: category.id,
+      imageUrl: "https://cdn.example.com/microphone.jpg"
+    });
+
+    expect(urlProduct.images).toEqual(["https://cdn.example.com/microphone.jpg"]);
+
+    const customerCreateForbidden = await api
+      .post("/api/products")
+      .set(authHeader(customer.token))
+      .field("name", "Should Fail")
+      .field("description", "This should not be created.")
+      .field("price", "10")
+      .field("stock", "1")
+      .field("categoryId", category.id)
+      .attach("images", sampleImagePath);
+    expect(customerCreateForbidden.status).toBe(403);
+
+    const updateResponse = await api
+      .put(`/api/products/${uploadedProduct.id}`)
+      .set(authHeader(seller.token))
+      .field("name", "Studio Headphones Pro")
+      .field("price", "149.99")
+      .field("stock", "8");
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body.product.name).toBe("Studio Headphones Pro");
+    expect(updateResponse.body.product.price).toBe(149.99);
+    expect(updateResponse.body.product.stock).toBe(8);
+
+    const apiListResponse = await api.get("/api/products");
+    expect(apiListResponse.status).toBe(200);
+    expect(apiListResponse.body.products).toHaveLength(2);
+
+    const legacyListResponse = await api.get("/products");
+    expect(legacyListResponse.status).toBe(200);
+    expect(legacyListResponse.body.products).toHaveLength(2);
+
+    const readResponse = await api.get(`/api/products/${uploadedProduct.id}`);
+    expect(readResponse.status).toBe(200);
+    expect(readResponse.body.product.id).toBe(uploadedProduct.id);
+    expect(readResponse.body.product.images[0]).toMatch(/^\/uploads\//);
+
+    const deleteResponse = await api
+      .delete(`/api/products/${urlProduct.id}`)
+      .set(authHeader(seller.token));
+    expect(deleteResponse.status).toBe(200);
+
+    const deletedReadResponse = await api.get(`/api/products/${urlProduct.id}`);
+    expect(deletedReadResponse.status).toBe(404);
+
+    const listAfterDelete = await api.get("/api/products");
+    expect(listAfterDelete.body.products).toHaveLength(1);
+  });
+
+  it("verifies inventory endpoints, low-stock alerts, multi-seller COD checkout and email fan-out", async () => {
+    // A customer order across multiple sellers must compute totals server-side, decrement stock and fan out emails correctly.
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+    const sellerOne = await registerUser({
+      name: "Seller Alpha",
+      email: "seller.alpha@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const sellerTwo = await registerUser({
+      name: "Seller Beta",
+      email: "seller.beta@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const customer = await registerUser({
+      name: "Customer Three",
+      email: "customer.three@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    const category = await createAdminCategory(admin.token, "Computing");
+
+    const sellerOneProduct = await createProductWithUpload({
+      token: sellerOne.token,
+      name: "Mechanical Keyboard",
+      description: "Mechanical keyboard with hot-swappable switches.",
+      price: "99.99",
+      stock: "8",
+      categoryId: category.id
+    });
+    const sellerTwoProduct = await createProductWithUrl({
+      token: sellerTwo.token,
+      name: "Ergonomic Mouse",
+      description: "Ergonomic mouse with programmable buttons.",
+      price: "49.50",
+      stock: "6",
+      categoryId: category.id,
+      imageUrl: "https://cdn.example.com/mouse.jpg"
+    });
+
+    const inventoryResponse = await api
+      .get(`/api/inventory/products/${sellerOneProduct.id}`)
+      .set(authHeader(sellerOne.token));
+    expect(inventoryResponse.status).toBe(200);
+    expect(inventoryResponse.body.stock).toBe(8);
+    expect(inventoryResponse.body.inventories).toHaveLength(1);
+
+    const patchedInventory = await api
+      .patch(`/api/inventory/${inventoryResponse.body.inventories[0].id}`)
+      .set(authHeader(sellerOne.token))
+      .send({ quantity: 8, lowStockThreshold: 6 });
+    expect(patchedInventory.status).toBe(200);
+    expect(patchedInventory.body.inventory.quantity).toBe(8);
+    expect(patchedInventory.body.inventory.lowStockThreshold).toBe(6);
+
+    const addFirstItem = await api
+      .post("/api/cart")
+      .set(authHeader(customer.token))
+      .send({ productId: sellerOneProduct.id, quantity: 3 });
+    expect(addFirstItem.status).toBe(200);
+
+    const addSecondItem = await api
+      .post("/api/cart")
+      .set(authHeader(customer.token))
+      .send({ productId: sellerTwoProduct.id, quantity: 2 });
+    expect(addSecondItem.status).toBe(200);
+
+    const checkoutResponse = await api
+      .post("/api/orders")
+      .set(authHeader(customer.token))
+      .send({
+        buyerPhone: "+1 555 111 2222",
+        shippingAddress: "742 Evergreen Terrace",
+        shippingCost: 12.5
+      });
+
+    expect(checkoutResponse.status).toBe(201);
+    expect(checkoutResponse.body.order.items).toHaveLength(2);
+    expect(checkoutResponse.body.order.items[0].sellerId).toBe(sellerOne.user.id);
+    expect(checkoutResponse.body.order.items[1].sellerId).toBe(sellerTwo.user.id);
+    expect(checkoutResponse.body.order.total).toBe(411.47);
+
+    const sellerOneAfterOrder = await api.get(`/api/products/${sellerOneProduct.id}`);
+    const sellerTwoAfterOrder = await api.get(`/api/products/${sellerTwoProduct.id}`);
+    expect(sellerOneAfterOrder.body.product.stock).toBe(5);
+    expect(sellerTwoAfterOrder.body.product.stock).toBe(4);
+
+    const alertsResponse = await api
+      .get("/api/inventory/alerts")
+      .set(authHeader(sellerOne.token));
+    expect(alertsResponse.status).toBe(200);
+    expect(alertsResponse.body.alerts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          productId: sellerOneProduct.id,
+          triggeredQty: 5,
+          threshold: 6
+        })
+      ])
+    );
+
+    const outboxBeforeProcessing = await api
+      .get("/api/admin/ops/email-outbox")
+      .set(authHeader(admin.token));
+    expect(outboxBeforeProcessing.status).toBe(200);
+    expect(outboxBeforeProcessing.body.rows).toHaveLength(3);
+
+    const processedCount = await outboxModule.processOutboxBatch();
+    expect(processedCount).toBe(3);
+    expect(sentEmails).toHaveLength(3);
+
+    const buyerEmail = sentEmails.find(
+      (email: LoggedEmail) => email.to === "customer.three@example.com"
+    );
+    const sellerOneEmail = sentEmails.find(
+      (email: LoggedEmail) => email.to === "seller.alpha@example.com"
+    );
+    const sellerTwoEmail = sentEmails.find(
+      (email: LoggedEmail) => email.to === "seller.beta@example.com"
+    );
+
+    expect(buyerEmail?.text).toContain("Mechanical Keyboard");
+    expect(buyerEmail?.text).toContain("Ergonomic Mouse");
+    expect(sellerOneEmail?.text).toContain("Mechanical Keyboard");
+    expect(sellerOneEmail?.text).not.toContain("Ergonomic Mouse");
+    expect(sellerTwoEmail?.text).toContain("Ergonomic Mouse");
+    expect(sellerTwoEmail?.text).not.toContain("Mechanical Keyboard");
+
+    const outboxAfterProcessing = await api
+      .get("/admin/ops/email-outbox")
+      .set(authHeader(admin.token));
+    expect(outboxAfterProcessing.status).toBe(200);
+    expect(outboxAfterProcessing.body.rows.every((row: { status: string }) => row.status === "sent")).toBe(
+      true
+    );
+  }, 20_000);
+
+  it("verifies guest checkout and legacy checkout/cart endpoints", async () => {
+    // Guest sessions should be able to maintain a cart and place COD orders through the legacy endpoints too.
+    const admin = await loginUser(
+      {
+        email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+        password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+      },
+      "/login"
+    );
+    const seller = await registerUser({
+      name: "Seller Guest",
+      email: "seller.guest@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const category = await createAdminCategory(admin.token, "Guest Checkout");
+    const product = await createProductWithUrl({
+      token: seller.token,
+      name: "Laptop Stand",
+      description: "Adjustable aluminum laptop stand.",
+      price: "39.90",
+      stock: "5",
+      categoryId: category.id,
+      imageUrl: "https://cdn.example.com/laptop-stand.jpg"
+    });
+
+    const guestResponse = await api.post("/guest").send({});
+    expect(guestResponse.status).toBe(201);
+
+    const addCartResponse = await api
+      .post("/cart")
+      .set(authHeader(guestResponse.body.token))
+      .send({ productId: product.id, quantity: 1 });
+    expect(addCartResponse.status).toBe(200);
+    expect(addCartResponse.body.items).toHaveLength(1);
+
+    const checkoutResponse = await api
+      .post("/checkout")
+      .set(authHeader(guestResponse.body.token))
+      .send({
+        buyerName: "Guest Buyer",
+        buyerEmail: "guest.buyer@example.com",
+        buyerPhone: "+1 555 000 0000",
+        shippingAddress: "123 Guest Street",
+        shippingCost: 10
+      });
+
+    expect(checkoutResponse.status).toBe(201);
+    expect(checkoutResponse.body.order.userEmail).toBe("guest.buyer@example.com");
+    expect(checkoutResponse.body.order.total).toBe(49.9);
+
+    const guestOrders = await api
+      .get("/api/orders")
+      .set(authHeader(guestResponse.body.token));
+    expect(guestOrders.status).toBe(200);
+    expect(guestOrders.body.orders).toHaveLength(1);
+  });
+
+  it("verifies legacy and /api endpoints respond without 404s on basic requests", async () => {
+    // Core discovery endpoints should answer on both compatibility surfaces.
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+
+    const responses = await Promise.all([
+      api.get("/health"),
+      api.get("/api/products"),
+      api.get("/products"),
+      api.get("/api/categories"),
+      api.get("/categories"),
+      api.get("/api/metrics"),
+      api.get("/metrics"),
+      api.get("/api/admin/ops/worker-health").set(authHeader(admin.token)),
+      api.get("/admin/ops/worker-health").set(authHeader(admin.token))
+    ]);
+
+    for (const response of responses) {
+      expect(response.status).toBeGreaterThanOrEqual(200);
+      expect(response.status).toBeLessThan(400);
+    }
+
+    expect(responses[0].body.status).toBe("ok");
+    expect(Array.isArray(responses[1].body.products)).toBe(true);
+    expect(Array.isArray(responses[3].body.categories)).toBe(true);
+  });
+});

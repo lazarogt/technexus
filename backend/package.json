@@ -1,35 +1,49 @@
 {
   "name": "technexus-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
+  "type": "commonjs",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "test": "tsx --test test/**/*.test.ts"
+    "start": "node dist/src/index.js",
+    "test": "node --import tsx --test test/**/*.test.ts",
+    "test:smoke": "vitest run test/smoke.test.ts",
+    "db:generate": "node ./scripts/prisma.cjs generate",
+    "db:deploy": "node ./scripts/prisma.cjs migrate deploy",
+    "db:seed": "tsx prisma/seed.ts",
+    "postinstall": "npm run db:generate"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
+    "@prisma/client": "^6.7.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express-rate-limit": "^7.5.0",
-    "express": "^4.21.2",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.2",
-    "nodemailer": "^6.9.16",
-    "pg": "^8.13.3",
-    "redis": "^4.7.0"
+    "multer": "^2.0.0",
+    "nodemailer": "^7.0.3",
+    "pino": "^9.7.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0",
+    "prisma": "^6.7.0",
+    "redis": "^5.1.0",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/jsonwebtoken": "^9.0.7",
-    "@types/multer": "^1.4.12",
-    "@types/node": "^22.10.2",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^22.15.2",
     "@types/nodemailer": "^6.4.17",
-    "@types/pg": "^8.11.10",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@types/supertest": "^6.0.3",
+    "supertest": "^7.1.1",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
   }
 }
