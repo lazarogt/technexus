@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { TrustBar } from "@/components/store/TrustBar";
 import type { Product } from "@/features/api/types";
 import { formatCurrency } from "@/lib/format";
 
@@ -17,6 +18,7 @@ export function HeroBanner({ spotlight }: HeroBannerProps) {
           Descubre hardware, accesorios y herramientas listas para entrega inmediata con experiencia
           de compra clara y paneles operativos separados por rol.
         </p>
+        <TrustBar />
         <div className="hero-actions">
           <Link to="/products" className="hero-primary">
             Ver catálogo
@@ -40,6 +42,7 @@ export function HeroBanner({ spotlight }: HeroBannerProps) {
                   Ver detalle <ArrowRight size={16} />
                 </Link>
               </div>
+              <small>Pago contra entrega y checkout rapido.</small>
             </div>
           </>
         ) : (

@@ -253,3 +253,16 @@ model EmailOutbox {
   @@index([status, nextAttemptAt])
   @@index([orderId])
 }
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid()) @db.Uuid
+  event     String
+  userId    String?  @db.Uuid
+  sessionId String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([event, createdAt])
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+}

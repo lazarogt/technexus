@@ -6,6 +6,7 @@ import { useSearchParams } from "react-router-dom";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
+import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
@@ -110,7 +111,9 @@ export function ProductsPage() {
         ))}
       </div>
 
-      {productsQuery.data?.products.length ? (
+      {productsQuery.isLoading ? (
+        <ProductRailSkeleton count={8} />
+      ) : productsQuery.data?.products.length ? (
         <>
           <div className="product-grid">
             {productsQuery.data.products.map((product) => (

@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { getProfile, createGuestSession, login as loginRequest, register as registerRequest } from "@/features/api/auth-api";
 import type { GuestResponse, PublicUser, UserRole } from "@/features/api/types";
+import { identify } from "@/features/analytics/analytics";
 import { removeStorage, readStorage, writeStorage } from "@/lib/storage";
 
 type UserSession = {
@@ -50,6 +51,12 @@ function persistGuestSession(response: GuestResponse): GuestSession {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>(() => readStorage<SessionState>(SESSION_KEY));
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+
+  useEffect(() => {
+    if (session?.kind === "user") {
+      identify(session.user.id);
+    }
+  }, [session]);
 
   useEffect(() => {
     let cancelled = false;

@@ -3,6 +3,7 @@ import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ProductCard } from "@/components/catalog/ProductCard";
 import { EmptyState } from "@/components/shared/EmptyState";
+import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { SectionHeading } from "@/components/shared/SectionHeading";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
@@ -105,7 +106,9 @@ export function CategoryPage() {
           title={categoryName}
           description={`Mostrando ${filteredProducts.length} productos con filtros responsivos y grid adaptable.`}
         />
-        {filteredProducts.length ? (
+        {productsQuery.isLoading ? (
+          <ProductRailSkeleton count={8} />
+        ) : filteredProducts.length ? (
           <div className="product-grid">
             {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} onAddToCart={addItem} />

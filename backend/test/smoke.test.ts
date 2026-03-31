@@ -62,6 +62,22 @@ const authHeader = (token: string) => ({
   Authorization: `Bearer ${token}`
 });
 
+const waitFor = async <T>(callback: () => Promise<T>, timeoutMs = 2_000) => {
+  const startedAt = Date.now();
+  let lastError: unknown;
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      return await callback();
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+  }
+
+  throw lastError ?? new Error("Condition was not met before timeout.");
+};
+
 const resetUploads = async () => {
   await fs.rm(configModule.env.uploadsDir, { recursive: true, force: true });
   await fs.mkdir(configModule.env.uploadsDir, { recursive: true });
@@ -70,6 +86,7 @@ const resetUploads = async () => {
 const resetDatabase = async () => {
   await prismaModule.prisma.$executeRawUnsafe(`
     TRUNCATE TABLE
+      "AnalyticsEvent",
       "EmailOutbox",
       "OrderItem",
       "Order",
@@ -590,6 +607,79 @@ describe("TechNexus smoke suite", () => {
       .set(authHeader(guestResponse.body.token));
     expect(guestOrders.status).toBe(200);
     expect(guestOrders.body.orders).toHaveLength(1);
+  });
+
+  it("accepts analytics ingestion, validates payloads and persists trusted actor context", async () => {
+    const customer = await registerUser({
+      name: "Analytics Customer",
+      email: "analytics.customer@example.com",
+      password: "Customer123!",
+      role: "customer"
+    });
+
+    const authenticatedResponse = await api
+      .post("/api/analytics")
+      .set(authHeader(customer.token))
+      .send({
+        event: "view_home",
+        userId: "00000000-0000-0000-0000-000000000000",
+        sessionId: "session-authenticated",
+        data: {
+          source: "homepage"
+        }
+      });
+
+    expect(authenticatedResponse.status).toBe(202);
+
+    await waitFor(async () => {
+      const event = await prismaModule.prisma.analyticsEvent.findFirst({
+        where: {
+          sessionId: "session-authenticated"
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
+
+      expect(event).not.toBeNull();
+      expect(event?.userId).toBe(customer.user.id);
+      expect(event?.data).toMatchObject({ source: "homepage" });
+      return event;
+    });
+
+    const anonymousResponse = await api.post("/api/analytics").send({
+      event: "view_cart",
+      userId: customer.user.id,
+      sessionId: "session-anonymous",
+      data: {
+        items: 0
+      }
+    });
+
+    expect(anonymousResponse.status).toBe(202);
+
+    await waitFor(async () => {
+      const event = await prismaModule.prisma.analyticsEvent.findFirst({
+        where: {
+          sessionId: "session-anonymous"
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      });
+
+      expect(event).not.toBeNull();
+      expect(event?.userId).toBeNull();
+      expect(event?.data).toMatchObject({ items: 0 });
+      return event;
+    });
+
+    const invalidResponse = await api.post("/api/analytics").send({
+      event: "unknown_event",
+      sessionId: ""
+    });
+
+    expect(invalidResponse.status).toBe(400);
   });
 
   it("verifies legacy and /api endpoints respond without 404s on basic requests", async () => {

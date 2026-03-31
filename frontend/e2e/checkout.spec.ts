@@ -18,6 +18,8 @@ test.describe("Checkout Flow", () => {
     await page.getByLabel("Correo").fill("guest-checkout@example.com");
     await page.getByLabel("Teléfono").fill("5551234567");
     await page.getByLabel("Dirección de entrega").fill("742 Evergreen Terrace");
+    await page.getByRole("button", { name: "Continuar a revision" }).click();
+    await page.getByRole("button", { name: "Ir a confirmacion" }).click();
     await page.getByRole("button", { name: "Confirmar pedido" }).click();
 
     await expect(page.getByTestId("checkout-success")).toContainText("Pedido confirmado");

@@ -1,13 +1,28 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { SectionHeading } from "@/components/shared/SectionHeading";
+import { TrustBar } from "@/components/store/TrustBar";
+import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
 import { formatCurrency } from "@/lib/format";
 
 export function CartPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { cart, removeItem, isLoading } = useCart();
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    trackOnce(`view-cart:${location.key}`, "view_cart", {
+      itemCount: cart.items.length,
+      total: cart.total
+    });
+  }, [cart.items.length, cart.total, isLoading, location.key]);
 
   if (cart.items.length === 0) {
     return (
@@ -20,6 +35,7 @@ export function CartPage() {
   return (
     <div className="store-page stack-lg">
       <SectionHeading title="Carrito" description="Resumen sincronizado con backend y listo para checkout COD." />
+      <TrustBar />
       <div className="cart-layout">
         <div className="cart-items">
           {cart.items.map((item) => (
@@ -53,6 +69,7 @@ export function CartPage() {
             <span>Total</span>
             <strong data-testid="cart-total">{formatCurrency(cart.total)}</strong>
           </div>
+          <p className="checkout-summary-note">Compra segura, pago contra entrega y confirmacion inmediata por correo.</p>
           <Button data-testid="checkout-button" fullWidth onClick={() => navigate("/checkout")}>
             Continuar al checkout
           </Button>

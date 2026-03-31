@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
-    "test": "node --import tsx --test test/**/*.test.ts",
+    "test": "node --import tsx --test test/*.service.test.ts",
     "test:smoke": "vitest run test/smoke.test.ts",
     "db:generate": "node ./scripts/prisma.cjs generate",
     "db:deploy": "node ./scripts/prisma.cjs migrate deploy",

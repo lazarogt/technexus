@@ -6,6 +6,7 @@ dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  ANALYTICS_PROVIDER: z.enum(["posthog", "internal"]).default("internal"),
   POSTGRES_DB: z.string().min(1),
   POSTGRES_USER: z.string().min(1),
   POSTGRES_PASSWORD: z.string().min(1),
@@ -61,10 +62,9 @@ export const env = {
   postgresRuntimePort,
   databaseUrl: `postgresql://${encodeURIComponent(parsedEnv.POSTGRES_USER)}:${encodeURIComponent(parsedEnv.POSTGRES_PASSWORD)}@${postgresHost}:${postgresRuntimePort}/${parsedEnv.POSTGRES_DB}?schema=public`,
   redisUrl: process.env.REDIS_URL ?? `redis://localhost:${parsedEnv.REDIS_PORT}`,
-  uploadsDir: path.resolve(process.cwd(), "uploads"),
+  uploadsDir: process.env.UPLOADS_DIR ?? path.resolve(process.cwd(), "uploads"),
   guestSessionDays: 7,
   outboxBatchSize: 10,
   outboxIntervalMs: 30_000,
   lowStockDefaultThreshold: 5
 } as const;
-

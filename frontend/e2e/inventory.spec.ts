@@ -14,6 +14,8 @@ test.describe("Inventory Flow", () => {
     await page.getByLabel("Correo").fill("low-stock-guest@example.com");
     await page.getByLabel("Teléfono").fill("5559876543");
     await page.getByLabel("Dirección de entrega").fill("123 Test Avenue");
+    await page.getByRole("button", { name: "Continuar a revision" }).click();
+    await page.getByRole("button", { name: "Ir a confirmacion" }).click();
     await page.getByRole("button", { name: "Confirmar pedido" }).click();
 
     await expect(page.getByTestId("checkout-success")).toContainText("Pedido confirmado");

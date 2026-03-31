@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
+import { ZodError } from "zod";
 import { AppError, isAppError } from "../utils/errors";
 import { logger } from "../utils/logger";
 
@@ -30,6 +31,15 @@ export const errorMiddleware = (
     return;
   }
 
+  if (error instanceof ZodError) {
+    res.status(400).json({
+      message: error.issues[0]?.message ?? "Validation failed.",
+      code: "VALIDATION_ERROR",
+      details: error.flatten()
+    });
+    return;
+  }
+
   if (isAppError(error)) {
     res.status(error.statusCode).json({
       message: error.message,
@@ -45,4 +55,3 @@ export const errorMiddleware = (
   );
   res.status(500).json({ message: "Internal server error." });
 };
-

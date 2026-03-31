@@ -9,6 +9,8 @@ const repoRoot = path.resolve(frontendDir, "..");
 const backendDir = path.resolve(repoRoot, "backend");
 const runtimeDir = path.resolve(frontendDir, ".e2e-runtime", "backend");
 const runtimePidPath = path.resolve(frontendDir, ".e2e-runtime", "backend.pid");
+const useExternalServices = process.env.E2E_EXTERNAL_SERVICES === "true" || process.env.GITHUB_ACTIONS === "true";
+const skipDbReset = process.env.E2E_SKIP_DB_RESET === "true";
 
 function runCommand(command: string, args: string[], cwd: string, timeout?: number) {
   execFileSync(command, args, {
@@ -116,6 +118,15 @@ async function waitForPostgres(timeoutMs: number) {
   }
 
   throw new Error("Postgres was not ready within timeout");
+}
+
+function resetDatabase() {
+  if (skipDbReset) {
+    return;
+  }
+
+  runCommand("node", ["scripts/prisma.cjs", "migrate", "reset", "--force", "--skip-generate", "--skip-seed"], backendDir);
+  runCommand("npm", ["run", "db:seed"], backendDir);
 }
 
 async function apiRequest<T>(
@@ -283,20 +294,24 @@ async function provisionCatalog() {
 
 export default async function globalSetup() {
   stopLocalBackendIfNeeded();
-  stopProcessListeningOnPort(4000);
-  runCommand("docker", ["compose", "down", "--remove-orphans"], repoRoot);
-  runCommand("docker", ["compose", "up", "-d", "postgres"], repoRoot);
-  await waitForPostgres(60_000);
-  runCommand("node", ["scripts/prisma.cjs", "migrate", "reset", "--force", "--skip-generate", "--skip-seed"], backendDir);
-  runCommand("npm", ["run", "db:seed"], backendDir);
-
-  try {
-    runCommand("docker", ["compose", "up", "-d", "--build", "--force-recreate", "backend"], repoRoot, 90_000);
-    await waitForBackend(HEALTH_URL, 120_000);
-  } catch {
-    runCommand("docker", ["compose", "rm", "-sf", "backend"], repoRoot);
-    await startLocalBackend();
+  if (useExternalServices) {
+    resetDatabase();
     await waitForBackend(HEALTH_URL, 60_000);
+  } else {
+    stopProcessListeningOnPort(4000);
+    runCommand("docker", ["compose", "down", "--remove-orphans"], repoRoot);
+    runCommand("docker", ["compose", "up", "-d", "postgres"], repoRoot);
+    await waitForPostgres(60_000);
+    resetDatabase();
+
+    try {
+      runCommand("docker", ["compose", "up", "-d", "--build", "--force-recreate", "backend"], repoRoot, 90_000);
+      await waitForBackend(HEALTH_URL, 120_000);
+    } catch {
+      runCommand("docker", ["compose", "rm", "-sf", "backend"], repoRoot);
+      await startLocalBackend();
+      await waitForBackend(HEALTH_URL, 60_000);
+    }
   }
 
   await provisionUsers();

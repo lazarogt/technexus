@@ -1,5 +1,6 @@
 import { Button } from "@/components/shared/Button";
 import type { Product } from "@/features/api/types";
+import { getStockLabel } from "@/features/catalog/product-display";
 import { formatCurrency } from "@/lib/format";
 
 type BuyBoxProps = {
@@ -10,12 +11,18 @@ type BuyBoxProps = {
 };
 
 export function BuyBox({ product, quantity, onQuantityChange, onAddToCart }: BuyBoxProps) {
+  const stock = getStockLabel(product.stock);
+
   return (
     <aside className="buy-box">
+      <p className="section-eyebrow">Compra rapida</p>
       <p className="buy-box-price">{formatCurrency(product.price)}</p>
-      <p className={product.stock > 0 ? "buy-box-stock is-available" : "buy-box-stock is-empty"}>
-        {product.stock > 0 ? `Disponible: ${product.stock}` : "Sin stock"}
-      </p>
+      <p className={`buy-box-stock is-${stock.tone}`}>{stock.label}</p>
+      <p className="buy-box-urgency">{stock.urgency}</p>
+      <div className="buy-box-delivery">
+        <strong>Llega pronto a tu zona</strong>
+        <span>Entrega estimada entre manana y 48 horas habiles.</span>
+      </div>
       <label className="field">
         <span className="field-label">Cantidad</span>
         <input
@@ -31,7 +38,15 @@ export function BuyBox({ product, quantity, onQuantityChange, onAddToCart }: Buy
       <Button data-testid="buybox-add-to-cart" onClick={onAddToCart} disabled={product.stock <= 0} fullWidth>
         Agregar al carrito
       </Button>
-      <p className="buy-box-note">Pago contra entrega, confirmación por correo y actualización automática de stock.</p>
+      <Button variant="secondary" fullWidth onClick={onAddToCart} disabled={product.stock <= 0}>
+        Comprar ahora
+      </Button>
+      <ul className="buy-box-trust-list">
+        <li>Compra segura</li>
+        <li>Pago contra entrega</li>
+        <li>Soporte disponible</li>
+      </ul>
+      <p className="buy-box-note">Confirmacion por correo y stock sincronizado en tiempo real.</p>
     </aside>
   );
 }

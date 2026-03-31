@@ -2,8 +2,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { addCartItem, getCart, removeCartItem } from "@/features/api/cart-api";
 import { checkout as checkoutRequest } from "@/features/api/order-api";
-import type { CartSummary, OrderRecord } from "@/features/api/types";
+import type { CartItem, CartSummary, OrderRecord } from "@/features/api/types";
+import { track } from "@/features/analytics/analytics";
 import { useAuth } from "@/features/auth/auth-context";
+import { useToast } from "@/features/toast/toast-context";
+import { readStorage, removeStorage, writeStorage } from "@/lib/storage";
 
 type CheckoutPayload = {
   buyerName?: string;
@@ -16,6 +19,8 @@ type CheckoutPayload = {
 type CartContextValue = {
   cart: CartSummary;
   isLoading: boolean;
+  lastAddedItem: CartItem | null;
+  cartAttentionTick: number;
   addItem: (productId: string, quantity?: number) => Promise<void>;
   removeItem: (productId: string) => Promise<void>;
   refreshCart: () => Promise<void>;
@@ -27,18 +32,56 @@ const EMPTY_CART: CartSummary = {
   total: 0
 };
 
+const CART_STORAGE_KEY = "cart-snapshot";
+
 const CartContext = createContext<CartContextValue | null>(null);
+
+type CartSnapshot = {
+  scope: string;
+  cart: CartSummary;
+};
+
+function getCartScope(
+  session: ReturnType<typeof useAuth>["session"]
+) {
+  if (!session) {
+    return null;
+  }
+
+  if (session.kind === "guest") {
+    return `guest:${session.guestSessionId}`;
+  }
+
+  return `user:${session.user.id}`;
+}
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { session, token, ensureGuestSession } = useAuth();
+  const { showToast } = useToast();
   const [cart, setCart] = useState<CartSummary>(EMPTY_CART);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastAddedItem, setLastAddedItem] = useState<CartItem | null>(null);
+  const [cartAttentionTick, setCartAttentionTick] = useState(0);
+  const cartScope = getCartScope(session);
+
+  useEffect(() => {
+    if (!cartScope) {
+      return;
+    }
+
+    const snapshot = readStorage<CartSnapshot>(CART_STORAGE_KEY);
+
+    if (snapshot?.scope === cartScope) {
+      setCart(snapshot.cart);
+    }
+  }, [cartScope]);
 
   useEffect(() => {
     async function syncCart() {
       if (!token) {
         setCart(EMPTY_CART);
+        setLastAddedItem(null);
         return;
       }
 
@@ -57,10 +100,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     void syncCart();
   }, [session, token]);
 
+  useEffect(() => {
+    if (!cartScope) {
+      removeStorage(CART_STORAGE_KEY);
+      return;
+    }
+
+    writeStorage(CART_STORAGE_KEY, {
+      scope: cartScope,
+      cart
+    } satisfies CartSnapshot);
+  }, [cart, cartScope]);
+
   const value = useMemo<CartContextValue>(
     () => ({
       cart,
       isLoading,
+      lastAddedItem,
+      cartAttentionTick,
       async addItem(productId, quantity = 1) {
         const activeToken = token ?? (await ensureGuestSession()).token;
         setIsLoading(true);
@@ -71,6 +128,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
             quantity
           });
           setCart(nextCart);
+          const nextItem = nextCart.items.find((item) => item.productId === productId) ?? null;
+          setLastAddedItem(nextItem);
+          setCartAttentionTick((current) => current + 1);
+          track("add_to_cart", {
+            productId,
+            quantity,
+            cartItems: nextCart.items.length,
+            cartTotal: nextCart.total
+          });
+          showToast({
+            title: "Producto añadido al carrito",
+            description: nextItem ? `${nextItem.productName} listo para checkout.` : "Revisa el resumen y continúa con tu compra."
+          });
         } finally {
           setIsLoading(false);
         }
@@ -85,6 +155,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         try {
           const nextCart = await removeCartItem(token, productId);
           setCart(nextCart);
+          setLastAddedItem(null);
         } finally {
           setIsLoading(false);
         }
@@ -102,11 +173,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const activeToken = token ?? (await ensureGuestSession()).token;
         const response = await checkoutRequest(activeToken, payload);
         setCart(EMPTY_CART);
+        setLastAddedItem(null);
         void queryClient.invalidateQueries();
         return response.order;
       }
     }),
-    [cart, ensureGuestSession, isLoading, queryClient, token]
+    [cart, cartAttentionTick, ensureGuestSession, isLoading, lastAddedItem, queryClient, showToast, token]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

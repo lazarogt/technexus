@@ -1,0 +1,165 @@
+name: TechNexus CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: postgresql://technexus:technexus@localhost:5433/technexus
+      JWT_SECRET: technexus-super-secret-jwt
+      NODE_ENV: test
+      POSTGRES_DB: technexus
+      POSTGRES_USER: technexus
+      POSTGRES_PASSWORD: technexus
+      POSTGRES_PORT: 5433
+      BACKEND_PORT: 4000
+      FRONTEND_PORT: 5173
+      REDIS_PORT: 6380
+      REDIS_ENABLED: "false"
+      UPLOADS_DIR: /tmp/technexus-uploads
+      JWT_EXPIRES_IN: 7d
+      CORS_ORIGIN: http://localhost:5173,http://127.0.0.1:5173
+      EMAIL_FROM: ci@technexus.local
+      SMTP_HOST: 127.0.0.1
+      SMTP_PORT: 1025
+      SMTP_USER: ci
+      SMTP_PASS: ci
+      SMTP_FROM: TechNexus CI <ci@technexus.local>
+      SMTP_SECURE: "false"
+      MAILHOG_UI_PORT: 8025
+      CACHE_TTL_PRODUCTS: 120
+      CACHE_TTL_CATEGORIES: 300
+      CACHE_TTL_PROFILE: 90
+      CACHE_TTL_SEARCH: 60
+      RATE_LIMIT_WINDOW_MS: 900000
+      RATE_LIMIT_MAX_REQUESTS: 300
+      AUTH_RATE_LIMIT_MAX_REQUESTS: 50
+      DB_MAX_RETRIES: 30
+      DB_RETRY_DELAY_MS: 2000
+      PASSWORD_SALT_ROUNDS: 12
+      TECHNEXUS_ADMIN_EMAIL: admin@example.com
+      TECHNEXUS_ADMIN_PASSWORD: Admin1234!
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: technexus
+          POSTGRES_USER: technexus
+          POSTGRES_PASSWORD: technexus
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd="pg_isready -U technexus"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      # Backend dependency install and Prisma client generation.
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm ci
+
+      - name: Generate Prisma
+        run: |
+          cd backend
+          npx prisma generate
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+      - name: Run migrations
+        run: |
+          cd backend
+          npx prisma migrate deploy
+
+      - name: Seed DB
+        run: |
+          cd backend
+          npm run db:seed
+
+      - name: Run backend tests
+        run: |
+          cd backend
+          npm test
+
+      - name: Run smoke tests
+        run: |
+          cd backend
+          npm run test:smoke
+
+      # Frontend install and production build validation.
+      - name: Install frontend deps
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm run build
+
+      # Reset the database again so E2E starts from a clean, reproducible state.
+      - name: Reset DB for E2E
+        run: |
+          cd backend
+          node scripts/prisma.cjs migrate reset --force --skip-generate --skip-seed
+          npm run db:seed
+
+      # Start the real backend that Playwright will hit through /api/*.
+      - name: Start backend
+        run: |
+          cd backend
+          npm run start > /tmp/technexus-backend.log 2>&1 &
+          echo $! > /tmp/technexus-backend.pid
+          for attempt in {1..30}; do
+            if curl -fsS http://127.0.0.1:4000/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed to become ready"
+          cat /tmp/technexus-backend.log
+          exit 1
+
+      - name: Install Playwright
+        run: |
+          cd frontend
+          npx playwright install --with-deps
+
+      - name: Run E2E tests
+        env:
+          E2E_EXTERNAL_SERVICES: "true"
+          E2E_SKIP_DB_RESET: "true"
+        run: |
+          cd frontend
+          npm run test:e2e
+
+      - name: Show backend logs on failure
+        if: failure()
+        run: |
+          if [ -f /tmp/technexus-backend.log ]; then
+            cat /tmp/technexus-backend.log
+          fi

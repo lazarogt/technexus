@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
 import type { Product } from "@/features/api/types";
+import { getPromoBadge, getStockLabel } from "@/features/catalog/product-display";
 import { formatCurrency } from "@/lib/format";
 
 type ProductCardProps = {
@@ -10,8 +11,12 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
+  const stock = getStockLabel(product.stock);
+  const promoBadge = getPromoBadge(badge);
+
   return (
     <article className="product-card" data-testid={`product-card-${product.id}`}>
+      <Link to={`/product/${product.id}`} className="product-card-overlay-link" aria-label={`Ver ${product.name}`} />
       <Link to={`/product/${product.id}`} className="product-card-image-link" aria-label={product.name}>
         <img
           className="product-card-image"
@@ -19,23 +24,39 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
           alt={product.name}
           loading="lazy"
         />
-        {badge ? <span className="product-badge">{badge}</span> : null}
+        <div className="product-card-flags">
+          {promoBadge ? <span className="product-badge">{promoBadge}</span> : null}
+          <span className={`product-stock-pill is-${stock.tone}`}>{stock.label}</span>
+        </div>
       </Link>
       <div className="product-card-body">
         <p className="product-card-category">{product.categoryName}</p>
         <Link to={`/product/${product.id}`} className="product-card-title">
           {product.name}
         </Link>
-        <p className="product-card-price">{formatCurrency(product.price)}</p>
-        <p className="product-card-meta">{product.stock > 0 ? `${product.stock} disponibles` : "Sin stock"}</p>
-        <Button
-          data-testid={`add-to-cart-${product.id}`}
-          onClick={() => onAddToCart?.(product.id)}
-          disabled={product.stock <= 0}
-          fullWidth
-        >
-          Agregar al carrito
-        </Button>
+        <div className="product-card-pricing">
+          <p className="product-card-price">{formatCurrency(product.price)}</p>
+          {promoBadge ? <small className="product-card-saving">Oferta activa en TechNexus</small> : null}
+        </div>
+        <p className="product-card-meta">{stock.urgency}</p>
+        <div className="product-card-trust">
+          <span>Pago contra entrega</span>
+          <span>Garantia de satisfaccion</span>
+        </div>
+        <div className="product-card-actions">
+          <Button
+            data-testid={`add-to-cart-${product.id}`}
+            className="product-card-cta"
+            onClick={() => onAddToCart?.(product.id)}
+            disabled={product.stock <= 0}
+            fullWidth
+          >
+            Agregar al carrito
+          </Button>
+          <Link to={`/product/${product.id}`} className="product-card-secondary-action">
+            Ver detalle
+          </Link>
+        </div>
       </div>
     </article>
   );
