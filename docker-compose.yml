@@ -1,5 +1,5 @@
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
     restart: unless-stopped
     env_file:
@@ -7,56 +7,65 @@ services:
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
     volumes:
-      - technexus_postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 5s
       timeout: 5s
       retries: 20
-
-  redis:
-    image: redis:7-alpine
-    restart: unless-stopped
-    profiles: ["cache"]
-    ports:
-      - "${REDIS_PORT:-6380}:6379"
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - technexus_redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+    networks:
+      default:
+        aliases:
+          - postgres
 
   backend:
     build:
       context: ./backend
-      target: runner
+      dockerfile: ../Dockerfile.backend
     restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
-      POSTGRES_HOST: postgres
+      POSTGRES_HOST: db
       POSTGRES_INTERNAL_PORT: 5432
-      REDIS_URL: redis://redis:6379
+      REDIS_ENABLED: "false"
     depends_on:
-      postgres:
+      db:
         condition: service_healthy
     ports:
-      - "${BACKEND_PORT:-4000}:4000"
-    volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/logs:/app/logs
+      - "4000:4000"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 20
 
-volumes:
-  technexus_postgres_data:
-  technexus_redis_data:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../Dockerfile.frontend
+      args:
+        VITE_ANALYTICS_PROVIDER: ${VITE_ANALYTICS_PROVIDER:-internal}
+        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY:-}
+        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-https://app.posthog.com}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
 
+# Optional live-dev mounts:
+# backend:
+#   volumes:
+#     - ./backend/src:/app/src
+# frontend:
+#   volumes:
+#     - ./frontend/src:/app/src

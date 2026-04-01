@@ -1,4 +1,4 @@
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "./prisma.service";
 import { toCartSummaryDto } from "../models/cart.model";
 import { AppError } from "../utils/errors";
@@ -49,13 +49,28 @@ const ensureCart = async (actor: Actor) => {
     return existing;
   }
 
-  return prisma.cart.create({
-    data:
-      actor.type === "user"
-        ? { userId: actor.userId }
-        : { guestSessionId: actor.guestSessionId },
-    include: cartInclude
-  });
+  try {
+    return await prisma.cart.create({
+      data:
+        actor.type === "user"
+          ? { userId: actor.userId! }
+          : { guestSessionId: actor.guestSessionId! },
+      include: cartInclude
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      const concurrentCart = await prisma.cart.findUnique({
+        where,
+        include: cartInclude
+      });
+
+      if (concurrentCart) {
+        return concurrentCart;
+      }
+    }
+
+    throw error;
+  }
 };
 
 export const getCart = async (actor: Actor) => {

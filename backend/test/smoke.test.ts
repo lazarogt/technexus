@@ -610,6 +610,10 @@ describe("TechNexus smoke suite", () => {
   });
 
   it("accepts analytics ingestion, validates payloads and persists trusted actor context", async () => {
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
     const customer = await registerUser({
       name: "Analytics Customer",
       email: "analytics.customer@example.com",
@@ -680,6 +684,16 @@ describe("TechNexus smoke suite", () => {
     });
 
     expect(invalidResponse.status).toBe(400);
+
+    const overviewResponse = await api
+      .get("/api/admin/analytics/overview")
+      .query({ range: "24h" })
+      .set(authHeader(admin.token));
+
+    expect(overviewResponse.status).toBe(200);
+    expect(overviewResponse.body.provider).toBe(configModule.env.ANALYTICS_PROVIDER);
+    expect(overviewResponse.body.funnel.viewHome).toBeGreaterThanOrEqual(1);
+    expect(Array.isArray(overviewResponse.body.recentEvents)).toBe(true);
   });
 
   it("verifies legacy and /api endpoints respond without 404s on basic requests", async () => {

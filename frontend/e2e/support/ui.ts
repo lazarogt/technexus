@@ -16,7 +16,7 @@ export async function logoutViaUi(page: Page) {
 export async function addProductToCartFromCatalog(page: Page, productName: string, quantity = 1) {
   await page.goto(`/products?search=${encodeURIComponent(productName)}`);
   const productCard = page.locator(".product-card", { has: page.getByText(productName, { exact: true }) }).first();
-  await expect(productCard).toBeVisible();
+  await expect(productCard).toBeVisible({ timeout: 15000 });
   await productCard.getByText(productName, { exact: true }).click();
   const currentCartCount = Number.parseInt((await page.getByTestId("cart-count").textContent()) ?? "0", 10);
 

@@ -150,6 +150,46 @@ export type DashboardMetrics = {
   email_outbox_sent: number;
 };
 
+export type AnalyticsRange = "24h" | "7d" | "30d";
+
+export type AnalyticsProductMetric = {
+  productId: string;
+  productName: string;
+  count: number;
+};
+
+export type AnalyticsRecentEvent = {
+  id: string;
+  event: string;
+  userId: string | null;
+  sessionId: string;
+  createdAt: string;
+  data: Record<string, unknown> | null;
+};
+
+export type AnalyticsOverview = {
+  provider: "internal" | "posthog";
+  range: AnalyticsRange;
+  generatedAt: string;
+  totalSessions: number;
+  funnel: {
+    viewHome: number;
+    viewProduct: number;
+    addToCart: number;
+    viewCart: number;
+    startCheckout: number;
+    completeOrder: number;
+    addToCartRate: number;
+    checkoutCompletionRate: number;
+    cartViewRate: number;
+  };
+  topProducts: {
+    views: AnalyticsProductMetric[];
+    carts: AnalyticsProductMetric[];
+  };
+  recentEvents: AnalyticsRecentEvent[];
+};
+
 export type WorkerHealth = {
   isStarted: boolean;
   isProcessing: boolean;

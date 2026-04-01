@@ -148,9 +148,13 @@ export function CheckoutPage() {
         title="Checkout"
         description="Flujo guiado para completar tu pedido con menos friccion y mas confianza."
       />
-      <div className="checkout-steps" aria-label="Progreso del checkout">
+      <div className="checkout-steps" data-testid="checkout-steps" aria-label="Progreso del checkout">
         {CHECKOUT_STEPS.map((step) => (
-          <div key={step.id} className={step.id <= currentStep ? "checkout-step is-active" : "checkout-step"}>
+          <div
+            key={step.id}
+            data-testid={`checkout-step-${step.id}`}
+            className={step.id <= currentStep ? "checkout-step is-active" : "checkout-step"}
+          >
             <strong>{step.id}</strong>
             <span>{step.label}</span>
           </div>

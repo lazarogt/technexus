@@ -1,0 +1,7 @@
+node_modules
+dist-ssr
+.e2e-runtime
+playwright-report
+test-results
+*.log
+.git

@@ -2,7 +2,7 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { API_URL, HEALTH_URL, TEST_CATEGORIES, TEST_IMAGE_URLS, TEST_PRODUCTS, TEST_USERS } from "./support/test-data";
+import { API_URL, FRONTEND_HEALTH_URL, HEALTH_URL, TEST_CATEGORIES, TEST_IMAGE_URLS, TEST_PRODUCTS, TEST_USERS } from "./support/test-data";
 
 const frontendDir = path.resolve(process.cwd());
 const repoRoot = path.resolve(frontendDir, "..");
@@ -11,6 +11,7 @@ const runtimeDir = path.resolve(frontendDir, ".e2e-runtime", "backend");
 const runtimePidPath = path.resolve(frontendDir, ".e2e-runtime", "backend.pid");
 const useExternalServices = process.env.E2E_EXTERNAL_SERVICES === "true" || process.env.GITHUB_ACTIONS === "true";
 const skipDbReset = process.env.E2E_SKIP_DB_RESET === "true";
+const useViteFrontend = process.env.E2E_USE_VITE === "true";
 
 function runCommand(command: string, args: string[], cwd: string, timeout?: number) {
   execFileSync(command, args, {
@@ -38,6 +39,26 @@ async function waitForBackend(url: string, timeoutMs: number) {
   }
 
   throw new Error(`Backend was not ready at ${url} within ${timeoutMs}ms`);
+}
+
+async function waitForFrontend(url: string, timeoutMs: number) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    try {
+      const response = await fetch(url);
+
+      if (response.ok) {
+        return;
+      }
+    } catch {
+      // Retry until the service is ready.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+
+  throw new Error(`Frontend was not ready at ${url} within ${timeoutMs}ms`);
 }
 
 function stopLocalBackendIfNeeded() {
@@ -110,7 +131,7 @@ async function waitForPostgres(timeoutMs: number) {
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      runCommand("docker", ["compose", "exec", "-T", "postgres", "pg_isready", "-U", "technexus", "-d", "technexus"], repoRoot);
+      runCommand("docker", ["compose", "exec", "-T", "db", "pg_isready", "-U", "technexus", "-d", "technexus"], repoRoot);
       return;
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 1_000));
@@ -297,17 +318,28 @@ export default async function globalSetup() {
   if (useExternalServices) {
     resetDatabase();
     await waitForBackend(HEALTH_URL, 60_000);
+    if (!useViteFrontend) {
+      await waitForFrontend(FRONTEND_HEALTH_URL, 60_000);
+    }
   } else {
     stopProcessListeningOnPort(4000);
     runCommand("docker", ["compose", "down", "--remove-orphans"], repoRoot);
-    runCommand("docker", ["compose", "up", "-d", "postgres"], repoRoot);
+    runCommand("docker", ["compose", "up", "-d", "db"], repoRoot);
     await waitForPostgres(60_000);
     resetDatabase();
 
     try {
-      runCommand("docker", ["compose", "up", "-d", "--build", "--force-recreate", "backend"], repoRoot, 90_000);
+      const services = useViteFrontend ? ["backend"] : ["backend", "frontend"];
+      runCommand("docker", ["compose", "up", "-d", "--build", "--force-recreate", ...services], repoRoot, 120_000);
       await waitForBackend(HEALTH_URL, 120_000);
+      if (!useViteFrontend) {
+        await waitForFrontend(FRONTEND_HEALTH_URL, 120_000);
+      }
     } catch {
+      if (!useViteFrontend) {
+        throw new Error("Dockerized nginx frontend failed to start for the default E2E path.");
+      }
+
       runCommand("docker", ["compose", "rm", "-sf", "backend"], repoRoot);
       await startLocalBackend();
       await waitForBackend(HEALTH_URL, 60_000);

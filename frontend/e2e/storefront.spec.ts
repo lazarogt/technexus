@@ -23,4 +23,67 @@ test.describe("Storefront Flow", () => {
 
     await frontendErrors.assertClean();
   });
+
+  // Covers the CRO-focused desktop experience without changing the live cart and product flows.
+  test("keeps desktop CRO cues visible on product cards, mini-cart, and buy box", async ({ page }) => {
+    await page.goto(`/products?search=${encodeURIComponent(TEST_PRODUCTS.storefront)}`);
+
+    const productCard = page.locator(".product-card", { has: page.getByText(TEST_PRODUCTS.storefront, { exact: true }) }).first();
+    await expect(productCard).toBeVisible({ timeout: 15000 });
+    await expect(productCard.getByText("Pago contra entrega", { exact: true })).toBeVisible();
+    await expect(productCard.locator(".product-stock-pill")).toContainText(/En stock|Pocas unidades|Sin stock/);
+
+    const initialTransform = await productCard.evaluate((element) => window.getComputedStyle(element).transform);
+    await productCard.hover();
+    await expect
+      .poll(async () => productCard.evaluate((element) => window.getComputedStyle(element).transform))
+      .not.toBe(initialTransform);
+
+    await productCard.getByText(TEST_PRODUCTS.storefront, { exact: true }).click();
+    await expect(page.getByTestId("buybox")).toBeVisible();
+    await expect(page.getByTestId("product-stock-highlight")).toContainText(/En stock|Pocas unidades|Sin stock/);
+    await expect(page.getByTestId("buybox")).toContainText("Compra segura");
+    await expect(page.getByTestId("buybox")).toContainText("Pago contra entrega");
+
+    await page.getByTestId("buybox-add-to-cart").click();
+    const miniCartPanel = page.getByTestId("mini-cart-panel");
+    await expect
+      .poll(async () => {
+        if (await miniCartPanel.isVisible()) {
+          return "visible";
+        }
+
+        return (await page.getByTestId("cart-trigger").getAttribute("aria-expanded")) ?? "false";
+      })
+      .toMatch(/visible|true/);
+    if (!(await miniCartPanel.isVisible())) {
+      await page.getByTestId("cart-trigger").click();
+    }
+    await expect(miniCartPanel).toBeVisible();
+    await expect(miniCartPanel).toContainText("Checkout rapido");
+    await expect(miniCartPanel).toContainText(/pago contra entrega/i);
+  });
+
+  // Verifies the mobile sticky CTA and mini-cart sheet on the nginx-served storefront.
+  test("keeps the mobile CTA and mini-cart sheet usable", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+
+    await page.goto(`/products?search=${encodeURIComponent(TEST_PRODUCTS.storefront)}`);
+    const productCard = page.locator(".product-card", { has: page.getByText(TEST_PRODUCTS.storefront, { exact: true }) }).first();
+    await expect(productCard).toBeVisible({ timeout: 15000 });
+    await productCard.getByText(TEST_PRODUCTS.storefront, { exact: true }).click();
+
+    await expect(page.getByTestId("mobile-buybar")).toBeVisible();
+    await expect(page.getByTestId("mobile-buybar")).toContainText("Agregar al carrito");
+    const currentCartCount = Number.parseInt((await page.getByTestId("cart-count").textContent()) ?? "0", 10);
+    await page.getByTestId("mobile-buybar").getByRole("button", { name: "Agregar al carrito" }).click();
+    await expect(page.getByTestId("cart-count")).toHaveText(String(currentCartCount + 1));
+
+    const miniCartSheet = page.getByTestId("mini-cart-sheet");
+    if (!(await miniCartSheet.isVisible())) {
+      await page.getByTestId("cart-trigger").click();
+    }
+    await expect(miniCartSheet).toBeVisible();
+    await expect(miniCartSheet).toContainText("Checkout rapido");
+  });
 });

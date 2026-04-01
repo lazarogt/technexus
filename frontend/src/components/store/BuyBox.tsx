@@ -14,7 +14,7 @@ export function BuyBox({ product, quantity, onQuantityChange, onAddToCart }: Buy
   const stock = getStockLabel(product.stock);
 
   return (
-    <aside className="buy-box">
+    <aside className="buy-box" data-testid="buybox">
       <p className="section-eyebrow">Compra rapida</p>
       <p className="buy-box-price">{formatCurrency(product.price)}</p>
       <p className={`buy-box-stock is-${stock.tone}`}>{stock.label}</p>

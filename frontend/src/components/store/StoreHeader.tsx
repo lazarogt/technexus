@@ -100,6 +100,7 @@ export function StoreHeader() {
             <button
               type="button"
               className={`header-link cart-link cart-trigger ${cartTriggerClass}`}
+              data-testid="cart-trigger"
               onClick={() => {
                 if (isMiniCartOpen) {
                   setManualOpenKey(null);
@@ -121,7 +122,11 @@ export function StoreHeader() {
                 {cart.items.length}
               </strong>
             </button>
-            <div id="mini-cart-panel" className={isMiniCartOpen ? "mini-cart-panel is-open" : "mini-cart-panel"}>
+            <div
+              id="mini-cart-panel"
+              data-testid="mini-cart-panel"
+              className={isMiniCartOpen ? "mini-cart-panel is-open" : "mini-cart-panel"}
+            >
               <div className="mini-cart-header">
                 <div>
                   <strong>{cart.items.length} productos</strong>
@@ -166,6 +171,7 @@ export function StoreHeader() {
                       </Link>
                       <button
                         type="button"
+                        data-testid="mini-cart-checkout"
                         className="button button-primary"
                         onClick={() => navigate(cart.items.length ? "/checkout" : "/cart")}
                       >
@@ -187,7 +193,10 @@ export function StoreHeader() {
           </div>
         </nav>
       </div>
-      <div className={isMiniCartOpen ? "mini-cart-sheet is-open" : "mini-cart-sheet"}>
+      <div
+        data-testid="mini-cart-sheet"
+        className={isMiniCartOpen ? "mini-cart-sheet is-open" : "mini-cart-sheet"}
+      >
         <button
           type="button"
           className="mini-cart-backdrop"

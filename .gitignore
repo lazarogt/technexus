@@ -11,3 +11,5 @@ backend/generated
 backend/uploads
 backend/.env
 backend/test-results
+data/postgres/*
+!data/postgres/.gitkeep

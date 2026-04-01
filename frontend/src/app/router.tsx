@@ -33,6 +33,9 @@ const SellerInventoryPage = lazy(() =>
 const AdminOverviewPage = lazy(() =>
   import("@/pages/dashboard/AdminOverviewPage").then((module) => ({ default: module.AdminOverviewPage }))
 );
+const AdminAnalyticsPage = lazy(() =>
+  import("@/pages/dashboard/AdminAnalyticsPage").then((module) => ({ default: module.AdminAnalyticsPage }))
+);
 const AdminProductsPage = lazy(() =>
   import("@/pages/dashboard/AdminProductsPage").then((module) => ({ default: module.AdminProductsPage }))
 );
@@ -105,6 +108,7 @@ export const appRouter = createBrowserRouter([
         element: <DashboardLayout section="admin" />,
         children: [
           { index: true, element: <AdminOverviewPage /> },
+          { path: "analytics", element: <AdminAnalyticsPage /> },
           { path: "products", element: <AdminProductsPage /> },
           { path: "categories", element: <AdminCategoriesPage /> },
           { path: "users", element: <AdminUsersPage /> },

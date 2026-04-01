@@ -47,12 +47,13 @@ import { requireActor, requireUserAuth } from "../middlewares/auth.middleware";
 import { requireRoles } from "../middlewares/role.middleware";
 import { authRateLimit } from "../middlewares/rate-limit.middleware";
 import { productImageUpload } from "../middlewares/upload.middleware";
-import { analyticsRouter } from "../modules/analytics/analytics.routes";
+import { adminAnalyticsRouter, analyticsRouter } from "../modules/analytics/analytics.routes";
 
 export const apiRouter = Router();
 
 apiRouter.use("/auth", authRouter);
 apiRouter.use("/analytics", analyticsRouter);
+apiRouter.use("/admin/analytics", requireUserAuth, requireRoles("admin"), adminAnalyticsRouter);
 apiRouter.use("/users", userRouter);
 apiRouter.use("/categories", categoryRouter);
 apiRouter.use("/products", productRouter);

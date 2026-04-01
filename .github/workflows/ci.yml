@@ -153,6 +153,7 @@ jobs:
         env:
           E2E_EXTERNAL_SERVICES: "true"
           E2E_SKIP_DB_RESET: "true"
+          E2E_USE_VITE: "true"
         run: |
           cd frontend
           npm run test:e2e

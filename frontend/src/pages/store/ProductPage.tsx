@@ -63,7 +63,7 @@ export function ProductPage() {
           <p className="section-eyebrow">{product.categoryName}</p>
           <h1 className="product-title">{product.name}</h1>
           <p className="product-description">{product.description}</p>
-          <div className="product-highlight-band">
+          <div className="product-highlight-band" data-testid="product-stock-highlight">
             <strong>{stock?.label}</strong>
             <span>{stock?.urgency}</span>
           </div>
@@ -96,7 +96,7 @@ export function ProductPage() {
           </div>
         )}
       </section>
-      <div className="mobile-buybar">
+      <div className="mobile-buybar" data-testid="mobile-buybar">
         <div className="stack-xs">
           <strong>{product.name}</strong>
           <small>{stock?.label}</small>
