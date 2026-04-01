@@ -13,3 +13,4 @@ backend/.env
 backend/test-results
 data/postgres/*
 !data/postgres/.gitkeep
+data/postgres/
