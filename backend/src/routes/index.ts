@@ -43,6 +43,7 @@ import {
   indexUsers,
   updateManagedUser
 } from "../controllers/user.controller";
+import { observabilityMetrics } from "../controllers/system.controller";
 import { requireActor, requireUserAuth } from "../middlewares/auth.middleware";
 import { requireRoles } from "../middlewares/role.middleware";
 import { authRateLimit } from "../middlewares/rate-limit.middleware";
@@ -60,6 +61,7 @@ apiRouter.use("/products", productRouter);
 apiRouter.use("/cart", cartRouter);
 apiRouter.use("/orders", orderRouter);
 apiRouter.use("/inventory", inventoryRouter);
+apiRouter.get("/observability/metrics", observabilityMetrics);
 apiRouter.get("/metrics", metrics);
 apiRouter.get(
   "/admin/ops/email-outbox",
@@ -167,6 +169,7 @@ legacyRouter.put("/admin/users/:id", requireUserAuth, requireRoles("admin"), upd
 legacyRouter.delete("/admin/users/:id", requireUserAuth, requireRoles("admin"), destroyUser);
 legacyRouter.get("/admin/orders", requireUserAuth, requireRoles("admin"), indexOrders);
 
+legacyRouter.get("/observability/metrics", observabilityMetrics);
 legacyRouter.get("/metrics", metrics);
 legacyRouter.get(
   "/admin/ops/email-outbox",

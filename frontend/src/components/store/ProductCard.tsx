@@ -1,16 +1,19 @@
 import { clsx } from "clsx";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
-import { BadgePill } from "@/components/store/BadgePill";
 import { ProductRating } from "@/components/store/ProductRating";
+import { BadgePill } from "@/components/store/BadgePill";
+import { getStoreBadgeLabel, getStoreBadgeTone, type StoreBadge } from "@/components/store/storefront-data";
 import type { Product } from "@/features/api/types";
 import { getStockLabel } from "@/features/catalog/product-display";
+import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
 type ProductCardProps = {
   product: Product;
   onAddToCart?: (productId: string) => void;
-  badges?: string[];
+  badges?: StoreBadge[];
   sellerLabel?: string;
   priorityImage?: boolean;
 };
@@ -24,11 +27,12 @@ export function ProductCard({
   sellerLabel,
   priorityImage = false
 }: ProductCardProps) {
+  const { t } = useTranslation();
   const stock = getStockLabel(product.stock);
 
   return (
     <article className="store-product-card" data-testid={`store-product-card-${product.id}`}>
-      <Link to={`/product/${product.id}`} className="store-product-overlay" aria-label={`Ver ${product.name}`} />
+      <Link to={`/product/${product.id}`} className="store-product-overlay" aria-label={t("product.viewAria", { productName: product.name })} />
       <Link to={`/product/${product.id}`} className="store-product-media-link" aria-label={product.name}>
         <div className="store-product-media">
           <img src={product.images[0] ?? FALLBACK_IMAGE} alt={product.name} loading={priorityImage ? "eager" : "lazy"} />
@@ -42,8 +46,8 @@ export function ProductCard({
         {badges.length ? (
           <div className="store-product-badges">
             {badges.map((badge) => (
-              <BadgePill key={badge} tone={badge === "Best Seller" ? "highlight" : badge === "Trending" ? "signal" : "neutral"}>
-                {badge}
+              <BadgePill key={badge} tone={getStoreBadgeTone(badge)}>
+                {getStoreBadgeLabel(badge)}
               </BadgePill>
             ))}
           </div>
@@ -53,7 +57,7 @@ export function ProductCard({
         </Link>
         <ProductRating rating={product.averageRating} count={product.reviewCount} compact />
         <p className="store-product-price">{formatCurrency(product.price)}</p>
-        <p className="store-product-seller">{sellerLabel ?? `Vendido por ${product.sellerName}`}</p>
+        <p className="store-product-seller">{sellerLabel ?? ES.product.soldBy(product.sellerName)}</p>
         <p className="store-product-urgency">{stock.urgency}</p>
         <div className="store-product-actions">
           <Button
@@ -63,7 +67,7 @@ export function ProductCard({
             disabled={product.stock <= 0}
             fullWidth
           >
-            Add to Cart
+            {t("buttons.addToCart")}
           </Button>
         </div>
       </div>

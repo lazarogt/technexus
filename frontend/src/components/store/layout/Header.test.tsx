@@ -46,7 +46,7 @@ describe("Header", () => {
 
     expect(screen.getByTestId("store-search-input")).toBeVisible();
     expect(screen.getByRole("link", { name: /alex/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Orders" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cart/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Pedidos" })).toBeInTheDocument();
+    expect(screen.getByTestId("cart-trigger")).toBeInTheDocument();
   });
 });

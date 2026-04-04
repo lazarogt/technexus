@@ -6,6 +6,7 @@ import type { CartItem, CartSummary, OrderRecord } from "@/features/api/types";
 import { track } from "@/features/analytics/analytics";
 import { useAuth } from "@/features/auth/auth-context";
 import { useToast } from "@/features/toast/toast-context";
+import { ES } from "@/i18n/es";
 import { readStorage, removeStorage, writeStorage } from "@/lib/storage";
 
 type CheckoutPayload = {
@@ -138,8 +139,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             cartTotal: nextCart.total
           });
           showToast({
-            title: "Producto añadido al carrito",
-            description: nextItem ? `${nextItem.productName} listo para checkout.` : "Revisa el resumen y continúa con tu compra."
+            title: ES.cart.toastTitle,
+            description: ES.cart.toastDescription(nextItem?.productName)
           });
         } finally {
           setIsLoading(false);

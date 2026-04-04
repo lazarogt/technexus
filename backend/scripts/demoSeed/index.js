@@ -1,4 +1,4 @@
-const { createPrismaClient, initializeDatabaseEnv, runPrismaCommand } = require("../db-runtime.cjs");
+const { createPrismaClient, initializeDatabaseEnv, runMigrateDeployAndGenerate } = require("../db-runtime.cjs");
 const { createSeededRandom } = require("./utils");
 const { prepareSellers } = require("./sellers");
 const { seedCategories } = require("./categories");
@@ -11,14 +11,6 @@ initializeDatabaseEnv();
 const prisma = createPrismaClient({
   log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"]
 });
-
-function runMigrations() {
-  const result = runPrismaCommand(["migrate", "deploy"]);
-
-  if (typeof result.status !== "number" || result.status !== 0) {
-    throw new Error("Prisma migrate deploy failed for demo mode.");
-  }
-}
 
 async function resetDemoData(tx) {
   await tx.$executeRawUnsafe(`
@@ -40,7 +32,7 @@ async function resetDemoData(tx) {
 
 async function main() {
   console.log("Applying pending database migrations...");
-  runMigrations();
+  await runMigrateDeployAndGenerate();
 
   const rng = createSeededRandom();
   await prisma.$connect();

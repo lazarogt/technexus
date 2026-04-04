@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/shared/Button";
 import { SurfaceCard } from "@/components/shared/SurfaceCard";
 import { getOutboxOverview, resetFailedOutbox, retryFailedOutbox, retryOutboxRow } from "@/features/api/admin-api";
@@ -7,6 +8,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { formatDate } from "@/lib/format";
 
 export function AdminOperationsPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
 
@@ -42,29 +44,29 @@ export function AdminOperationsPage() {
 
   return (
     <div className="stack-lg">
-      <SurfaceCard title="Worker health" description="Estado actual del outbox de correos.">
+      <SurfaceCard title={t("dashboard.operations.workerHealthTitle")} description={t("dashboard.operations.workerHealthDescription")}>
         <div className="metrics-grid">
           <div className="metric-card">
-            <span className="metric-label">Status</span>
+            <span className="metric-label">{t("dashboard.operations.statusLabel")}</span>
             <strong className="metric-value">{workerQuery.data?.worker.status ?? "..."}</strong>
-            <p className="metric-description">Última ejecución y degradación reportada.</p>
+            <p className="metric-description">{t("dashboard.operations.statusDescription")}</p>
           </div>
           <div className="metric-card">
-            <span className="metric-label">Última corrida</span>
+            <span className="metric-label">{t("dashboard.operations.lastRunLabel")}</span>
             <strong className="metric-value">
-              {workerQuery.data?.worker.lastRunAt ? formatDate(workerQuery.data.worker.lastRunAt) : "Sin dato"}
+              {workerQuery.data?.worker.lastRunAt ? formatDate(workerQuery.data.worker.lastRunAt) : t("dashboard.operations.noData")}
             </strong>
-            <p className="metric-description">Tiempo de la última pasada del worker.</p>
+            <p className="metric-description">{t("dashboard.operations.lastRunDescription")}</p>
           </div>
         </div>
       </SurfaceCard>
 
       <SurfaceCard
-        title="Email outbox"
-        description="Reintento y saneamiento de filas fallidas."
+        title={t("dashboard.operations.emailOutboxTitle")}
+        description={t("dashboard.operations.emailOutboxDescription")}
         action={
           <Button variant="secondary" onClick={() => retryAllMutation.mutate()}>
-            Reintentar fallidas
+            {t("buttons.retryFailed")}
           </Button>
         }
       >
@@ -72,10 +74,10 @@ export function AdminOperationsPage() {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Destinatario</th>
-                <th>Estado</th>
-                <th>Intentos</th>
-                <th>Creado</th>
+                <th>{t("labels.recipient")}</th>
+                <th>{t("labels.status")}</th>
+                <th>{t("labels.attempts")}</th>
+                <th>{t("labels.createdAt")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -92,10 +94,10 @@ export function AdminOperationsPage() {
                   <td>
                     <div className="button-row">
                       <Button variant="secondary" onClick={() => retryRowMutation.mutate(row.id)}>
-                        Reintentar
+                        {t("buttons.retry")}
                       </Button>
                       <Button variant="ghost" onClick={() => resetRowMutation.mutate(row.id)}>
-                        Reset
+                        {t("buttons.reset")}
                       </Button>
                     </div>
                   </td>

@@ -5,6 +5,7 @@ const prepareTestEnv = () => {
   process.env.NODE_ENV = "test";
   process.env.JWT_SECRET ??= "test-jwt-secret";
   process.env.REDIS_ENABLED ??= "false";
+  process.env.TEST_POSTGRES_DB ??= "technexus_test";
 };
 
 test("database connection succeeds", async () => {

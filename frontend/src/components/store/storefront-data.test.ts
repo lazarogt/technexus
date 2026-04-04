@@ -56,9 +56,9 @@ describe("storefront-data helpers", () => {
 
     const badgeMap = buildBadgeMap(products);
 
-    expect(badgeMap.get("best")).toContain("Best Seller");
-    expect(badgeMap.get("trend")).toContain("Trending");
-    expect(badgeMap.get("low")).toContain("Limited Stock");
+    expect(badgeMap.get("best")).toContain("bestSeller");
+    expect(badgeMap.get("trend")).toContain("trending");
+    expect(badgeMap.get("low")).toContain("limitedStock");
   });
 
   it("keeps related and also-bought recommendations away from the current product", () => {

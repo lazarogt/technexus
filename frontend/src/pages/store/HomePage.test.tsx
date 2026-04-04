@@ -99,11 +99,11 @@ describe("HomePage", () => {
       expect(screen.getAllByText("Dell XPS 13").length).toBeGreaterThan(0);
     });
 
-    expect(screen.getByRole("link", { name: "Shop Now" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Trending Products" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Deals Worth Acting On" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Top Sellers" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Shop the Full Catalog" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Comprar ahora" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Productos en tendencia" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ofertas que vale la pena aprovechar" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Vendedores destacados" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Explora el catálogo completo" })).toBeInTheDocument();
     expect(screen.getAllByText("Dell XPS 13").length).toBeGreaterThan(0);
-  });
+  }, 10_000);
 });

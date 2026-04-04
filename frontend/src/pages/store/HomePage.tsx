@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductRail } from "@/components/store/ProductRail";
@@ -12,8 +13,10 @@ import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
 
 export function HomePage() {
+  const { t } = useTranslation();
   const location = useLocation();
   const { addItem } = useCart();
   const catalogQuery = useQuery({
@@ -46,9 +49,9 @@ export function HomePage() {
       <section className="store-support-strip">
         <div className="stack-sm">
           <SectionHeader
-            eyebrow="Why shoppers convert here"
-            title="Conversion-focused browsing with real seller context"
-            description="Search remains visible, pricing is easy to scan, and each product carries rating, stock and seller signals without mixing in dashboard UI."
+            eyebrow={t("home.supportEyebrow")}
+            title={t("home.supportTitle")}
+            description={t("home.supportDescription")}
           />
           <TrustBar />
         </div>
@@ -56,7 +59,7 @@ export function HomePage() {
           {orderedCategories.slice(0, 5).map((category) => (
             <Link key={category.id} to={`/category/${category.id}`} className="store-category-link">
               <strong>{category.name}</strong>
-              <span>Explore best picks</span>
+              <span>{ES.buttons.viewFeaturedProducts}</span>
             </Link>
           ))}
         </div>
@@ -64,9 +67,9 @@ export function HomePage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Trending Products"
-          description="High-interest items surfaced from the live catalog using rating, review and availability signals."
-          action={<Link to="/products">See all</Link>}
+          title={t("home.trendingTitle")}
+          description={t("home.trendingDescription")}
+          action={<Link to="/products">{ES.buttons.viewAll}</Link>}
         />
         {catalogQuery.isLoading ? (
           <ProductRailSkeleton count={6} />
@@ -87,9 +90,9 @@ export function HomePage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Deals Worth Acting On"
-          description="Price-sensitive picks that still keep review quality and seller confidence front and center."
-          action={<Link to="/products?sort=price-asc">Browse deals</Link>}
+          title={t("home.dealsTitle")}
+          description={t("home.dealsDescription")}
+          action={<Link to="/products?sort=price-asc">{ES.buttons.viewOffers}</Link>}
         />
         {catalogQuery.isLoading ? (
           <ProductRailSkeleton count={6} />
@@ -109,8 +112,8 @@ export function HomePage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Top Sellers"
-          description="Seller spotlights are derived from catalog depth and customer feedback so shoppers can compare stores quickly."
+          title={t("home.sellersTitle")}
+          description={t("home.sellersDescription")}
         />
         <div className="seller-spotlight-grid">
           {collections.topSellers.map((seller) => (
@@ -121,9 +124,9 @@ export function HomePage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Shop the Full Catalog"
-          description="Information-dense cards optimized for scan speed on desktop and touch-first browsing on mobile."
-          action={<Link to="/products">Open full catalog</Link>}
+          title={t("home.catalogTitle")}
+          description={t("home.catalogDescription")}
+          action={<Link to="/products">{ES.buttons.openFullCatalog}</Link>}
         />
         {catalogQuery.isLoading ? (
           <ProductRailSkeleton count={8} />

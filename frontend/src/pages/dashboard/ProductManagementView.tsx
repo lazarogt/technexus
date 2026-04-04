@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { SectionHeading } from "@/components/shared/SectionHeading";
@@ -38,6 +39,7 @@ const emptyForm: FormState = {
 };
 
 export function ProductManagementView({ mode }: ProductManagementViewProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -65,7 +67,7 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.productManagement.authRequired"));
       }
 
       const payload: ProductPayload = {
@@ -103,7 +105,7 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
   const deleteMutation = useMutation({
     mutationFn: async (productId: string) => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.productManagement.authRequired"));
       }
 
       return deleteProduct(token, productId);
@@ -152,20 +154,20 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
     try {
       await saveMutation.mutateAsync();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "No se pudo guardar el producto.");
+      setError(submitError instanceof Error ? submitError.message : t("dashboard.productManagement.saveError"));
     }
   };
 
   return (
     <div className="dashboard-grid">
       <SurfaceCard
-        title={selectedProduct ? "Editar producto" : "Nuevo producto"}
-        description="Carga imágenes por archivo y URLs. El backend mantiene el contrato de `multipart/form-data`."
+        title={selectedProduct ? t("dashboard.productManagement.editTitle") : t("dashboard.productManagement.newTitle")}
+        description={t("dashboard.productManagement.formDescription")}
       >
         <form className="stack-md" data-testid="product-form" onSubmit={onSubmit}>
-          <TextField label="Nombre" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required />
+          <TextField label={t("labels.name")} value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required />
           <TextField
-            label="Descripción"
+            label={t("labels.description")}
             multiline
             rows={4}
             value={form.description}
@@ -173,37 +175,37 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
             required
           />
           <div className="dashboard-form-grid">
-            <TextField label="Precio" type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} required />
-            <TextField label="Stock" type="number" min="0" step="1" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} required />
+            <TextField label={t("labels.price")} type="number" min="0" step="0.01" value={form.price} onChange={(event) => setForm((current) => ({ ...current, price: event.target.value }))} required />
+            <TextField label={t("labels.stock")} type="number" min="0" step="1" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} required />
           </div>
           <SelectField
-            label="Categoría"
+            label={t("labels.category")}
             value={form.categoryId}
             onChange={(event) => setForm((current) => ({ ...current, categoryId: event.target.value }))}
             options={[
-              { value: "", label: "Selecciona una categoría" },
+              { value: "", label: t("dashboard.productManagement.selectCategory") },
               ...(categoriesQuery.data?.categories ?? []).map((category) => ({ value: category.id, label: category.name }))
             ]}
           />
           {mode === "admin" ? (
             <SelectField
-              label="Vendedor"
+              label={t("labels.seller")}
               value={form.sellerId}
               onChange={(event) => setForm((current) => ({ ...current, sellerId: event.target.value }))}
-              options={[{ value: "", label: "Asignar al admin actual" }, ...sellerOptions]}
+              options={[{ value: "", label: t("dashboard.productManagement.assignCurrentAdmin") }, ...sellerOptions]}
             />
           ) : null}
           <TextField
-            label="URLs de imagen"
+            label={t("labels.productUrls")}
             multiline
             rows={3}
             data-testid="product-image-urls"
             value={form.imageUrls}
             onChange={(event) => setForm((current) => ({ ...current, imageUrls: event.target.value }))}
-            hint="Una URL por línea. Si editas sin nuevas imágenes, se conservan las actuales."
+            hint={t("dashboard.productManagement.imageHint")}
           />
           <label className="field">
-            <span className="field-label">Subir imágenes</span>
+            <span className="field-label">{t("labels.uploadImages")}</span>
             <input
               className="field-input"
               data-testid="product-image-upload"
@@ -216,7 +218,7 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
           {error ? <p className="field-error">{error}</p> : null}
           <div className="button-row">
             <Button data-testid="product-save-button" type="submit" disabled={saveMutation.isPending}>
-              {selectedProduct ? "Guardar cambios" : "Crear producto"}
+              {selectedProduct ? t("buttons.saveChanges") : t("buttons.createProduct")}
             </Button>
             <Button
               variant="secondary"
@@ -226,27 +228,27 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
                 setForm(emptyForm);
               }}
             >
-              Limpiar
+              {t("buttons.clear")}
             </Button>
           </div>
         </form>
       </SurfaceCard>
 
       <SurfaceCard
-        title={mode === "admin" ? "Catálogo global" : "Mis productos"}
-        description="Edición modular sin tocar la lógica del backend."
+        title={mode === "admin" ? t("dashboard.productManagement.globalCatalogTitle") : t("dashboard.productManagement.myProductsTitle")}
+        description={t("dashboard.productManagement.catalogDescription")}
       >
-        <SectionHeading title={`${products.length} productos`} description="Soporte para CRUD y stock sincronizado." />
+        <SectionHeading title={t("dashboard.productManagement.productCountTitle", { count: products.length })} description={t("dashboard.productManagement.productCountDescription")} />
         {products.length ? (
           <div className="table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Precio</th>
-                  <th>Stock</th>
-                  <th>Acciones</th>
+                  <th>{t("labels.product")}</th>
+                  <th>{t("labels.category")}</th>
+                  <th>{t("labels.price")}</th>
+                  <th>{t("labels.stock")}</th>
+                  <th>{t("labels.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -262,10 +264,10 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
                     <td>
                       <div className="button-row">
                         <Button variant="secondary" onClick={() => onEdit(product)}>
-                          Editar
+                          {t("buttons.edit")}
                         </Button>
                         <Button variant="danger" onClick={() => deleteMutation.mutate(product.id)}>
-                          Eliminar
+                          {t("buttons.delete")}
                         </Button>
                       </div>
                     </td>
@@ -275,7 +277,7 @@ export function ProductManagementView({ mode }: ProductManagementViewProps) {
             </table>
           </div>
         ) : (
-          <EmptyState title="No hay productos" description="Crea el primer producto para este panel." />
+          <EmptyState title={t("dashboard.productManagement.emptyTitle")} description={t("dashboard.productManagement.emptyDescription")} />
         )}
       </SurfaceCard>
     </div>

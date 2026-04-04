@@ -5,6 +5,7 @@ import { asyncHandler } from "../utils/async-handler";
 import { env } from "../utils/config";
 import { cacheService } from "../services/cache.service";
 import { listUsers, getUserById, createManagedUser, updateUser, softDeleteUser } from "../services/user.service";
+import { idParamSchema, userListQuerySchema } from "../utils/request-validation";
 
 const createUserSchema = z.object({
   name: z.string().trim().min(2),
@@ -21,17 +22,19 @@ const updateUserSchema = z.object({
 });
 
 export const indexUsers = asyncHandler(async (req, res) => {
+  const query = userListQuerySchema.parse(req.query);
   const response = await listUsers({
-    page: req.query.page,
-    limit: req.query.limit ?? req.query.pageSize,
-    role: typeof req.query.role === "string" ? req.query.role : undefined
+    page: query.page,
+    limit: query.limit ?? query.pageSize,
+    role: query.role
   });
 
   res.status(200).json(response);
 });
 
 export const showUser = asyncHandler(async (req, res) => {
-  const user = await getUserById(String(req.params.id));
+  const params = idParamSchema.parse(req.params);
+  const user = await getUserById(params.id);
   res.status(200).json({ user });
 });
 
@@ -46,15 +49,17 @@ export const storeUser = asyncHandler(async (req, res) => {
 });
 
 export const updateManagedUser = asyncHandler(async (req, res) => {
+  const params = idParamSchema.parse(req.params);
   const payload = updateUserSchema.parse(req.body);
-  const userId = String(req.params.id);
+  const userId = params.id;
   const user = await updateUser(req.actor!.userId!, userId, payload);
   await cacheService.invalidatePrefix(`profile:${userId}`);
   res.status(200).json({ user });
 });
 
 export const destroyUser = asyncHandler(async (req, res) => {
-  const userId = String(req.params.id);
+  const params = idParamSchema.parse(req.params);
+  const userId = params.id;
   await softDeleteUser(req.actor!.userId!, userId);
   await cacheService.invalidatePrefix(`profile:${userId}`);
   res.status(200).json({ message: "User deleted successfully." });

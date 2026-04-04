@@ -1,0 +1,466 @@
+{
+  "app": {
+    "loading": "Cargando TechNexus..."
+  },
+  "buttons": {
+    "addToCart": "Añadir al carrito",
+    "buyNow": "Comprar ahora",
+    "checkout": "Finalizar compra",
+    "continue": "Continuar",
+    "continueToReview": "Continuar a la revisión",
+    "goToConfirmation": "Ir a la confirmación",
+    "confirmOrder": "Confirmar pedido",
+    "viewCart": "Ver carrito",
+    "viewCatalog": "Ver catálogo",
+    "viewAll": "Ver todo",
+    "viewOffers": "Ver ofertas",
+    "viewDetail": "Ver detalle",
+    "viewFeaturedProducts": "Ver productos destacados",
+    "openFullCatalog": "Abrir catálogo completo",
+    "keepShopping": "Seguir comprando",
+    "search": "Buscar",
+    "close": "Cerrar",
+    "closeNotification": "Cerrar notificación",
+    "remove": "Quitar",
+    "logout": "Salir",
+    "createAccount": "Crear cuenta",
+    "signIn": "Iniciar sesión",
+    "save": "Guardar",
+    "clear": "Limpiar",
+    "create": "Crear",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "block": "Bloquear",
+    "unblock": "Desbloquear",
+    "reset": "Restablecer",
+    "retry": "Reintentar",
+    "retryFailed": "Reintentar fallidas",
+    "back": "Volver",
+    "processing": "Procesando...",
+    "saveChanges": "Guardar cambios",
+    "createUser": "Crear usuario",
+    "createProduct": "Crear producto",
+    "createCategory": "Crear categoría"
+  },
+  "nav": {
+    "main": "Principal",
+    "account": "Cuenta",
+    "orders": "Pedidos",
+    "cart": "Carrito",
+    "exploreCategories": "Explorar categorías",
+    "allDepartments": "Todos los departamentos",
+    "marketplaceReady": "Marketplace de tecnología listo para comprar"
+  },
+  "labels": {
+    "total": "Total",
+    "quantity": "Cantidad",
+    "price": "Precio",
+    "shipping": "Envío",
+    "summary": "Resumen",
+    "filters": "Filtros",
+    "sort": "Ordenar",
+    "minPrice": "Precio mínimo",
+    "maxPrice": "Precio máximo",
+    "review": "Revisión",
+    "confirmation": "Confirmación",
+    "contact": "Contacto",
+    "status": "Estado",
+    "role": "Rol",
+    "user": "Usuario",
+    "guest": "Invitado",
+    "name": "Nombre",
+    "email": "Correo",
+    "password": "Contraseña",
+    "phone": "Teléfono",
+    "description": "Descripción",
+    "shippingAddress": "Dirección de entrega",
+    "shippingCost": "Costo de envío",
+    "category": "Categoría",
+    "seller": "Vendedor",
+    "product": "Producto",
+    "products": "Productos",
+    "stock": "Stock",
+    "location": "Ubicación",
+    "threshold": "Umbral",
+    "updatedAt": "Actualizado",
+    "createdAt": "Creado",
+    "recipient": "Destinatario",
+    "attempts": "Intentos",
+    "event": "Evento",
+    "session": "Sesión",
+    "data": "Datos",
+    "date": "Fecha",
+    "range": "Rango",
+    "customer": "Cliente",
+    "items": "Items",
+    "action": "Acción",
+    "actions": "Acciones",
+    "department": "Departamento",
+    "productUrls": "URLs de imagen",
+    "uploadImages": "Subir imágenes"
+  },
+  "auth": {
+    "loginEyebrow": "Acceso",
+    "loginTitle": "Inicia sesión en TechNexus",
+    "registerEyebrow": "Alta pública",
+    "registerTitle": "Crea tu cuenta",
+    "noAccount": "¿No tienes cuenta?",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?",
+    "accountType": "Tipo de cuenta",
+    "loginError": "No se pudo iniciar sesión.",
+    "registerError": "No se pudo crear la cuenta.",
+    "customer": "Comprador",
+    "seller": "Vendedor"
+  },
+  "search": {
+    "placeholder": "Busca laptops, componentes, monitores y más",
+    "catalogPlaceholder": "Busca por producto, vendedor o caso de uso",
+    "ariaLabel": "Buscar productos"
+  },
+  "cart": {
+    "updating": "Actualizando carrito...",
+    "quickPurchase": "Compra rápida con confirmación de entrega.",
+    "emptyTitle": "Tu carrito está vacío",
+    "emptyDescription": "Agrega productos para comparar precios, entregas y señales de confianza del vendedor.",
+    "emptySheetDescription": "Explora productos en tendencia y añade algunos para continuar.",
+    "addedToCart": "Se añadió {{productName}} a tu carrito.",
+    "toastTitle": "Producto añadido al carrito",
+    "toastDescriptionNamed": "{{productName}} listo para finalizar la compra.",
+    "toastDescriptionFallback": "Revisa el resumen y continúa con tu compra.",
+    "secureDelivery": "Entrega segura e inventario actualizado.",
+    "emptyPageDescription": "Agrega productos desde el catálogo para iniciar una compra como invitado o con tu cuenta.",
+    "pageDescription": "Resumen sincronizado con el servidor y listo para finalizar la compra contra entrega.",
+    "securePurchaseNote": "Compra segura, pago contra entrega y confirmación inmediata por correo."
+  },
+  "product": {
+    "soldBy": "Vendido por {{sellerName}}",
+    "buyBoxEyebrow": "Compra rápida",
+    "deliveryTitle": "Envío con confirmación de entrega",
+    "deliveryEta": "Llegada estimada entre mañana y las próximas 48 horas hábiles.",
+    "trackingIncluded": "Seguimiento del pedido incluido",
+    "secureInventory": "Compra segura e inventario sincronizado",
+    "trustBarAria": "Beneficios de compra",
+    "noReviews": "Aún no hay reseñas",
+    "noReviewsDescription": "Vuelve cuando se registren más compras y opiniones sobre este producto.",
+    "ratingLabel": "{{rating}} · {{count}} reseñas",
+    "ratingNew": "Nuevo",
+    "ratingPrompt": "Sé el primero en comprarlo",
+    "trustPoints": [
+      "Pago contra entrega",
+      "Garantía de satisfacción",
+      "Soporte disponible"
+    ],
+    "buyBoxTrustPoints": [
+      "Compra segura en cada paso",
+      "Visibilidad del vendedor en cada pedido",
+      "Soporte antes y después de la compra"
+    ],
+    "liveCatalogNote": "Stock, precio y calificación se sincronizan desde el catálogo en vivo.",
+    "reviewsTitle": "Reseñas de clientes",
+    "reviewsSummary": "{{rating}} de promedio en {{count}} reseñas.",
+    "reviewsEmptySummary": "Este producto todavía no tiene reseñas.",
+    "relatedTitle": "Productos relacionados",
+    "relatedDescription": "Artículos similares de la misma categoría para comparar mejor y mantener el impulso de compra.",
+    "alsoBoughtTitle": "Los clientes también compraron",
+    "alsoBoughtDescription": "Sugerencias de venta cruzada derivadas de precios similares, calificaciones y variedad de vendedores.",
+    "stock": {
+      "out": {
+        "label": "Agotado",
+        "urgency": "Este producto volverá pronto."
+      },
+      "low": {
+        "label": "Pocas unidades",
+        "urgency": "Solo quedan {{count}} unidades"
+      },
+      "available": {
+        "label": "En stock",
+        "urgency": "Entrega disponible con pago contra entrega"
+      }
+    },
+    "offerActive": "Oferta activa en TechNexus",
+    "deliveryOnReceipt": "Pago contra entrega",
+    "satisfactionGuarantee": "Garantía de satisfacción",
+    "badges": {
+      "bestSeller": "Más vendido",
+      "trending": "Tendencia",
+      "limitedStock": "Stock limitado"
+    },
+    "viewAria": "Ver {{productName}}"
+  },
+  "checkout": {
+    "steps": {
+      "shipping": "Envío",
+      "review": "Revisión",
+      "confirmation": "Confirmación"
+    },
+    "title": "Finalizar compra",
+    "description": "Flujo guiado para completar tu pedido con menos fricción y más confianza.",
+    "accountBanner": "Comprando como",
+    "noProductsTitle": "No hay productos para pagar",
+    "noProductsDescription": "Agrega productos al carrito antes de abrir la compra.",
+    "successEyebrow": "Pedido confirmado",
+    "successTitle": "Pedido #{{orderCode}}",
+    "successDescription": "El pedido quedó registrado con pago contra entrega. Guarda este folio y revisa tu correo para el siguiente paso.",
+    "confirmedTotal": "Total confirmado",
+    "fallbackAddress": "Dirección confirmada durante la compra",
+    "readyToConfirm": "Listo para confirmar",
+    "readyToConfirmDescription": "Revisamos tu pedido, dirección y total final. Al confirmar se crea el pedido inmediatamente.",
+    "noPhone": "Se confirmará por correo si no agregas teléfono.",
+    "paymentMethod": "Método de pago: contra entrega",
+    "summaryTitle": "Tu pedido",
+    "primaryAction": "Acción principal",
+    "primaryActionDescription": "Confirma tu pedido con pago contra entrega y seguimiento por correo.",
+    "progressAria": "Progreso de la compra",
+    "validationNameEmail": "Completa nombre y correo para continuar.",
+    "validationAddress": "Agrega una dirección de entrega para continuar.",
+    "submitError": "No se pudo procesar el pedido."
+  },
+  "dashboard": {
+    "analytics": "Analítica",
+    "localAnalytics": "Analítica local",
+    "navigation": {
+      "account": {
+        "overview": "Resumen",
+        "orders": "Pedidos"
+      },
+      "seller": {
+        "overview": "Resumen",
+        "products": "Productos",
+        "orders": "Pedidos",
+        "inventory": "Inventario"
+      },
+      "admin": {
+        "overview": "Resumen",
+        "analytics": "Analítica",
+        "products": "Productos",
+        "categories": "Categorías",
+        "users": "Usuarios",
+        "orders": "Pedidos",
+        "operations": "Operaciones"
+      }
+    },
+    "sections": {
+      "account": {
+        "title": "Mi cuenta",
+        "subtitle": "Revisa pedidos, dirección y estado de compra."
+      },
+      "seller": {
+        "title": "Centro de vendedores",
+        "subtitle": "Gestiona catálogo, inventario y órdenes sin mezclar la tienda pública."
+      },
+      "admin": {
+        "title": "Centro de administración",
+        "subtitle": "Supervisa marketplace, usuarios y operaciones de correo."
+      }
+    },
+    "topbar": {
+      "logout": "Salir"
+    },
+    "adminOverview": {
+      "productsLabel": "Productos",
+      "productsDescription": "Catálogo global visible.",
+      "usersLabel": "Usuarios",
+      "usersDescription": "Usuarios activos del marketplace.",
+      "ordersLabel": "Pedidos",
+      "ordersDescription": "Órdenes consolidadas.",
+      "outboxLabel": "Outbox pendiente",
+      "outboxDescription": "Cola de correos por procesar.",
+      "risksTitle": "Riesgos operativos",
+      "risksDescription": "Alertas de inventario abiertas a nivel plataforma.",
+      "alertRow": "{{productName}} / {{locationName}}: {{quantity}} unidades."
+    },
+    "adminAnalytics": {
+      "range24h": "Últimas 24 horas",
+      "range7d": "Últimos 7 días",
+      "range30d": "Últimos 30 días",
+      "loadingDescription": "Preparando el resumen del embudo y la actividad reciente.",
+      "providerDescription": "El panel local solo muestra métricas cuando el proveedor es internal.",
+      "providerInfo": "El entorno actual está configurado con {{provider}}. Mantuvimos la integración de eventos, pero el tablero local necesita `VITE_ANALYTICS_PROVIDER=internal` y `ANALYTICS_PROVIDER=internal`.",
+      "funnelDescription": "Embudo y comportamiento de sesión para el rango {{range}}.",
+      "sessionsLabel": "Sesiones",
+      "sessionsDescription": "Sesiones distintas con eventos en el rango.",
+      "viewProductLabel": "Vistas de producto",
+      "viewProductDescription": "Veces que una ficha de producto fue abierta.",
+      "addToCartLabel": "Añadidos al carrito",
+      "addToCartDescription": "Eventos exitosos de añadido al carrito.",
+      "startCheckoutLabel": "Inicio de compra",
+      "startCheckoutDescription": "Usuarios que avanzaron el primer paso de la compra.",
+      "completeOrderLabel": "Pedidos",
+      "completeOrderDescription": "Pedidos confirmados desde el flujo de compra.",
+      "addRateLabel": "Tasa de añadido",
+      "addRateDescription": "Relación entre vistas de producto y añadidos al carrito.",
+      "cartRateLabel": "Tasa de vista de carrito",
+      "cartRateDescription": "Relación entre añadidos al carrito y vistas del carrito.",
+      "completionRateLabel": "Finalización de compra",
+      "completionRateDescription": "Relación entre inicio de compra y pedido completado.",
+      "topViewedTitle": "Productos más vistos",
+      "topViewedDescription": "Top por eventos view_product.",
+      "topAddedTitle": "Productos más agregados",
+      "topAddedDescription": "Top por eventos add_to_cart.",
+      "recentEventsTitle": "Eventos recientes",
+      "recentEventsDescription": "Generado {{date}}."
+    },
+    "adminCategories": {
+      "newTitle": "Nueva categoría",
+      "newDescription": "Administra la taxonomía del catálogo sin tocar el servidor.",
+      "activeTitle": "Categorías activas",
+      "activeDescription": "Edición rápida y segura.",
+      "emptyTitle": "Sin categorías",
+      "emptyDescription": "Crea la primera categoría para comenzar.",
+      "authRequired": "Falta autenticación."
+    },
+    "adminUsers": {
+      "editTitle": "Editar usuario",
+      "newTitle": "Nuevo usuario",
+      "description": "Alta y mantenimiento para administradores, vendedores y compradores.",
+      "activeTitle": "Usuarios activos",
+      "activeDescription": "Roles, bloqueo y eliminación controlada.",
+      "active": "Activo",
+      "blocked": "Bloqueado",
+      "authRequired": "Falta autenticación."
+    },
+    "orders": {
+      "all": "Todos",
+      "managementTitle": "Gestión de pedidos",
+      "managementDescription": "Listado tipado conectado a `/api/orders` y sin mezclarlo con la tienda pública.",
+      "emptyTitle": "Sin pedidos",
+      "emptyDescription": "Todavía no hay pedidos que cumplan el filtro actual.",
+      "ordersLabel": "Pedidos",
+      "ordersDescription": "Registros visibles según el rol autenticado.",
+      "pendingLabel": "Pendientes",
+      "pendingDescription": "Órdenes que todavía requieren acción.",
+      "amountLabel": "Monto",
+      "amountDescription": "Total visible en la vista actual.",
+      "authRequired": "Falta autenticación."
+    },
+    "productManagement": {
+      "editTitle": "Editar producto",
+      "newTitle": "Nuevo producto",
+      "formDescription": "Carga imágenes por archivo y URLs. El servidor mantiene el contrato de `multipart/form-data`.",
+      "selectCategory": "Selecciona una categoría",
+      "assignCurrentAdmin": "Asignar al admin actual",
+      "imageHint": "Una URL por línea. Si editas sin nuevas imágenes, se conservan las actuales.",
+      "globalCatalogTitle": "Catálogo global",
+      "myProductsTitle": "Mis productos",
+      "catalogDescription": "Edición modular sin tocar la lógica del servidor.",
+      "productCountTitle": "{{count}} productos",
+      "productCountDescription": "Soporte para CRUD y stock sincronizado.",
+      "emptyTitle": "No hay productos",
+      "emptyDescription": "Crea el primer producto para este panel.",
+      "saveError": "No se pudo guardar el producto.",
+      "authRequired": "Falta autenticación."
+    },
+    "sellerOverview": {
+      "productsLabel": "Productos",
+      "productsDescription": "Activos en tu catálogo.",
+      "ordersLabel": "Pedidos",
+      "ordersDescription": "Órdenes asignadas a tu tienda.",
+      "billingLabel": "Facturación visible",
+      "billingDescription": "Suma de subtotales por item vendido.",
+      "alertsLabel": "Alertas de stock",
+      "alertsDescription": "Bajo umbral en inventario.",
+      "risksTitle": "Riesgos operativos",
+      "risksDescription": "Alertas abiertas en inventario.",
+      "alertRow": "{{productName}} en {{locationName}}: {{triggeredQty}} / umbral {{threshold}}"
+    },
+    "sellerInventory": {
+      "inventoryTitle": "Inventario por producto",
+      "inventoryDescription": "Actualiza cantidades y umbral de stock bajo por ubicación.",
+      "activeAlertsTitle": "Alertas activas",
+      "activeAlertsDescription": "Productos que cruzaron el umbral de stock bajo.",
+      "emptyTitle": "Sin productos",
+      "emptyDescription": "Primero crea productos para administrar inventario.",
+      "alertRow": "{{productName}} en {{locationName}}: {{triggeredQty}} unidades el {{date}}",
+      "authRequired": "Falta autenticación."
+    },
+    "accountOverview": {
+      "ordersLabel": "Pedidos",
+      "ordersDescription": "Historial del cliente autenticado.",
+      "spentLabel": "Total invertido",
+      "spentDescription": "Suma de órdenes visibles.",
+      "activeStatusLabel": "Estado activo",
+      "activeStatusDescription": "Pedidos aún en flujo.",
+      "profileTitle": "Perfil",
+      "profileDescription": "Acceso rápido al estado de tu cuenta y próximos pasos.",
+      "roleLine": "Rol: {{role}}"
+    },
+    "operations": {
+      "workerHealthTitle": "Estado del worker",
+      "workerHealthDescription": "Estado actual del outbox de correos.",
+      "statusLabel": "Estado",
+      "statusDescription": "Última ejecución y degradación reportada.",
+      "lastRunLabel": "Última corrida",
+      "lastRunDescription": "Tiempo de la última pasada del worker.",
+      "noData": "Sin dato",
+      "emailOutboxTitle": "Outbox de correo",
+      "emailOutboxDescription": "Reintento y saneamiento de filas fallidas.",
+      "authRequired": "Falta autenticación."
+    }
+  },
+  "routeGuards": {
+    "checkingAccess": "Verificando acceso...",
+    "loadingSession": "Cargando sesión..."
+  },
+  "home": {
+    "supportEyebrow": "Por qué aquí convierten más",
+    "supportTitle": "Exploración enfocada en compra con contexto real del vendedor",
+    "supportDescription": "La búsqueda siempre está visible, el precio se escanea rápido y cada producto muestra calificación, stock y señales del vendedor sin mezclar paneles internos.",
+    "trendingTitle": "Productos en tendencia",
+    "trendingDescription": "Artículos de alto interés detectados desde el catálogo en vivo con señales de calificación, reseñas y disponibilidad.",
+    "dealsTitle": "Ofertas que vale la pena aprovechar",
+    "dealsDescription": "Selecciones sensibles al precio que mantienen al frente la calidad de reseñas y la confianza en el vendedor.",
+    "sellersTitle": "Vendedores destacados",
+    "sellersDescription": "Los destacados se calculan con profundidad de catálogo y feedback de clientes para comparar tiendas más rápido.",
+    "catalogTitle": "Explora el catálogo completo",
+    "catalogDescription": "Tarjetas densas en información, optimizadas para escaneo rápido en escritorio y navegación táctil en móvil."
+  },
+  "hero": {
+    "eyebrow": "Marketplace tecnológico",
+    "title": "Encuentra tu próximo dispositivo más rápido con búsqueda prioritaria y contexto útil en cada producto.",
+    "description": "Explora laptops, periféricos gamer y componentes con precios en vivo, credibilidad del vendedor y fichas pensadas para comprar sin fricción.",
+    "activeDepartments": "departamentos activos",
+    "featuredSellers": "vendedores destacados",
+    "trending": "En tendencia",
+    "spotlightMeta": "{{categoryName}} · {{sellerName}}",
+    "spotlightNote": "Alta visibilidad, señales de confianza y una ruta más corta hacia la compra.",
+    "loadingTitle": "Cargando catálogo",
+    "loadingDescription": "La portada se arma desde el feed público de productos sin cambiar las APIs existentes."
+  },
+  "productsPage": {
+    "eyebrow": "Catálogo de tienda",
+    "title": "Encuentra productos más rápido con búsqueda, orden y módulos reutilizables",
+    "description": "Este catálogo mantiene intactos los paneles mientras mejora la velocidad de escaneo, el contexto del producto y la navegación móvil.",
+    "sortLatest": "Novedades",
+    "sortPriceAsc": "Precio: menor a mayor",
+    "sortPriceDesc": "Precio: mayor a menor",
+    "sortNameAsc": "Nombre A-Z",
+    "sortNameDesc": "Nombre Z-A",
+    "allCategories": "Todas",
+    "emptyTitle": "No se encontraron productos",
+    "emptyDescription": "Ajusta la búsqueda, la categoría o el orden para descubrir más productos."
+  },
+  "categoryPage": {
+    "description": "Mostrando {{count}} productos con filtros de tienda separados de las vistas de administración.",
+    "emptyTitle": "Ningún producto coincide con estos filtros",
+    "emptyDescription": "Prueba otro rango de precio u otra forma de orden.",
+    "sortLatest": "Novedades",
+    "sortPriceAsc": "Menor precio",
+    "sortPriceDesc": "Mayor precio",
+    "sidebarDescription": "Acota el catálogo sin salir de la tienda pública."
+  },
+  "footer": {
+    "description": "Marketplace integral para tecnología, gadgets y gestión multirol.",
+    "securePurchase": "Compra segura con pago contra entrega.",
+    "separatePanels": "Paneles separados para administración, vendedores y cuenta."
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "pageOf": "Página {{page}} de {{totalPages}}"
+  },
+  "notFound": {
+    "title": "Esta vista no existe",
+    "description": "La ruta solicitada no forma parte de la tienda ni de los paneles de TechNexus.",
+    "backHome": "Volver al inicio"
+  }
+}

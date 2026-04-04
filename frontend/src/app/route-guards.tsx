@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/auth-context";
 
@@ -6,11 +7,12 @@ type ProtectedRouteProps = {
 };
 
 export function ProtectedRoute({ roles }: ProtectedRouteProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const { isBootstrapping, isAuthenticated, role } = useAuth();
 
   if (isBootstrapping) {
-    return <div className="page-loader">Verificando acceso...</div>;
+    return <div className="page-loader">{t("routeGuards.checkingAccess")}</div>;
   }
 
   if (!isAuthenticated) {
@@ -25,10 +27,11 @@ export function ProtectedRoute({ roles }: ProtectedRouteProps) {
 }
 
 export function PublicOnlyRoute() {
+  const { t } = useTranslation();
   const { isBootstrapping, isAuthenticated, role } = useAuth();
 
   if (isBootstrapping) {
-    return <div className="page-loader">Cargando sesión...</div>;
+    return <div className="page-loader">{t("routeGuards.loadingSession")}</div>;
   }
 
   if (isAuthenticated) {

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { SurfaceCard } from "@/components/shared/SurfaceCard";
 import { listSellerProducts } from "@/features/api/catalog-api";
@@ -8,6 +9,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { formatCurrency } from "@/lib/format";
 
 export function SellerOverviewPage() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const productsQuery = useQuery({
     queryKey: ["seller", "products", "overview"],
@@ -32,16 +34,21 @@ export function SellerOverviewPage() {
   return (
     <div className="stack-lg">
       <div className="metrics-grid">
-        <MetricCard label="Productos" value={String(productsQuery.data?.products.length ?? 0)} description="Activos en tu catálogo." />
-        <MetricCard label="Pedidos" value={String(ordersQuery.data?.orders.length ?? 0)} description="Órdenes asignadas a tu tienda." />
-        <MetricCard label="Facturación visible" value={formatCurrency(sellerSubtotal)} description="Suma de subtotales por item vendido." />
-        <MetricCard label="Alertas de stock" value={String(alertsQuery.data?.alerts.length ?? 0)} description="Bajo umbral en inventario." />
+        <MetricCard label={t("dashboard.sellerOverview.productsLabel")} value={String(productsQuery.data?.products.length ?? 0)} description={t("dashboard.sellerOverview.productsDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.ordersLabel")} value={String(ordersQuery.data?.orders.length ?? 0)} description={t("dashboard.sellerOverview.ordersDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.billingLabel")} value={formatCurrency(sellerSubtotal)} description={t("dashboard.sellerOverview.billingDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.alertsLabel")} value={String(alertsQuery.data?.alerts.length ?? 0)} description={t("dashboard.sellerOverview.alertsDescription")} />
       </div>
-      <SurfaceCard title="Riesgos operativos" description="Alertas abiertas en inventario.">
+      <SurfaceCard title={t("dashboard.sellerOverview.risksTitle")} description={t("dashboard.sellerOverview.risksDescription")}>
         <ul className="compact-list">
           {(alertsQuery.data?.alerts ?? []).slice(0, 5).map((alert) => (
             <li key={alert.id}>
-              {alert.productName} en {alert.locationName}: {alert.triggeredQty} / umbral {alert.threshold}
+              {t("dashboard.sellerOverview.alertRow", {
+                productName: alert.productName,
+                locationName: alert.locationName,
+                triggeredQty: alert.triggeredQty,
+                threshold: alert.threshold
+              })}
             </li>
           ))}
         </ul>

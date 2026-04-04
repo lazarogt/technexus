@@ -52,7 +52,8 @@ const runBackendCommand = (...args: string[]) => {
     env: {
       ...process.env,
       NODE_ENV: "test",
-      REDIS_ENABLED: "false"
+      REDIS_ENABLED: "false",
+      TEST_POSTGRES_DB: process.env.TEST_POSTGRES_DB ?? "technexus_test"
     },
     stdio: "inherit"
   });
@@ -241,8 +242,9 @@ const createProductWithUrl = async (input: {
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.REDIS_ENABLED = "false";
+  process.env.TEST_POSTGRES_DB ??= "technexus_test";
 
-  runBackendCommand("./scripts/prisma.cjs", "migrate", "deploy");
+  runBackendCommand("scripts/prepareTestDatabase.cjs");
   runBackendCommand("node_modules/tsx/dist/cli.mjs", "prisma/seed.ts");
 
   appModule = await import("../src/app");
@@ -358,6 +360,7 @@ describe("TechNexus smoke suite", () => {
       role: "customer"
     });
     const category = await createAdminCategory(admin.token, "Audio");
+    const otherCategory = await createAdminCategory(admin.token, "Peripherals");
 
     const uploadedProduct = await createProductWithUpload({
       token: seller.token,
@@ -385,6 +388,16 @@ describe("TechNexus smoke suite", () => {
 
     expect(urlProduct.images).toEqual(["https://cdn.example.com/microphone.jpg"]);
 
+    const filteredOutProduct = await createProductWithUrl({
+      token: seller.token,
+      name: "Streaming Deck",
+      description: "Customizable shortcuts for live production workflows.",
+      price: "199.00",
+      stock: "3",
+      categoryId: otherCategory.id,
+      imageUrl: "https://cdn.example.com/streaming-deck.jpg"
+    });
+
     const customerCreateForbidden = await api
       .post("/api/products")
       .set(authHeader(customer.token))
@@ -410,11 +423,21 @@ describe("TechNexus smoke suite", () => {
 
     const apiListResponse = await api.get("/api/products");
     expect(apiListResponse.status).toBe(200);
-    expect(apiListResponse.body.products).toHaveLength(2);
+    expect(apiListResponse.body.products).toHaveLength(3);
 
     const legacyListResponse = await api.get("/products");
     expect(legacyListResponse.status).toBe(200);
-    expect(legacyListResponse.body.products).toHaveLength(2);
+    expect(legacyListResponse.body.products).toHaveLength(3);
+
+    const filteredListResponse = await api.get(`/api/products?categoryId=${category.id}`);
+    expect(filteredListResponse.status).toBe(200);
+    expect(filteredListResponse.body.products).toHaveLength(2);
+    expect(
+      filteredListResponse.body.products.map((product: { id: string }) => product.id)
+    ).toEqual(expect.arrayContaining([uploadedProduct.id, urlProduct.id]));
+    expect(
+      filteredListResponse.body.products.map((product: { id: string }) => product.id)
+    ).not.toContain(filteredOutProduct.id);
 
     const readResponse = await api.get(`/api/products/${uploadedProduct.id}`);
     expect(readResponse.status).toBe(200);
@@ -430,7 +453,7 @@ describe("TechNexus smoke suite", () => {
     expect(deletedReadResponse.status).toBe(404);
 
     const listAfterDelete = await api.get("/api/products");
-    expect(listAfterDelete.body.products).toHaveLength(1);
+    expect(listAfterDelete.body.products).toHaveLength(2);
   });
 
   it("verifies inventory endpoints, low-stock alerts, multi-seller COD checkout and email fan-out", async () => {
@@ -946,6 +969,8 @@ describe("TechNexus smoke suite", () => {
       api.get("/products"),
       api.get("/api/categories"),
       api.get("/categories"),
+      api.get("/api/observability/metrics"),
+      api.get("/observability/metrics"),
       api.get("/api/metrics"),
       api.get("/metrics"),
       api.get("/api/admin/ops/worker-health").set(authHeader(admin.token)),
@@ -960,5 +985,6 @@ describe("TechNexus smoke suite", () => {
     expect(responses[0].body.status).toBe("ok");
     expect(Array.isArray(responses[1].body.products)).toBe(true);
     expect(Array.isArray(responses[3].body.categories)).toBe(true);
+    expect(typeof responses[5].body.totalRequests).toBe("number");
   });
 });

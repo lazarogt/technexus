@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, NavLink } from "react-router-dom";
 import type { NavigationItem } from "@/lib/routes";
 
@@ -7,6 +8,8 @@ type SidebarProps = {
 };
 
 export function Sidebar({ items, title }: SidebarProps) {
+  const { t } = useTranslation();
+
   return (
     <aside className="dashboard-sidebar">
       <Link to="/" className="dashboard-brand">
@@ -25,7 +28,7 @@ export function Sidebar({ items, title }: SidebarProps) {
               className={({ isActive }) => `dashboard-nav-item ${isActive ? "is-active" : ""}`}
             >
               <Icon size={18} />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </NavLink>
           );
         })}

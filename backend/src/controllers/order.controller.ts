@@ -15,6 +15,7 @@ import {
   retryFailedOutboxRows,
   retryOutboxById
 } from "../services/outbox.service";
+import { idParamSchema, metricsFormatQuerySchema, orderListQuerySchema, outboxOverviewQuerySchema } from "../utils/request-validation";
 
 const createOrderSchema = z.object({
   buyerName: z.string().trim().min(2).optional(),
@@ -35,32 +36,36 @@ export const storeOrder = asyncHandler(async (req, res) => {
 });
 
 export const indexOrders = asyncHandler(async (req, res) => {
+  const query = orderListQuerySchema.parse(req.query);
   const response = await listOrders(req.actor!, {
-    page: req.query.page,
-    limit: req.query.limit ?? req.query.pageSize,
-    status: typeof req.query.status === "string" ? req.query.status : undefined,
-    sellerId: typeof req.query.sellerId === "string" ? req.query.sellerId : undefined,
-    dateFrom: typeof req.query.dateFrom === "string" ? req.query.dateFrom : undefined,
-    dateTo: typeof req.query.dateTo === "string" ? req.query.dateTo : undefined
+    page: query.page,
+    limit: query.limit ?? query.pageSize,
+    status: query.status,
+    sellerId: query.sellerId,
+    dateFrom: query.dateFrom,
+    dateTo: query.dateTo
   });
   res.status(200).json(response);
 });
 
 export const updateManagedOrderStatus = asyncHandler(async (req, res) => {
+  const params = idParamSchema.parse(req.params);
   const payload = updateStatusSchema.parse(req.body);
   const order = await updateOrderStatus(
     {
       role: req.actor!.role!,
       userId: req.actor!.userId!
     },
-    String(req.params.id),
+    params.id,
     payload.status
   );
   res.status(200).json({ order });
 });
 
 export const metrics = asyncHandler(async (req, res) => {
-  if (req.query.format === "json") {
+  const query = metricsFormatQuerySchema.parse(req.query);
+
+  if (query.format === "json") {
     res.status(200).json(await getMetricsSnapshot());
     return;
   }
@@ -69,15 +74,12 @@ export const metrics = asyncHandler(async (req, res) => {
 });
 
 export const outboxOverview = asyncHandler(async (req, res) => {
-  const status =
-    req.query.status === "pending" || req.query.status === "sent" || req.query.status === "failed"
-      ? req.query.status
-      : null;
+  const query = outboxOverviewQuerySchema.parse(req.query);
 
   const overview = await getOutboxOverview({
-    page: req.query.page ? Number(req.query.page) : undefined,
-    limit: req.query.limit ? Number(req.query.limit) : undefined,
-    status
+    page: query.page,
+    limit: query.limit,
+    status: query.status ?? null
   });
   res.status(200).json(overview);
 });
@@ -87,7 +89,8 @@ export const outboxWorkerHealth = asyncHandler(async (_req, res) => {
 });
 
 export const retryOutbox = asyncHandler(async (req, res) => {
-  const response = await retryOutboxById(String(req.params.id));
+  const params = idParamSchema.parse(req.params);
+  const response = await retryOutboxById(params.id);
   if (response.result === "not_found") {
     res.status(404).json({ message: "Email outbox row was not found." });
     return;
@@ -100,7 +103,8 @@ export const retryFailedOutbox = asyncHandler(async (_req, res) => {
 });
 
 export const resetFailedOutbox = asyncHandler(async (req, res) => {
-  const response = await resetFailedOutboxRow(String(req.params.id));
+  const params = idParamSchema.parse(req.params);
+  const response = await resetFailedOutboxRow(params.id);
   if (response.result === "not_found") {
     res.status(404).json({ message: "Email outbox row was not found." });
     return;

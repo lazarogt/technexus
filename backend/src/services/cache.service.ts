@@ -68,6 +68,10 @@ export class CacheService {
     }
   }
 
+  getHealthStatus() {
+    return this.redisClient?.isOpen ? ("up" as const) : ("degraded" as const);
+  }
+
   async get<T>(key: string): Promise<T | null> {
     if (this.redisClient?.isOpen) {
       const value = await this.redisClient.get(key);

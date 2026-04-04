@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/shared/Button";
 import { SelectField } from "@/components/shared/SelectField";
 import { SurfaceCard } from "@/components/shared/SurfaceCard";
@@ -8,6 +9,7 @@ import { TextField } from "@/components/shared/TextField";
 import { createUser, deleteUser, listUsers, updateUser } from "@/features/api/admin-api";
 import type { PublicUser } from "@/features/api/types";
 import { useAuth } from "@/features/auth/auth-context";
+import { getUserRoleLabel } from "@/i18n/es";
 
 type UserForm = {
   name: string;
@@ -24,6 +26,7 @@ const emptyUserForm: UserForm = {
 };
 
 export function AdminUsersPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const [editingUser, setEditingUser] = useState<PublicUser | null>(null);
@@ -38,7 +41,7 @@ export function AdminUsersPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.adminUsers.authRequired"));
       }
 
       if (editingUser) {
@@ -61,7 +64,7 @@ export function AdminUsersPage() {
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.adminUsers.authRequired"));
       }
 
       return deleteUser(token, userId);
@@ -78,35 +81,35 @@ export function AdminUsersPage() {
 
   return (
     <div className="dashboard-grid">
-      <SurfaceCard title={editingUser ? "Editar usuario" : "Nuevo usuario"} description="Alta y mantenimiento para admin, seller y customer.">
+      <SurfaceCard title={editingUser ? t("dashboard.adminUsers.editTitle") : t("dashboard.adminUsers.newTitle")} description={t("dashboard.adminUsers.description")}>
         <form className="stack-md" onSubmit={handleSubmit}>
-          <TextField label="Nombre" value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required />
-          <TextField label="Correo" type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} required />
+          <TextField label={t("labels.name")} value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} required />
+          <TextField label={t("labels.email")} type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} required />
           {!editingUser ? (
-            <TextField label="Contraseña" type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} required />
+            <TextField label={t("labels.password")} type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} required />
           ) : null}
           <SelectField
-            label="Rol"
+            label={t("labels.role")}
             value={form.role}
             onChange={(event) => setForm((current) => ({ ...current, role: event.target.value as UserForm["role"] }))}
             options={[
-              { value: "customer", label: "Customer" },
-              { value: "seller", label: "Seller" },
-              { value: "admin", label: "Admin" }
+              { value: "customer", label: getUserRoleLabel("customer") },
+              { value: "seller", label: getUserRoleLabel("seller") },
+              { value: "admin", label: getUserRoleLabel("admin") }
             ]}
           />
-          <Button type="submit">{editingUser ? "Guardar cambios" : "Crear usuario"}</Button>
+          <Button type="submit">{editingUser ? t("buttons.saveChanges") : t("buttons.createUser")}</Button>
         </form>
       </SurfaceCard>
-      <SurfaceCard title="Usuarios activos" description="Roles, bloqueo y eliminación controlada.">
+      <SurfaceCard title={t("dashboard.adminUsers.activeTitle")} description={t("dashboard.adminUsers.activeDescription")}>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Nombre</th>
-                <th>Correo</th>
-                <th>Rol</th>
-                <th>Estado</th>
+                <th>{t("labels.name")}</th>
+                <th>{t("labels.email")}</th>
+                <th>{t("labels.role")}</th>
+                <th>{t("labels.status")}</th>
                 <th></th>
               </tr>
             </thead>
@@ -115,8 +118,8 @@ export function AdminUsersPage() {
                 <tr key={user.id}>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.role}</td>
-                  <td>{user.isBlocked ? "Bloqueado" : "Activo"}</td>
+                  <td>{getUserRoleLabel(user.role)}</td>
+                  <td>{user.isBlocked ? t("dashboard.adminUsers.blocked") : t("dashboard.adminUsers.active")}</td>
                   <td>
                     <div className="button-row">
                       <Button
@@ -131,13 +134,13 @@ export function AdminUsersPage() {
                           });
                         }}
                       >
-                        Editar
+                        {t("buttons.edit")}
                       </Button>
                       <Button variant="ghost" onClick={() => updateUser(token!, user.id, { isBlocked: !user.isBlocked }).then(() => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }))}>
-                        {user.isBlocked ? "Desbloquear" : "Bloquear"}
+                        {user.isBlocked ? t("buttons.unblock") : t("buttons.block")}
                       </Button>
                       <Button variant="danger" onClick={() => deleteMutation.mutate(user.id)}>
-                        Eliminar
+                        {t("buttons.delete")}
                       </Button>
                     </div>
                   </td>

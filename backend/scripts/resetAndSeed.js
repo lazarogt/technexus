@@ -5,21 +5,13 @@ const {
   pickSeedSeller,
   quoteIdentifier
 } = require("./resetAndSeed.helpers.cjs");
-const { createPrismaClient, initializeDatabaseEnv, runPrismaCommand } = require("./db-runtime.cjs");
+const { createPrismaClient, initializeDatabaseEnv, runMigrateDeployAndGenerate } = require("./db-runtime.cjs");
 
 initializeDatabaseEnv();
 
 const prisma = createPrismaClient({
   log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"]
 });
-
-const runMigrations = () => {
-  const result = runPrismaCommand(["migrate", "deploy"]);
-
-  if (typeof result.status !== "number" || result.status !== 0) {
-    throw new Error("Prisma migrate deploy failed.");
-  }
-};
 
 const loadExistingTables = async (tx) => {
   const rows = await tx.$queryRawUnsafe(`
@@ -54,7 +46,7 @@ const ensureSeedLocation = async (tx, sellerId) => {
 
 const main = async () => {
   console.log("Applying pending database migrations...");
-  runMigrations();
+  await runMigrateDeployAndGenerate();
 
   await prisma.$connect();
 

@@ -115,10 +115,10 @@ describe("ProductPage", () => {
       expect(screen.getByRole("heading", { name: "Dell XPS 13" })).toBeInTheDocument();
     });
 
-    expect(screen.getByRole("heading", { name: "Customer Reviews" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Reseñas de clientes" })).toBeInTheDocument();
     expect(screen.getByText("Excellent daily driver.")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Related Products" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Customers Also Bought" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Productos relacionados" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Los clientes también compraron" })).toBeInTheDocument();
     expect(screen.getByTestId("mobile-buybar")).toBeInTheDocument();
   });
 });

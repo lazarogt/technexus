@@ -1,4 +1,5 @@
 import { Bell, LogOut } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/features/auth/auth-context";
 
 type TopbarProps = {
@@ -7,6 +8,7 @@ type TopbarProps = {
 };
 
 export function Topbar({ title, subtitle }: TopbarProps) {
+  const { t } = useTranslation();
   const { logout, user } = useAuth();
 
   return (
@@ -22,7 +24,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
         </div>
         <button type="button" className="header-link header-link-button" onClick={logout}>
           <LogOut size={16} />
-          Salir
+          {t("dashboard.topbar.logout")}
         </button>
       </div>
     </header>

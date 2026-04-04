@@ -1,6 +1,7 @@
 import { Button } from "@/components/shared/Button";
 import type { Product } from "@/features/api/types";
 import { getStockLabel } from "@/features/catalog/product-display";
+import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
 type BuyBoxProps = {
@@ -15,16 +16,16 @@ export function BuyBox({ product, quantity, onQuantityChange, onAddToCart }: Buy
 
   return (
     <aside className="buy-box" data-testid="buybox">
-      <p className="section-eyebrow">Fast checkout</p>
+      <p className="section-eyebrow">{ES.product.buyBoxEyebrow}</p>
       <p className="buy-box-price">{formatCurrency(product.price)}</p>
       <p className={`buy-box-stock is-${stock.tone}`}>{stock.label}</p>
       <p className="buy-box-urgency">{stock.urgency}</p>
       <div className="buy-box-delivery">
-        <strong>Ships with delivery confirmation</strong>
-        <span>Estimated arrival between tomorrow and the next 48 business hours.</span>
+        <strong>{ES.product.deliveryTitle}</strong>
+        <span>{ES.product.deliveryEta}</span>
       </div>
       <label className="field">
-        <span className="field-label">Quantity</span>
+        <span className="field-label">{ES.labels.quantity}</span>
         <input
           className="field-input"
           data-testid="buybox-quantity"
@@ -36,17 +37,17 @@ export function BuyBox({ product, quantity, onQuantityChange, onAddToCart }: Buy
         />
       </label>
       <Button data-testid="buybox-add-to-cart" onClick={onAddToCart} disabled={product.stock <= 0} fullWidth>
-        Add to Cart
+        {ES.buttons.addToCart}
       </Button>
       <Button variant="secondary" fullWidth onClick={onAddToCart} disabled={product.stock <= 0}>
-        Buy Now
+        {ES.buttons.buyNow}
       </Button>
       <ul className="buy-box-trust-list">
-        <li>Secure purchase flow</li>
-        <li>Seller visibility on every order</li>
-        <li>Support available before and after purchase</li>
+        {ES.product.buyBoxTrustPoints.map((point) => (
+          <li key={point}>{point}</li>
+        ))}
       </ul>
-      <p className="buy-box-note">Stock, price and rating are synced from the live storefront catalog.</p>
+      <p className="buy-box-note">{ES.product.liveCatalogNote}</p>
     </aside>
   );
 }

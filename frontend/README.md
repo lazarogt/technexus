@@ -21,6 +21,10 @@ Standalone React + TypeScript + Vite frontend for TechNexus. It consumes the exi
 - Product CRUD using multipart upload plus image URLs
 - Cart and COD checkout using existing order/cart endpoints
 - Inventory alerts and email outbox operations for admin/seller views
+- Frontend localization with `i18next` + `react-i18next`
+  - default UI language is Spanish (`es`)
+  - translation resources live in `src/locales/en/translation.json` and `src/locales/es/translation.json`
+  - `src/i18n.ts` bootstraps the app-wide i18n instance
 - Conversion-focused storefront UX:
   - richer product cards with trust and stock cues
   - sticky buy box and mobile add-to-cart CTA

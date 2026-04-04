@@ -1,7 +1,9 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/features/toast/toast-context";
 
 export function ToastViewport() {
+  const { t } = useTranslation();
   const { toasts, dismissToast } = useToast();
 
   return (
@@ -12,7 +14,7 @@ export function ToastViewport() {
             <strong>{toast.title}</strong>
             {toast.description ? <p>{toast.description}</p> : null}
           </div>
-          <button type="button" className="toast-close" onClick={() => dismissToast(toast.id)} aria-label="Cerrar notificación">
+          <button type="button" className="toast-close" onClick={() => dismissToast(toast.id)} aria-label={t("buttons.closeNotification")}>
             <X size={16} />
           </button>
         </article>

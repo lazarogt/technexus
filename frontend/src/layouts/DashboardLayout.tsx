@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
@@ -9,30 +10,33 @@ type DashboardLayoutProps = {
 
 const copy = {
   account: {
-    title: "Mi cuenta",
-    subtitle: "Revisa pedidos, dirección y estado de compra.",
+    titleKey: "dashboard.sections.account.title",
+    subtitleKey: "dashboard.sections.account.subtitle",
     nav: accountNavigation
   },
   seller: {
-    title: "Seller workspace",
-    subtitle: "Gestiona catálogo, inventario y órdenes sin mezclar la tienda pública.",
+    titleKey: "dashboard.sections.seller.title",
+    subtitleKey: "dashboard.sections.seller.subtitle",
     nav: sellerNavigation
   },
   admin: {
-    title: "Admin control center",
-    subtitle: "Supervisa marketplace, usuarios y operaciones de correo.",
+    titleKey: "dashboard.sections.admin.title",
+    subtitleKey: "dashboard.sections.admin.subtitle",
     nav: adminNavigation
   }
 } as const;
 
 export function DashboardLayout({ section }: DashboardLayoutProps) {
+  const { t } = useTranslation();
   const current = copy[section];
+  const title = t(current.titleKey);
+  const subtitle = t(current.subtitleKey);
 
   return (
     <div className="dashboard-layout">
-      <Sidebar items={current.nav} title={current.title} />
+      <Sidebar items={current.nav} title={title} />
       <div className="dashboard-content">
-        <Topbar title={current.title} subtitle={current.subtitle} />
+        <Topbar title={title} subtitle={subtitle} />
         <main className="dashboard-main">
           <Outlet />
         </main>

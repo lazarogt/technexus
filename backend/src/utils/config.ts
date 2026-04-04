@@ -1,8 +1,18 @@
 import path from "node:path";
 import dotenv from "dotenv";
+import pino from "pino";
 import { z } from "zod";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
+
+const bootstrapLogger = pino({
+  level: "error",
+  messageKey: "message",
+  timestamp: pino.stdTimeFunctions.isoTime,
+  formatters: {
+    level: (label) => ({ level: label })
+  }
+});
 
 const trimString = <T extends z.ZodTypeAny>(schema: T) => z.preprocess((value) => {
   if (typeof value !== "string") {
@@ -26,6 +36,8 @@ const envSchema = z.object({
   ANALYTICS_PROVIDER: z.enum(["posthog", "internal"]).default("internal"),
   DATABASE_URL: z.union([urlString(["postgres:", "postgresql:"]), z.literal("")]).optional(),
   POSTGRES_DB: trimString(z.string().min(1)).default("technexus"),
+  TEST_POSTGRES_DB: trimString(z.string().min(1)).optional(),
+  TEST_POSTGRES_PORT: z.coerce.number().int().positive().optional(),
   POSTGRES_USER: trimString(z.string().min(1)).default("technexus"),
   POSTGRES_PASSWORD: trimString(z.string().min(1)).default("technexus"),
   POSTGRES_PORT: z.coerce.number().int().positive().default(5432),
@@ -70,7 +82,7 @@ if (!parsedEnvResult.success) {
     })
     .join("\n");
 
-  console.error(`Invalid environment configuration:\n${details}`);
+  bootstrapLogger.error({ details }, "Invalid environment configuration");
   throw new Error("Invalid environment configuration");
 }
 
@@ -78,12 +90,18 @@ const parsedEnv = parsedEnvResult.data;
 
 const postgresHost = process.env.POSTGRES_HOST ?? "localhost";
 const postgresRuntimePort = Number(
-  process.env.POSTGRES_INTERNAL_PORT ?? parsedEnv.POSTGRES_PORT
+  parsedEnv.NODE_ENV === "test"
+    ? process.env.TEST_POSTGRES_PORT ?? process.env.POSTGRES_INTERNAL_PORT ?? parsedEnv.POSTGRES_PORT
+    : process.env.POSTGRES_INTERNAL_PORT ?? parsedEnv.POSTGRES_PORT
 );
+const resolvedPostgresDb =
+  parsedEnv.NODE_ENV === "test"
+    ? parsedEnv.TEST_POSTGRES_DB ?? `${parsedEnv.POSTGRES_DB}_test`
+    : parsedEnv.POSTGRES_DB;
 const databaseUrl =
   parsedEnv.DATABASE_URL && parsedEnv.DATABASE_URL.length > 0
     ? parsedEnv.DATABASE_URL
-    : `postgresql://${encodeURIComponent(parsedEnv.POSTGRES_USER)}:${encodeURIComponent(parsedEnv.POSTGRES_PASSWORD)}@${postgresHost}:${postgresRuntimePort}/${parsedEnv.POSTGRES_DB}?schema=public`;
+    : `postgresql://${encodeURIComponent(parsedEnv.POSTGRES_USER)}:${encodeURIComponent(parsedEnv.POSTGRES_PASSWORD)}@${postgresHost}:${postgresRuntimePort}/${resolvedPostgresDb}?schema=public`;
 const redisUrl =
   parsedEnv.REDIS_URL && parsedEnv.REDIS_URL.length > 0
     ? parsedEnv.REDIS_URL
@@ -94,6 +112,8 @@ export const env = {
   isDevelopment: parsedEnv.NODE_ENV === "development",
   isTest: parsedEnv.NODE_ENV === "test",
   isProduction: parsedEnv.NODE_ENV === "production",
+  testPostgresDb: parsedEnv.TEST_POSTGRES_DB ?? `${parsedEnv.POSTGRES_DB}_test`,
+  testPostgresPort: parsedEnv.TEST_POSTGRES_PORT ?? parsedEnv.POSTGRES_PORT,
   postgresHost,
   postgresRuntimePort,
   databaseUrl,

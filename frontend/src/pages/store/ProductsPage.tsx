@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { startTransition, useDeferredValue, useMemo } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeader } from "@/components/store/SectionHeader";
@@ -9,23 +10,92 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
+import type { Category } from "@/features/api/types";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+function normalizeCategoryFilter(
+  value: string,
+  categories: Category[],
+  categoriesLoaded: boolean
+) {
+  if (!value) {
+    return "";
+  }
+
+  if (UUID_PATTERN.test(value)) {
+    return value;
+  }
+
+  if (!categoriesLoaded) {
+    return null;
+  }
+
+  const normalizedValue = value.trim().toLocaleLowerCase();
+  const matchedCategory = categories.find(
+    (category) => category.name.trim().toLocaleLowerCase() === normalizedValue
+  );
+
+  return matchedCategory?.id ?? "";
+}
 
 export function ProductsPage() {
+  const { t } = useTranslation();
   const { addItem } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
   const deferredSearch = useDeferredValue(searchParams.get("search") ?? "");
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "latest";
-  const categoryId = searchParams.get("categoryId") ?? "";
+  const rawCategoryId = searchParams.get("categoryId") ?? "";
+  const legacyCategory = searchParams.get("category") ?? "";
 
   const categoriesQuery = useQuery({
     queryKey: ["products", "categories"],
     queryFn: listCategories
   });
+  const categories = categoriesQuery.data?.categories ?? [];
+  const categoryId = useMemo(
+    () =>
+      normalizeCategoryFilter(
+        rawCategoryId || legacyCategory,
+        categories,
+        categoriesQuery.isSuccess || categoriesQuery.isError
+      ),
+    [rawCategoryId, legacyCategory, categories, categoriesQuery.isError, categoriesQuery.isSuccess]
+  );
+
+  useEffect(() => {
+    if (categoryId === null) {
+      return;
+    }
+
+    if (!rawCategoryId && !legacyCategory) {
+      return;
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete("category");
+
+    if (categoryId) {
+      next.set("categoryId", categoryId);
+    } else {
+      next.delete("categoryId");
+    }
+
+    const currentParams = searchParams.toString();
+    const nextParams = next.toString();
+
+    if (currentParams !== nextParams) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [categoryId, legacyCategory, rawCategoryId, searchParams, setSearchParams]);
 
   const productsQuery = useQuery({
-    queryKey: ["products", page, deferredSearch, sort, categoryId],
+    queryKey: ["products", page, deferredSearch, sort, categoryId ?? "pending"],
+    enabled: categoryId !== null,
     queryFn: () =>
       listProducts({
         page,
@@ -43,9 +113,9 @@ export function ProductsPage() {
   return (
     <div className="store-page stack-lg">
       <SectionHeader
-        eyebrow="Store catalog"
-        title="Find products faster with search, sort and reusable storefront modules"
-        description="This catalog keeps the dashboards untouched while tightening scan speed, product context and mobile browse behavior."
+        eyebrow={t("productsPage.eyebrow")}
+        title={t("productsPage.title")}
+        description={t("productsPage.description")}
       />
 
       <div className="catalog-toolbar">
@@ -53,7 +123,7 @@ export function ProductsPage() {
           compact
           className="catalog-search-surface"
           initialValue={searchParams.get("search") ?? ""}
-          placeholder="Search by product, seller or use case"
+          placeholder={ES.search.catalogPlaceholder}
           onSubmit={(value) => {
             startTransition(() => {
               const next = new URLSearchParams(searchParams);
@@ -76,11 +146,11 @@ export function ProductsPage() {
             setSearchParams(next);
           }}
         >
-          <option value="latest">Newest arrivals</option>
-          <option value="price-asc">Price: low to high</option>
-          <option value="price-desc">Price: high to low</option>
-          <option value="name-asc">Name A-Z</option>
-          <option value="name-desc">Name Z-A</option>
+          <option value="latest">{t("productsPage.sortLatest")}</option>
+          <option value="price-asc">{t("productsPage.sortPriceAsc")}</option>
+          <option value="price-desc">{t("productsPage.sortPriceDesc")}</option>
+          <option value="name-asc">{t("productsPage.sortNameAsc")}</option>
+          <option value="name-desc">{t("productsPage.sortNameDesc")}</option>
         </select>
       </div>
 
@@ -95,9 +165,9 @@ export function ProductsPage() {
             setSearchParams(next);
           }}
         >
-          All
+          {t("productsPage.allCategories")}
         </button>
-        {(categoriesQuery.data?.categories ?? []).map((category) => (
+        {categories.map((category) => (
           <button
             key={category.id}
             type="button"
@@ -140,7 +210,7 @@ export function ProductsPage() {
           ) : null}
         </>
       ) : (
-        <EmptyState title="No products found" description="Adjust the search term, category or sorting to discover more products." />
+        <EmptyState title={t("productsPage.emptyTitle")} description={t("productsPage.emptyDescription")} />
       )}
     </div>
   );

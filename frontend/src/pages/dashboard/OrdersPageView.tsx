@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { SelectField } from "@/components/shared/SelectField";
@@ -7,24 +8,25 @@ import { SurfaceCard } from "@/components/shared/SurfaceCard";
 import { listOrders, listSellerOrders, updateOrderStatus } from "@/features/api/order-api";
 import type { OrderRecord, OrderStatus } from "@/features/api/types";
 import { useAuth } from "@/features/auth/auth-context";
+import { getOrderStatusLabel } from "@/i18n/es";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 type OrdersPageViewProps = {
   mode: "account" | "seller" | "admin";
 };
 
-const orderStatusOptions: Array<{ value: string; label: string }> = [
-  { value: "", label: "Todos" },
-  { value: "pending", label: "Pendiente" },
-  { value: "paid", label: "Pagado" },
-  { value: "shipped", label: "Enviado" },
-  { value: "delivered", label: "Entregado" }
-];
-
 export function OrdersPageView({ mode }: OrdersPageViewProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const [status, setStatus] = useState("");
+  const orderStatusOptions: Array<{ value: string; label: string }> = [
+    { value: "", label: t("dashboard.orders.all") },
+    { value: "pending", label: getOrderStatusLabel("pending") },
+    { value: "paid", label: getOrderStatusLabel("paid") },
+    { value: "shipped", label: getOrderStatusLabel("shipped") },
+    { value: "delivered", label: getOrderStatusLabel("delivered") }
+  ];
 
   const ordersQuery = useQuery({
     queryKey: ["dashboard", "orders", mode, status],
@@ -38,7 +40,7 @@ export function OrdersPageView({ mode }: OrdersPageViewProps) {
   const statusMutation = useMutation({
     mutationFn: async ({ orderId, nextStatus }: { orderId: string; nextStatus: OrderStatus }) => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.orders.authRequired"));
       }
 
       return updateOrderStatus(token, orderId, nextStatus);
@@ -61,17 +63,17 @@ export function OrdersPageView({ mode }: OrdersPageViewProps) {
   return (
     <div className="stack-lg">
       <div className="metrics-grid">
-        <MetricCard label="Pedidos" value={String(orders.length)} description="Registros visibles según el rol autenticado." />
-        <MetricCard label="Pendientes" value={String(orders.filter((order) => order.status === "pending").length)} description="Órdenes que todavía requieren acción." />
-        <MetricCard label="Monto" value={formatCurrency(revenue)} description="Total visible en la vista actual." />
+        <MetricCard label={t("dashboard.orders.ordersLabel")} value={String(orders.length)} description={t("dashboard.orders.ordersDescription")} />
+        <MetricCard label={t("dashboard.orders.pendingLabel")} value={String(orders.filter((order) => order.status === "pending").length)} description={t("dashboard.orders.pendingDescription")} />
+        <MetricCard label={t("dashboard.orders.amountLabel")} value={formatCurrency(revenue)} description={t("dashboard.orders.amountDescription")} />
       </div>
 
       <SurfaceCard
-        title="Gestión de pedidos"
-        description="Listado tipado conectado a `/api/orders` y sin mezclarlo con storefront."
+        title={t("dashboard.orders.managementTitle")}
+        description={t("dashboard.orders.managementDescription")}
         action={
           <SelectField
-            label="Estado"
+            label={t("labels.status")}
             value={status}
             onChange={(event) => setStatus(event.target.value)}
             options={orderStatusOptions}
@@ -83,12 +85,12 @@ export function OrdersPageView({ mode }: OrdersPageViewProps) {
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Pedido</th>
-                  <th>Cliente</th>
-                  <th>Total</th>
-                  <th>Estado</th>
-                  <th>Items</th>
-                  {mode !== "account" ? <th>Acción</th> : null}
+                  <th>{t("nav.orders")}</th>
+                  <th>{t("labels.customer")}</th>
+                  <th>{t("labels.total")}</th>
+                  <th>{t("labels.status")}</th>
+                  <th>{t("labels.items")}</th>
+                  {mode !== "account" ? <th>{t("labels.action")}</th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -106,7 +108,7 @@ export function OrdersPageView({ mode }: OrdersPageViewProps) {
             </table>
           </div>
         ) : (
-          <EmptyState title="Sin pedidos" description="Todavía no hay órdenes que cumplan el filtro actual." />
+          <EmptyState title={t("dashboard.orders.emptyTitle")} description={t("dashboard.orders.emptyDescription")} />
         )}
       </SurfaceCard>
     </div>
@@ -134,7 +136,7 @@ function OrderRow({
       </td>
       <td>{formatCurrency(order.total)}</td>
       <td>
-        <span className={`status-pill status-${order.status}`}>{order.status}</span>
+        <span className={`status-pill status-${order.status}`}>{getOrderStatusLabel(order.status)}</span>
       </td>
       <td>
         <ul className="compact-list">
@@ -148,10 +150,10 @@ function OrderRow({
       {mode !== "account" ? (
         <td>
           <select value={order.status} onChange={(event) => onStatusChange(event.target.value as OrderStatus)}>
-            <option value="pending">pending</option>
-            <option value="paid">paid</option>
-            <option value="shipped">shipped</option>
-            <option value="delivered">delivered</option>
+            <option value="pending">{getOrderStatusLabel("pending")}</option>
+            <option value="paid">{getOrderStatusLabel("paid")}</option>
+            <option value="shipped">{getOrderStatusLabel("shipped")}</option>
+            <option value="delivered">{getOrderStatusLabel("delivered")}</option>
           </select>
         </td>
       ) : null}

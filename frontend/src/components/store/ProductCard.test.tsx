@@ -26,16 +26,16 @@ describe("ProductCard", () => {
 
     render(
       <MemoryRouter>
-        <ProductCard product={product} badges={["Best Seller", "Limited Stock"]} onAddToCart={onAddToCart} />
+        <ProductCard product={product} badges={["bestSeller", "limitedStock"]} onAddToCart={onAddToCart} />
       </MemoryRouter>
     );
 
     expect(screen.getByText("Dell XPS 13")).toBeInTheDocument();
     expect(screen.getByText("TechZone", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("Best Seller")).toBeInTheDocument();
-    expect(screen.getByText("Limited Stock")).toBeInTheDocument();
+    expect(screen.getByText("Más vendido")).toBeInTheDocument();
+    expect(screen.getByText("Stock limitado")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: "Add to Cart" }));
+    await userEvent.click(screen.getByRole("button", { name: "Añadir al carrito" }));
 
     expect(onAddToCart).toHaveBeenCalledWith("product-1");
   });

@@ -1,8 +1,9 @@
+import i18n from "@/i18n";
 import type { Category, Product } from "@/features/api/types";
 
 export const PRIMARY_CATEGORY_ORDER = ["Laptops", "PC Components", "Monitors", "Accessories", "Gaming"] as const;
 
-export type StoreBadge = "Best Seller" | "Trending" | "Limited Stock";
+export type StoreBadge = "bestSeller" | "trending" | "limitedStock";
 
 export type SellerSpotlight = {
   sellerId: string;
@@ -135,15 +136,15 @@ export function buildBadgeMap(products: Product[]) {
     const badges: StoreBadge[] = [];
 
     if (bestSellerIds.has(product.id)) {
-      badges.push("Best Seller");
+      badges.push("bestSeller");
     }
 
     if (trendingIds.has(product.id) && badges.length < 2) {
-      badges.push("Trending");
+      badges.push("trending");
     }
 
     if (product.stock > 0 && product.stock <= 8 && badges.length < 2) {
-      badges.push("Limited Stock");
+      badges.push("limitedStock");
     }
 
     badgeMap.set(product.id, badges);
@@ -165,6 +166,21 @@ export function getProductBadges(product: Product, badgeMap: Map<string, StoreBa
   return badgeMap.get(product.id) ?? [];
 }
 
+export function getStoreBadgeTone(badge: StoreBadge) {
+  switch (badge) {
+    case "bestSeller":
+      return "highlight" as const;
+    case "trending":
+      return "signal" as const;
+    default:
+      return "neutral" as const;
+  }
+}
+
+export function getStoreBadgeLabel(badge: StoreBadge) {
+  return i18n.t(`product.badges.${badge}`);
+}
+
 export function getRelatedProducts(reference: Product, products: Product[], limit = 8) {
   return [...products]
     .filter((candidate) => candidate.id !== reference.id)
@@ -181,8 +197,11 @@ export function getCustomersAlsoBought(reference: Product, products: Product[], 
 
 export function getRatingLabel(product: Pick<Product, "averageRating" | "reviewCount">) {
   if (product.reviewCount <= 0) {
-    return "New";
+    return i18n.t("product.ratingNew");
   }
 
-  return `${product.averageRating.toFixed(1)} (${product.reviewCount})`;
+  return i18n.t("product.ratingLabel", {
+    rating: product.averageRating.toFixed(1),
+    count: product.reviewCount
+  });
 }

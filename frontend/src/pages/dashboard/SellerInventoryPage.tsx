@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { SelectField } from "@/components/shared/SelectField";
@@ -10,6 +11,7 @@ import { useAuth } from "@/features/auth/auth-context";
 import { formatDate } from "@/lib/format";
 
 export function SellerInventoryPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const [selectedProductId, setSelectedProductId] = useState("");
@@ -56,7 +58,7 @@ export function SellerInventoryPage() {
   const saveMutation = useMutation({
     mutationFn: async (inventoryId: string) => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.sellerInventory.authRequired"));
       }
 
       const current = overrides[inventoryId] ?? baseQuantities[inventoryId];
@@ -77,11 +79,11 @@ export function SellerInventoryPage() {
 
   return (
     <div className="stack-lg">
-      <SurfaceCard title="Inventario por producto" description="Actualiza cantidades y umbral de stock bajo por ubicación.">
+      <SurfaceCard title={t("dashboard.sellerInventory.inventoryTitle")} description={t("dashboard.sellerInventory.inventoryDescription")}>
         {productOptions.length ? (
           <>
             <SelectField
-              label="Producto"
+              label={t("labels.product")}
               data-testid="inventory-product-select"
               value={activeProductId}
               onChange={(event) => {
@@ -94,10 +96,10 @@ export function SellerInventoryPage() {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>Ubicación</th>
-                    <th>Cantidad</th>
-                    <th>Umbral</th>
-                    <th>Actualizado</th>
+                    <th>{t("labels.location")}</th>
+                    <th>{t("labels.quantity")}</th>
+                    <th>{t("labels.threshold")}</th>
+                    <th>{t("labels.updatedAt")}</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -144,7 +146,7 @@ export function SellerInventoryPage() {
                       <td>{formatDate(inventory.updatedAt)}</td>
                       <td>
                         <Button variant="secondary" onClick={() => saveMutation.mutate(inventory.id)}>
-                          Guardar
+                          {t("buttons.save")}
                         </Button>
                       </td>
                     </tr>
@@ -154,15 +156,20 @@ export function SellerInventoryPage() {
             </div>
           </>
         ) : (
-          <EmptyState title="Sin productos" description="Primero crea productos para administrar inventario." />
+          <EmptyState title={t("dashboard.sellerInventory.emptyTitle")} description={t("dashboard.sellerInventory.emptyDescription")} />
         )}
       </SurfaceCard>
 
-      <SurfaceCard title="Alertas activas" description="Productos que cruzaron el umbral de stock bajo.">
+      <SurfaceCard title={t("dashboard.sellerInventory.activeAlertsTitle")} description={t("dashboard.sellerInventory.activeAlertsDescription")}>
         <ul className="compact-list">
           {(alertsQuery.data?.alerts ?? []).map((alert) => (
             <li key={alert.id}>
-              {alert.productName} en {alert.locationName}: {alert.triggeredQty} unidades el {formatDate(alert.createdAt)}
+              {t("dashboard.sellerInventory.alertRow", {
+                productName: alert.productName,
+                locationName: alert.locationName,
+                triggeredQty: alert.triggeredQty,
+                date: formatDate(alert.createdAt)
+              })}
             </li>
           ))}
         </ul>

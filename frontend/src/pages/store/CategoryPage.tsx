@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useSearchParams } from "react-router-dom";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeader } from "@/components/store/SectionHeader";
@@ -8,8 +9,10 @@ import { EmptyState } from "@/components/shared/EmptyState";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
 
 export function CategoryPage() {
+  const { t } = useTranslation();
   const { id = "" } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const { addItem } = useCart();
@@ -41,15 +44,15 @@ export function CategoryPage() {
     });
   }, [maxPrice, minPrice, productsQuery.data?.products]);
 
-  const categoryName = categoriesQuery.data?.categories.find((category) => category.id === id)?.name ?? "Category";
+  const categoryName = categoriesQuery.data?.categories.find((category) => category.id === id)?.name ?? ES.labels.category;
   const collections = useMemo(() => buildStorefrontCollections(filteredProducts), [filteredProducts]);
 
   return (
     <div className="category-layout">
       <aside className="filter-sidebar">
-        <SectionHeader title="Filters" description="Narrow the assortment without leaving the public storefront." />
+        <SectionHeader title={ES.labels.filters} description={t("categoryPage.sidebarDescription")} />
         <label className="field">
-          <span className="field-label">Sort</span>
+          <span className="field-label">{ES.labels.sort}</span>
           <select
             className="field-input field-select"
             value={sort}
@@ -59,13 +62,13 @@ export function CategoryPage() {
               setSearchParams(next);
             }}
           >
-            <option value="latest">Newest</option>
-            <option value="price-asc">Lowest price</option>
-            <option value="price-desc">Highest price</option>
+            <option value="latest">{t("categoryPage.sortLatest")}</option>
+            <option value="price-asc">{t("categoryPage.sortPriceAsc")}</option>
+            <option value="price-desc">{t("categoryPage.sortPriceDesc")}</option>
           </select>
         </label>
         <label className="field">
-          <span className="field-label">Min price</span>
+          <span className="field-label">{ES.labels.minPrice}</span>
           <input
             className="field-input"
             type="number"
@@ -83,7 +86,7 @@ export function CategoryPage() {
           />
         </label>
         <label className="field">
-          <span className="field-label">Max price</span>
+          <span className="field-label">{ES.labels.maxPrice}</span>
           <input
             className="field-input"
             type="number"
@@ -103,9 +106,9 @@ export function CategoryPage() {
       </aside>
       <div className="stack-lg">
         <SectionHeader
-          eyebrow="Department"
+          eyebrow={t("labels.department")}
           title={categoryName}
-          description={`Showing ${filteredProducts.length} products with storefront filters that stay separate from dashboard management views.`}
+          description={t("categoryPage.description", { count: filteredProducts.length })}
         />
         {productsQuery.isLoading ? (
           <ProductRailSkeleton count={8} />
@@ -121,7 +124,7 @@ export function CategoryPage() {
             ))}
           </div>
         ) : (
-          <EmptyState title="No products match these filters" description="Try a different price range or sorting option." />
+          <EmptyState title={t("categoryPage.emptyTitle")} description={t("categoryPage.emptyDescription")} />
         )}
       </div>
     </div>

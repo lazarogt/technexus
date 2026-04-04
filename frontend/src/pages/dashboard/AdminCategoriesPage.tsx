@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { SurfaceCard } from "@/components/shared/SurfaceCard";
@@ -9,6 +10,7 @@ import { createCategory, deleteCategory, listCategories, updateCategory } from "
 import { useAuth } from "@/features/auth/auth-context";
 
 export function AdminCategoriesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const [name, setName] = useState("");
@@ -22,7 +24,7 @@ export function AdminCategoriesPage() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.adminCategories.authRequired"));
       }
 
       if (editingId) {
@@ -41,7 +43,7 @@ export function AdminCategoriesPage() {
   const deleteMutation = useMutation({
     mutationFn: async (categoryId: string) => {
       if (!token) {
-        throw new Error("Falta autenticación.");
+        throw new Error(t("dashboard.adminCategories.authRequired"));
       }
 
       return deleteCategory(token, categoryId);
@@ -58,13 +60,13 @@ export function AdminCategoriesPage() {
 
   return (
     <div className="dashboard-grid">
-      <SurfaceCard title="Nueva categoría" description="Administra taxonomía del catálogo sin tocar el backend.">
+      <SurfaceCard title={t("dashboard.adminCategories.newTitle")} description={t("dashboard.adminCategories.newDescription")}>
         <form className="stack-md" onSubmit={handleSubmit}>
-          <TextField label="Nombre" value={name} onChange={(event) => setName(event.target.value)} required />
-          <Button type="submit">{editingId ? "Guardar" : "Crear"}</Button>
+          <TextField label={t("labels.name")} value={name} onChange={(event) => setName(event.target.value)} required />
+          <Button type="submit">{editingId ? t("buttons.save") : t("buttons.create")}</Button>
         </form>
       </SurfaceCard>
-      <SurfaceCard title="Categorías activas" description="Edición rápida y segura.">
+      <SurfaceCard title={t("dashboard.adminCategories.activeTitle")} description={t("dashboard.adminCategories.activeDescription")}>
         {(categoriesQuery.data?.categories ?? []).length ? (
           <ul className="resource-list">
             {categoriesQuery.data?.categories.map((category) => (
@@ -80,17 +82,17 @@ export function AdminCategoriesPage() {
                       setName(category.name);
                     }}
                   >
-                    Editar
+                    {t("buttons.edit")}
                   </Button>
                   <Button variant="danger" onClick={() => deleteMutation.mutate(category.id)}>
-                    Eliminar
+                    {t("buttons.delete")}
                   </Button>
                 </div>
               </li>
             ))}
           </ul>
         ) : (
-          <EmptyState title="Sin categorías" description="Crea la primera categoría para comenzar." />
+          <EmptyState title={t("dashboard.adminCategories.emptyTitle")} description={t("dashboard.adminCategories.emptyDescription")} />
         )}
       </SurfaceCard>
     </div>

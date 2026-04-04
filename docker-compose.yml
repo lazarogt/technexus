@@ -1,11 +1,25 @@
+x-default-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     environment:
       POSTGRES_DB: technexus
       POSTGRES_USER: technexus
       POSTGRES_PASSWORD: technexus
+    ports:
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,6 +34,12 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -32,6 +52,12 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 512m
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,6 +100,12 @@ services:
         VITE_POSTHOG_KEY: ""
         VITE_POSTHOG_HOST: https://app.posthog.com
     restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
+    deploy:
+      resources:
+        limits:
+          memory: 256M
     depends_on:
       backend:
         condition: service_healthy
@@ -88,9 +120,57 @@ services:
     networks:
       - technexus_internal
 
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - technexus_internal
+
+  grafana:
+    image: grafana/grafana-oss:11.2.0
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    logging: *default-logging
+    mem_limit: 256m
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+    depends_on:
+      prometheus:
+        condition: service_started
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - technexus_internal
+
 networks:
   technexus_internal:
     driver: bridge
 
 volumes:
   postgres_data:
+  grafana_data:

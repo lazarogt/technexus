@@ -11,6 +11,7 @@ import {
 import { toOutboxRowDto } from "../models/outbox.model";
 import { env } from "../utils/config";
 import { logger } from "../utils/logger";
+import { getRuntimeMetricsSnapshot } from "./observability.service";
 
 type WorkerState = {
   isStarted: boolean;
@@ -387,6 +388,7 @@ export const getMetricsSnapshot = async (): Promise<OutboxMetrics> => {
 
 export const getPrometheusMetrics = async () => {
   const metrics = await getMetricsSnapshot();
+  const runtimeMetrics = getRuntimeMetricsSnapshot();
 
   return [
     "# HELP email_outbox_total Total email outbox rows",
@@ -400,9 +402,17 @@ export const getPrometheusMetrics = async () => {
     `email_outbox_failed ${metrics.email_outbox_failed}`,
     "# HELP email_outbox_sent Sent email outbox rows",
     "# TYPE email_outbox_sent gauge",
-    `email_outbox_sent ${metrics.email_outbox_sent}`
+    `email_outbox_sent ${metrics.email_outbox_sent}`,
+    "# HELP technexus_uptime_seconds Backend process uptime in seconds",
+    "# TYPE technexus_uptime_seconds counter",
+    `technexus_uptime_seconds ${runtimeMetrics.uptime}`,
+    "# HELP technexus_http_requests_total Total HTTP requests handled by the backend",
+    "# TYPE technexus_http_requests_total counter",
+    `technexus_http_requests_total ${runtimeMetrics.totalRequests}`,
+    "# HELP technexus_http_errors_total Total HTTP errors handled by the backend",
+    "# TYPE technexus_http_errors_total counter",
+    `technexus_http_errors_total ${runtimeMetrics.errorCount}`
   ].join("\n");
 };
 
 export const getOutboxWorkerHealth = () => getWorkerHealth();
-

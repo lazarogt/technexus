@@ -8,6 +8,7 @@ import {
   softDeleteProduct,
   updateProduct
 } from "../services/product.service";
+import { idParamSchema, productListQuerySchema, sellerProductsQuerySchema } from "../utils/request-validation";
 
 const parseImageUrls = (value: unknown): string[] => {
   if (!value) {
@@ -48,32 +49,30 @@ const productPayloadSchema = z.object({
 const productUpdateSchema = productPayloadSchema.partial();
 
 export const indexProducts = asyncHandler(async (req, res) => {
+  const query = productListQuerySchema.parse(req.query);
   const response = await listProducts({
-    page: req.query.page,
-    limit: req.query.limit ?? req.query.pageSize,
-    categoryId:
-      typeof req.query.categoryId === "string"
-        ? req.query.categoryId
-        : typeof req.query.category === "string"
-          ? req.query.category
-          : undefined,
-    sellerId: typeof req.query.sellerId === "string" ? req.query.sellerId : undefined,
-    search: typeof req.query.search === "string" ? req.query.search : undefined,
-    sort: typeof req.query.sort === "string" ? req.query.sort : undefined,
-    includeDeleted: req.actor?.role === "admin" && req.query.includeDeleted === "true"
+    page: query.page,
+    limit: query.limit ?? query.pageSize,
+    categoryId: query.categoryId ?? query.category,
+    sellerId: query.sellerId,
+    search: query.search,
+    sort: query.sort,
+    includeDeleted: req.actor?.role === "admin" && query.includeDeleted === true
   });
   res.status(200).json(response);
 });
 
 export const showProduct = asyncHandler(async (req, res) => {
-  const product = await getProductById(String(req.params.id), req.actor?.role === "admin");
+  const params = idParamSchema.parse(req.params);
+  const product = await getProductById(params.id, req.actor?.role === "admin");
   res.status(200).json({ product });
 });
 
 export const sellerProducts = asyncHandler(async (req, res) => {
+  const query = sellerProductsQuerySchema.parse(req.query);
   const sellerId =
-    req.actor?.role === "admin" && typeof req.query.sellerId === "string"
-      ? req.query.sellerId
+    req.actor?.role === "admin" && query.sellerId
+      ? query.sellerId
       : req.actor!.userId!;
   const products = await listProductsBySeller(sellerId);
   res.status(200).json({ products });
@@ -96,13 +95,14 @@ export const storeProduct = asyncHandler(async (req, res) => {
 });
 
 export const updateManagedProduct = asyncHandler(async (req, res) => {
+  const params = idParamSchema.parse(req.params);
   const payload = productUpdateSchema.parse(req.body);
   const product = await updateProduct(
     {
       role: req.actor!.role!,
       userId: req.actor!.userId!
     },
-    String(req.params.id),
+    params.id,
     {
       ...payload,
       uploadedFiles: Array.isArray(req.files) ? req.files : [],
@@ -113,12 +113,13 @@ export const updateManagedProduct = asyncHandler(async (req, res) => {
 });
 
 export const destroyProduct = asyncHandler(async (req, res) => {
+  const params = idParamSchema.parse(req.params);
   await softDeleteProduct(
     {
       role: req.actor!.role!,
       userId: req.actor!.userId!
     },
-    String(req.params.id)
+    params.id
   );
   res.status(200).json({ message: "Product deleted successfully." });
 });

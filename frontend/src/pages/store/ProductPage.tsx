@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useParams } from "react-router-dom";
 import { BadgePill } from "@/components/store/BadgePill";
 import { BuyBox } from "@/components/store/BuyBox";
@@ -14,16 +15,20 @@ import {
   buildBadgeMap,
   getCustomersAlsoBought,
   getProductBadges,
-  getRelatedProducts
+  getRelatedProducts,
+  getStoreBadgeLabel,
+  getStoreBadgeTone
 } from "@/components/store/storefront-data";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { getProduct, listProducts } from "@/features/api/catalog-api";
 import { trackOnce } from "@/features/analytics/analytics";
 import { getStockLabel } from "@/features/catalog/product-display";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
 export function ProductPage() {
+  const { t } = useTranslation();
   const { id = "" } = useParams();
   const location = useLocation();
   const { addItem } = useCart();
@@ -110,8 +115,8 @@ export function ProductPage() {
             {badges.length ? (
               <div className="store-product-badges">
                 {badges.map((badge) => (
-                  <BadgePill key={badge} tone={badge === "Best Seller" ? "highlight" : badge === "Trending" ? "signal" : "neutral"}>
-                    {badge}
+                  <BadgePill key={badge} tone={getStoreBadgeTone(badge)}>
+                    {getStoreBadgeLabel(badge)}
                   </BadgePill>
                 ))}
               </div>
@@ -126,9 +131,9 @@ export function ProductPage() {
             <span>{stock?.urgency}</span>
           </div>
           <div className="store-product-facts">
-            <span>Sold by {product.sellerName}</span>
-            <span>Order tracking included</span>
-            <span>Secure checkout and inventory sync</span>
+            <span>{ES.product.soldBy(product.sellerName)}</span>
+            <span>{ES.product.trackingIncluded}</span>
+            <span>{ES.product.secureInventory}</span>
           </div>
           <TrustBar />
         </div>
@@ -142,11 +147,14 @@ export function ProductPage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Customer Reviews"
+          title={t("product.reviewsTitle")}
           description={
             product.reviewCount > 0
-              ? `${product.averageRating.toFixed(1)} average rating across ${product.reviewCount} reviews.`
-              : "This product does not have reviews yet."
+              ? t("product.reviewsSummary", {
+                  rating: product.averageRating.toFixed(1),
+                  count: product.reviewCount
+                })
+              : t("product.reviewsEmptySummary")
           }
         />
         {product.reviews && product.reviews.length > 0 ? (
@@ -164,16 +172,16 @@ export function ProductPage() {
           </div>
         ) : (
           <div className="store-empty-panel">
-            <strong>No reviews yet</strong>
-            <p>Return after more customer activity is recorded for this product.</p>
+            <strong>{ES.product.noReviews}</strong>
+            <p>{ES.product.noReviewsDescription}</p>
           </div>
         )}
       </section>
 
       <section className="stack-md">
         <SectionHeader
-          title="Related Products"
-          description="Similar items from the same category to keep comparison and add-to-cart momentum high."
+          title={t("product.relatedTitle")}
+          description={t("product.relatedDescription")}
         />
         {relatedProductsQuery.isLoading || browseProductsQuery.isLoading ? (
           <ProductRailSkeleton count={4} />
@@ -193,8 +201,8 @@ export function ProductPage() {
 
       <section className="stack-md">
         <SectionHeader
-          title="Customers Also Bought"
-          description="Cross-sell suggestions derived from similar price points, ratings and seller variety."
+          title={t("product.alsoBoughtTitle")}
+          description={t("product.alsoBoughtDescription")}
         />
         {relatedProductsQuery.isLoading || browseProductsQuery.isLoading ? (
           <ProductRailSkeleton count={4} />
@@ -218,7 +226,7 @@ export function ProductPage() {
           <small>{formatCurrency(product.price)}</small>
         </div>
         <button type="button" className="button button-primary" onClick={handleAddToCart} disabled={product.stock <= 0}>
-          Add to Cart
+          {t("buttons.addToCart")}
         </button>
       </div>
     </div>

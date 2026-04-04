@@ -40,6 +40,6 @@ describe("CategoryNav", () => {
     });
 
     const labels = screen.getAllByRole("link").map((link) => link.textContent);
-    expect(labels.slice(0, 4)).toEqual(["All departments", "Laptops", "PC Components", "Accessories"]);
+    expect(labels.slice(0, 4)).toEqual(["Todos los departamentos", "Laptops", "PC Components", "Accessories"]);
   });
 });

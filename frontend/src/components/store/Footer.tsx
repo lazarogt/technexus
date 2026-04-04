@@ -1,13 +1,17 @@
+import { useTranslation } from "react-i18next";
+
 export function Footer() {
+  const { t } = useTranslation();
+
   return (
     <footer className="store-footer">
       <div>
         <strong>TechNexus</strong>
-        <p>Marketplace full-stack para tecnología, gadgets y gestión multirol.</p>
+        <p>{t("footer.description")}</p>
       </div>
       <div>
-        <p>Compra segura con pago contra entrega.</p>
-        <p>Paneles separados para administración, vendedores y cuenta.</p>
+        <p>{t("footer.securePurchase")}</p>
+        <p>{t("footer.separatePanels")}</p>
       </div>
     </footer>
   );

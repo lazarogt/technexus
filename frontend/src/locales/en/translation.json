@@ -1,0 +1,466 @@
+{
+  "app": {
+    "loading": "Loading TechNexus..."
+  },
+  "buttons": {
+    "addToCart": "Add to cart",
+    "buyNow": "Buy now",
+    "checkout": "Checkout",
+    "continue": "Continue",
+    "continueToReview": "Continue to review",
+    "goToConfirmation": "Go to confirmation",
+    "confirmOrder": "Confirm order",
+    "viewCart": "View cart",
+    "viewCatalog": "View catalog",
+    "viewAll": "View all",
+    "viewOffers": "View offers",
+    "viewDetail": "View details",
+    "viewFeaturedProducts": "View featured products",
+    "openFullCatalog": "Open full catalog",
+    "keepShopping": "Keep shopping",
+    "search": "Search",
+    "close": "Close",
+    "closeNotification": "Close notification",
+    "remove": "Remove",
+    "logout": "Log out",
+    "createAccount": "Create account",
+    "signIn": "Sign in",
+    "save": "Save",
+    "clear": "Clear",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "block": "Block",
+    "unblock": "Unblock",
+    "reset": "Reset",
+    "retry": "Retry",
+    "retryFailed": "Retry failed",
+    "back": "Back",
+    "processing": "Processing...",
+    "saveChanges": "Save changes",
+    "createUser": "Create user",
+    "createProduct": "Create product",
+    "createCategory": "Create category"
+  },
+  "nav": {
+    "main": "Main",
+    "account": "Account",
+    "orders": "Orders",
+    "cart": "Cart",
+    "exploreCategories": "Explore categories",
+    "allDepartments": "All departments",
+    "marketplaceReady": "Technology marketplace ready to shop"
+  },
+  "labels": {
+    "total": "Total",
+    "quantity": "Quantity",
+    "price": "Price",
+    "shipping": "Shipping",
+    "summary": "Summary",
+    "filters": "Filters",
+    "sort": "Sort",
+    "minPrice": "Minimum price",
+    "maxPrice": "Maximum price",
+    "review": "Review",
+    "confirmation": "Confirmation",
+    "contact": "Contact",
+    "status": "Status",
+    "role": "Role",
+    "user": "User",
+    "guest": "Guest",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "phone": "Phone",
+    "description": "Description",
+    "shippingAddress": "Shipping address",
+    "shippingCost": "Shipping cost",
+    "category": "Category",
+    "seller": "Seller",
+    "product": "Product",
+    "products": "Products",
+    "stock": "Stock",
+    "location": "Location",
+    "threshold": "Threshold",
+    "updatedAt": "Updated",
+    "createdAt": "Created",
+    "recipient": "Recipient",
+    "attempts": "Attempts",
+    "event": "Event",
+    "session": "Session",
+    "data": "Data",
+    "date": "Date",
+    "range": "Range",
+    "customer": "Customer",
+    "items": "Items",
+    "action": "Action",
+    "actions": "Actions",
+    "department": "Department",
+    "productUrls": "Image URLs",
+    "uploadImages": "Upload images"
+  },
+  "auth": {
+    "loginEyebrow": "Access",
+    "loginTitle": "Sign in to TechNexus",
+    "registerEyebrow": "Public signup",
+    "registerTitle": "Create your account",
+    "noAccount": "Don't have an account?",
+    "alreadyHaveAccount": "Already have an account?",
+    "accountType": "Account type",
+    "loginError": "Could not sign in.",
+    "registerError": "Could not create the account.",
+    "customer": "Buyer",
+    "seller": "Seller"
+  },
+  "search": {
+    "placeholder": "Search laptops, components, monitors and more",
+    "catalogPlaceholder": "Search by product, seller or use case",
+    "ariaLabel": "Search products"
+  },
+  "cart": {
+    "updating": "Updating cart...",
+    "quickPurchase": "Fast purchase with delivery confirmation.",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Add products to compare prices, deliveries and seller trust signals.",
+    "emptySheetDescription": "Browse trending products and add some to continue.",
+    "addedToCart": "{{productName}} was added to your cart.",
+    "toastTitle": "Product added to cart",
+    "toastDescriptionNamed": "{{productName}} ready for checkout.",
+    "toastDescriptionFallback": "Review the summary and continue with your purchase.",
+    "secureDelivery": "Secure delivery and updated inventory.",
+    "emptyPageDescription": "Add products from the catalog to start a purchase as a guest or with your account.",
+    "pageDescription": "Server-synced summary ready to complete your cash-on-delivery purchase.",
+    "securePurchaseNote": "Secure purchase, cash on delivery and immediate email confirmation."
+  },
+  "product": {
+    "soldBy": "Sold by {{sellerName}}",
+    "buyBoxEyebrow": "Fast purchase",
+    "deliveryTitle": "Shipping with delivery confirmation",
+    "deliveryEta": "Estimated arrival between tomorrow and the next 48 business hours.",
+    "trackingIncluded": "Order tracking included",
+    "secureInventory": "Secure purchase and synced inventory",
+    "trustBarAria": "Shopping benefits",
+    "noReviews": "No reviews yet",
+    "noReviewsDescription": "Come back once more purchases and opinions are registered for this product.",
+    "ratingLabel": "{{rating}} · {{count}} reviews",
+    "ratingNew": "New",
+    "ratingPrompt": "Be the first to buy it",
+    "trustPoints": [
+      "Cash on delivery",
+      "Satisfaction guarantee",
+      "Support available"
+    ],
+    "buyBoxTrustPoints": [
+      "Secure purchase at every step",
+      "Seller visibility on every order",
+      "Support before and after purchase"
+    ],
+    "liveCatalogNote": "Stock, price and rating sync from the live catalog.",
+    "reviewsTitle": "Customer reviews",
+    "reviewsSummary": "{{rating}} average from {{count}} reviews.",
+    "reviewsEmptySummary": "This product does not have reviews yet.",
+    "relatedTitle": "Related products",
+    "relatedDescription": "Similar items in the same category to compare better and keep purchase momentum.",
+    "alsoBoughtTitle": "Customers also bought",
+    "alsoBoughtDescription": "Cross-sell suggestions derived from similar prices, ratings and seller variety.",
+    "stock": {
+      "out": {
+        "label": "Out of stock",
+        "urgency": "This product will be back soon."
+      },
+      "low": {
+        "label": "Low stock",
+        "urgency": "Only {{count}} units left"
+      },
+      "available": {
+        "label": "In stock",
+        "urgency": "Delivery available with cash on delivery"
+      }
+    },
+    "offerActive": "Offer active on TechNexus",
+    "deliveryOnReceipt": "Cash on delivery",
+    "satisfactionGuarantee": "Satisfaction guarantee",
+    "badges": {
+      "bestSeller": "Best seller",
+      "trending": "Trending",
+      "limitedStock": "Limited stock"
+    },
+    "viewAria": "View {{productName}}"
+  },
+  "checkout": {
+    "steps": {
+      "shipping": "Shipping",
+      "review": "Review",
+      "confirmation": "Confirmation"
+    },
+    "title": "Checkout",
+    "description": "Guided flow to complete your order with less friction and more confidence.",
+    "accountBanner": "Checking out as",
+    "noProductsTitle": "No products to pay for",
+    "noProductsDescription": "Add products to the cart before opening checkout.",
+    "successEyebrow": "Order confirmed",
+    "successTitle": "Order #{{orderCode}}",
+    "successDescription": "The order was recorded with cash on delivery. Save this reference and check your email for the next step.",
+    "confirmedTotal": "Confirmed total",
+    "fallbackAddress": "Address confirmed during checkout",
+    "readyToConfirm": "Ready to confirm",
+    "readyToConfirmDescription": "We reviewed your order, address and final total. Confirming creates the order immediately.",
+    "noPhone": "We will confirm by email if you do not add a phone number.",
+    "paymentMethod": "Payment method: cash on delivery",
+    "summaryTitle": "Your order",
+    "primaryAction": "Primary action",
+    "primaryActionDescription": "Confirm your order with cash on delivery and email tracking.",
+    "progressAria": "Checkout progress",
+    "validationNameEmail": "Complete name and email to continue.",
+    "validationAddress": "Add a shipping address to continue.",
+    "submitError": "The order could not be processed."
+  },
+  "dashboard": {
+    "analytics": "Analytics",
+    "localAnalytics": "Local analytics",
+    "navigation": {
+      "account": {
+        "overview": "Overview",
+        "orders": "Orders"
+      },
+      "seller": {
+        "overview": "Overview",
+        "products": "Products",
+        "orders": "Orders",
+        "inventory": "Inventory"
+      },
+      "admin": {
+        "overview": "Overview",
+        "analytics": "Analytics",
+        "products": "Products",
+        "categories": "Categories",
+        "users": "Users",
+        "orders": "Orders",
+        "operations": "Operations"
+      }
+    },
+    "sections": {
+      "account": {
+        "title": "My account",
+        "subtitle": "Review orders, address and purchase status."
+      },
+      "seller": {
+        "title": "Seller center",
+        "subtitle": "Manage catalog, inventory and orders without mixing the public store."
+      },
+      "admin": {
+        "title": "Admin center",
+        "subtitle": "Monitor marketplace, users and email operations."
+      }
+    },
+    "topbar": {
+      "logout": "Log out"
+    },
+    "adminOverview": {
+      "productsLabel": "Products",
+      "productsDescription": "Visible global catalog.",
+      "usersLabel": "Users",
+      "usersDescription": "Active marketplace users.",
+      "ordersLabel": "Orders",
+      "ordersDescription": "Consolidated orders.",
+      "outboxLabel": "Pending outbox",
+      "outboxDescription": "Emails waiting to be processed.",
+      "risksTitle": "Operational risks",
+      "risksDescription": "Open inventory alerts platform-wide.",
+      "alertRow": "{{productName}} / {{locationName}}: {{quantity}} units."
+    },
+    "adminAnalytics": {
+      "range24h": "Last 24 hours",
+      "range7d": "Last 7 days",
+      "range30d": "Last 30 days",
+      "loadingDescription": "Preparing funnel summary and recent activity.",
+      "providerDescription": "The local panel only shows metrics when the provider is internal.",
+      "providerInfo": "The current environment is configured with {{provider}}. Event integration was kept, but the local dashboard needs `VITE_ANALYTICS_PROVIDER=internal` and `ANALYTICS_PROVIDER=internal`.",
+      "funnelDescription": "Funnel and session behavior for the {{range}} range.",
+      "sessionsLabel": "Sessions",
+      "sessionsDescription": "Distinct sessions with events in range.",
+      "viewProductLabel": "Product views",
+      "viewProductDescription": "Times a product page was opened.",
+      "addToCartLabel": "Added to cart",
+      "addToCartDescription": "Successful add-to-cart events.",
+      "startCheckoutLabel": "Checkout started",
+      "startCheckoutDescription": "Users who advanced through the first checkout step.",
+      "completeOrderLabel": "Orders",
+      "completeOrderDescription": "Orders confirmed from the checkout flow.",
+      "addRateLabel": "Add rate",
+      "addRateDescription": "Ratio between product views and add-to-cart events.",
+      "cartRateLabel": "Cart view rate",
+      "cartRateDescription": "Ratio between add-to-cart events and cart views.",
+      "completionRateLabel": "Checkout completion",
+      "completionRateDescription": "Ratio between checkout start and completed order.",
+      "topViewedTitle": "Most viewed products",
+      "topViewedDescription": "Top by view_product events.",
+      "topAddedTitle": "Most added products",
+      "topAddedDescription": "Top by add_to_cart events.",
+      "recentEventsTitle": "Recent events",
+      "recentEventsDescription": "Generated {{date}}."
+    },
+    "adminCategories": {
+      "newTitle": "New category",
+      "newDescription": "Manage catalog taxonomy without touching the server.",
+      "activeTitle": "Active categories",
+      "activeDescription": "Fast and safe editing.",
+      "emptyTitle": "No categories",
+      "emptyDescription": "Create the first category to get started.",
+      "authRequired": "Authentication is required."
+    },
+    "adminUsers": {
+      "editTitle": "Edit user",
+      "newTitle": "New user",
+      "description": "Create and maintain administrators, sellers and buyers.",
+      "activeTitle": "Active users",
+      "activeDescription": "Roles, blocking and controlled deletion.",
+      "active": "Active",
+      "blocked": "Blocked",
+      "authRequired": "Authentication is required."
+    },
+    "orders": {
+      "all": "All",
+      "managementTitle": "Order management",
+      "managementDescription": "Typed listing connected to `/api/orders` without mixing it with the public store.",
+      "emptyTitle": "No orders",
+      "emptyDescription": "There are no orders matching the current filter yet.",
+      "ordersLabel": "Orders",
+      "ordersDescription": "Records visible for the authenticated role.",
+      "pendingLabel": "Pending",
+      "pendingDescription": "Orders that still require action.",
+      "amountLabel": "Amount",
+      "amountDescription": "Visible total in the current view.",
+      "authRequired": "Authentication is required."
+    },
+    "productManagement": {
+      "editTitle": "Edit product",
+      "newTitle": "New product",
+      "formDescription": "Upload images by file and URLs. The server keeps the `multipart/form-data` contract.",
+      "selectCategory": "Select a category",
+      "assignCurrentAdmin": "Assign to current admin",
+      "imageHint": "One URL per line. If you edit without new images, current ones are kept.",
+      "globalCatalogTitle": "Global catalog",
+      "myProductsTitle": "My products",
+      "catalogDescription": "Modular editing without touching server logic.",
+      "productCountTitle": "{{count}} products",
+      "productCountDescription": "Support for CRUD and synced stock.",
+      "emptyTitle": "No products",
+      "emptyDescription": "Create the first product for this panel.",
+      "saveError": "The product could not be saved.",
+      "authRequired": "Authentication is required."
+    },
+    "sellerOverview": {
+      "productsLabel": "Products",
+      "productsDescription": "Active in your catalog.",
+      "ordersLabel": "Orders",
+      "ordersDescription": "Orders assigned to your store.",
+      "billingLabel": "Visible billing",
+      "billingDescription": "Sum of subtotals per sold item.",
+      "alertsLabel": "Stock alerts",
+      "alertsDescription": "Below inventory threshold.",
+      "risksTitle": "Operational risks",
+      "risksDescription": "Open inventory alerts.",
+      "alertRow": "{{productName}} in {{locationName}}: {{triggeredQty}} / threshold {{threshold}}"
+    },
+    "sellerInventory": {
+      "inventoryTitle": "Inventory by product",
+      "inventoryDescription": "Update quantities and low-stock threshold by location.",
+      "activeAlertsTitle": "Active alerts",
+      "activeAlertsDescription": "Products that crossed the low-stock threshold.",
+      "emptyTitle": "No products",
+      "emptyDescription": "Create products first to manage inventory.",
+      "alertRow": "{{productName}} in {{locationName}}: {{triggeredQty}} units on {{date}}",
+      "authRequired": "Authentication is required."
+    },
+    "accountOverview": {
+      "ordersLabel": "Orders",
+      "ordersDescription": "Authenticated customer history.",
+      "spentLabel": "Total spent",
+      "spentDescription": "Sum of visible orders.",
+      "activeStatusLabel": "Active status",
+      "activeStatusDescription": "Orders still in flow.",
+      "profileTitle": "Profile",
+      "profileDescription": "Quick access to your account status and next steps.",
+      "roleLine": "Role: {{role}}"
+    },
+    "operations": {
+      "workerHealthTitle": "Worker health",
+      "workerHealthDescription": "Current email outbox status.",
+      "statusLabel": "Status",
+      "statusDescription": "Last execution and reported degradation.",
+      "lastRunLabel": "Last run",
+      "lastRunDescription": "Time of the worker's last pass.",
+      "noData": "No data",
+      "emailOutboxTitle": "Email outbox",
+      "emailOutboxDescription": "Retry and cleanup for failed rows.",
+      "authRequired": "Authentication is required."
+    }
+  },
+  "routeGuards": {
+    "checkingAccess": "Checking access...",
+    "loadingSession": "Loading session..."
+  },
+  "home": {
+    "supportEyebrow": "Why conversion is stronger here",
+    "supportTitle": "Purchase-focused exploration with real seller context",
+    "supportDescription": "Search is always visible, pricing scans fast, and every product shows rating, stock and seller signals without mixing internal panels.",
+    "trendingTitle": "Trending products",
+    "trendingDescription": "High-interest items detected from the live catalog with rating, review and availability signals.",
+    "dealsTitle": "Offers worth taking",
+    "dealsDescription": "Price-sensitive selections that keep review quality and seller trust front and center.",
+    "sellersTitle": "Featured sellers",
+    "sellersDescription": "Featured sellers are calculated with catalog depth and customer feedback to compare stores faster.",
+    "catalogTitle": "Explore the full catalog",
+    "catalogDescription": "Information-dense cards optimized for fast desktop scanning and mobile touch navigation."
+  },
+  "hero": {
+    "eyebrow": "Technology marketplace",
+    "title": "Find your next device faster with search-first browsing and useful context on every product.",
+    "description": "Explore laptops, gaming peripherals and components with live pricing, seller credibility and product pages designed for frictionless buying.",
+    "activeDepartments": "active departments",
+    "featuredSellers": "featured sellers",
+    "trending": "Trending",
+    "spotlightMeta": "{{categoryName}} · {{sellerName}}",
+    "spotlightNote": "High visibility, trust signals and a shorter path to purchase.",
+    "loadingTitle": "Loading catalog",
+    "loadingDescription": "The homepage is built from the public product feed without changing existing APIs."
+  },
+  "productsPage": {
+    "eyebrow": "Store catalog",
+    "title": "Find products faster with search, sorting and reusable modules",
+    "description": "This catalog keeps dashboards intact while improving scan speed, product context and mobile navigation.",
+    "sortLatest": "Newest",
+    "sortPriceAsc": "Price: low to high",
+    "sortPriceDesc": "Price: high to low",
+    "sortNameAsc": "Name A-Z",
+    "sortNameDesc": "Name Z-A",
+    "allCategories": "All",
+    "emptyTitle": "No products found",
+    "emptyDescription": "Adjust search, category or sorting to discover more products."
+  },
+  "categoryPage": {
+    "description": "Showing {{count}} products with store filters separated from admin views.",
+    "emptyTitle": "No products match these filters",
+    "emptyDescription": "Try another price range or sorting mode.",
+    "sortLatest": "Newest",
+    "sortPriceAsc": "Lowest price",
+    "sortPriceDesc": "Highest price",
+    "sidebarDescription": "Narrow the catalog without leaving the public store."
+  },
+  "footer": {
+    "description": "Full marketplace for technology, gadgets and multi-role management.",
+    "securePurchase": "Secure purchase with cash on delivery.",
+    "separatePanels": "Separate dashboards for administration, sellers and account."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{page}} of {{totalPages}}"
+  },
+  "notFound": {
+    "title": "This view does not exist",
+    "description": "The requested route is not part of the TechNexus store or dashboards.",
+    "backHome": "Back to home"
+  }
+}

@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { Search } from "lucide-react";
 import { startTransition, useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 type SearchBarProps = {
@@ -14,11 +15,12 @@ type SearchBarProps = {
 
 export function SearchBar({
   initialValue = "",
-  placeholder = "Search laptops, components, monitors and more",
+  placeholder,
   className,
   compact = false,
   onSubmit
 }: SearchBarProps) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [value, setValue] = useState(initialValue);
 
@@ -45,14 +47,14 @@ export function SearchBar({
       <label className="store-search-input-shell">
         <Search size={18} />
         <input
-          aria-label="Buscar productos"
+          aria-label={t("search.ariaLabel")}
           data-testid="store-search-input"
           value={value}
           onChange={(event) => setValue(event.target.value)}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("search.placeholder")}
         />
       </label>
-      <button type="submit">Search</button>
+      <button type="submit">{t("buttons.search")}</button>
     </form>
   );
 }

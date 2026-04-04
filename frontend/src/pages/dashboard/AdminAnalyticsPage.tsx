@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MetricCard } from "@/components/shared/MetricCard";
 import { SelectField } from "@/components/shared/SelectField";
 import { SurfaceCard } from "@/components/shared/SurfaceCard";
@@ -8,15 +9,15 @@ import type { AnalyticsRange } from "@/features/api/types";
 import { useAuth } from "@/features/auth/auth-context";
 import { clampText, formatDate } from "@/lib/format";
 
-const rangeOptions = [
-  { value: "24h", label: "Ultimas 24 horas" },
-  { value: "7d", label: "Ultimos 7 dias" },
-  { value: "30d", label: "Ultimos 30 dias" }
-] satisfies Array<{ value: AnalyticsRange; label: string }>;
-
 export function AdminAnalyticsPage() {
+  const { t } = useTranslation();
   const { token } = useAuth();
   const [range, setRange] = useState<AnalyticsRange>("7d");
+  const rangeOptions = [
+    { value: "24h", label: t("dashboard.adminAnalytics.range24h") },
+    { value: "7d", label: t("dashboard.adminAnalytics.range7d") },
+    { value: "30d", label: t("dashboard.adminAnalytics.range30d") }
+  ] satisfies Array<{ value: AnalyticsRange; label: string }>;
   const overviewQuery = useQuery({
     queryKey: ["admin", "analytics", range],
     enabled: Boolean(token),
@@ -28,7 +29,7 @@ export function AdminAnalyticsPage() {
   if (!overview) {
     return (
       <div className="stack-lg" data-testid="admin-analytics-page">
-        <SurfaceCard title="Analytics" description="Preparando el resumen del funnel y la actividad reciente." />
+        <SurfaceCard title={t("dashboard.analytics")} description={t("dashboard.adminAnalytics.loadingDescription")} />
       </div>
     );
   }
@@ -36,11 +37,9 @@ export function AdminAnalyticsPage() {
   if (overview.provider !== "internal") {
     return (
       <div className="stack-lg" data-testid="admin-analytics-page">
-        <SurfaceCard title="Analytics local" description="El dashboard local solo muestra metricas cuando el provider es internal.">
+        <SurfaceCard title={t("dashboard.localAnalytics")} description={t("dashboard.adminAnalytics.providerDescription")}>
           <p data-testid="analytics-provider-info">
-            El entorno actual esta configurado con <strong>{overview.provider}</strong>. Mantuvimos la
-            integracion de eventos, pero el tablero local necesita `VITE_ANALYTICS_PROVIDER=internal`
-            y `ANALYTICS_PROVIDER=internal`.
+            {t("dashboard.adminAnalytics.providerInfo", { provider: overview.provider })}
           </p>
         </SurfaceCard>
       </div>
@@ -50,12 +49,12 @@ export function AdminAnalyticsPage() {
   return (
     <div className="stack-lg" data-testid="admin-analytics-page">
       <SurfaceCard
-        title="Analytics local"
-        description={`Embudo y comportamiento de sesion para el rango ${overview.range}.`}
+        title={t("dashboard.localAnalytics")}
+        description={t("dashboard.adminAnalytics.funnelDescription", { range: overview.range })}
         action={
           <div style={{ minWidth: 220 }}>
             <SelectField
-              label="Rango"
+              label={t("labels.range")}
               options={rangeOptions}
               value={range}
               onChange={(event) => setRange(event.target.value as AnalyticsRange)}
@@ -64,19 +63,19 @@ export function AdminAnalyticsPage() {
         }
       >
         <div className="metrics-grid" data-testid="analytics-metrics">
-          <MetricCard label="Sesiones" value={String(overview.totalSessions)} description="Sesiones distintas con eventos en el rango." />
-          <MetricCard label="Views producto" value={String(overview.funnel.viewProduct)} description="Veces que una ficha de producto fue abierta." />
-          <MetricCard label="Add to cart" value={String(overview.funnel.addToCart)} description="Eventos exitosos de agregado al carrito." />
-          <MetricCard label="Checkout start" value={String(overview.funnel.startCheckout)} description="Usuarios que avanzaron el primer paso del checkout." />
-          <MetricCard label="Ordenes" value={String(overview.funnel.completeOrder)} description="Pedidos confirmados desde el flujo de compra." />
-          <MetricCard label="ATC rate" value={`${overview.funnel.addToCartRate}%`} description="Relacion entre views de producto y add-to-cart." />
-          <MetricCard label="Cart view rate" value={`${overview.funnel.cartViewRate}%`} description="Relacion entre add-to-cart y vistas de carrito." />
-          <MetricCard label="Checkout completion" value={`${overview.funnel.checkoutCompletionRate}%`} description="Relacion entre inicio de checkout y orden completada." />
+          <MetricCard label={t("dashboard.adminAnalytics.sessionsLabel")} value={String(overview.totalSessions)} description={t("dashboard.adminAnalytics.sessionsDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.viewProductLabel")} value={String(overview.funnel.viewProduct)} description={t("dashboard.adminAnalytics.viewProductDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.addToCartLabel")} value={String(overview.funnel.addToCart)} description={t("dashboard.adminAnalytics.addToCartDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.startCheckoutLabel")} value={String(overview.funnel.startCheckout)} description={t("dashboard.adminAnalytics.startCheckoutDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.completeOrderLabel")} value={String(overview.funnel.completeOrder)} description={t("dashboard.adminAnalytics.completeOrderDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.addRateLabel")} value={`${overview.funnel.addToCartRate}%`} description={t("dashboard.adminAnalytics.addRateDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.cartRateLabel")} value={`${overview.funnel.cartViewRate}%`} description={t("dashboard.adminAnalytics.cartRateDescription")} />
+          <MetricCard label={t("dashboard.adminAnalytics.completionRateLabel")} value={`${overview.funnel.checkoutCompletionRate}%`} description={t("dashboard.adminAnalytics.completionRateDescription")} />
         </div>
       </SurfaceCard>
 
       <div className="dashboard-grid">
-        <SurfaceCard title="Productos mas vistos" description="Top por eventos view_product.">
+        <SurfaceCard title={t("dashboard.adminAnalytics.topViewedTitle")} description={t("dashboard.adminAnalytics.topViewedDescription")}>
           <ul className="compact-list">
             {overview.topProducts.views.map((product) => (
               <li key={`view-${product.productId}`}>
@@ -86,7 +85,7 @@ export function AdminAnalyticsPage() {
           </ul>
         </SurfaceCard>
 
-        <SurfaceCard title="Productos mas agregados" description="Top por eventos add_to_cart.">
+        <SurfaceCard title={t("dashboard.adminAnalytics.topAddedTitle")} description={t("dashboard.adminAnalytics.topAddedDescription")}>
           <ul className="compact-list">
             {overview.topProducts.carts.map((product) => (
               <li key={`cart-${product.productId}`}>
@@ -97,16 +96,16 @@ export function AdminAnalyticsPage() {
         </SurfaceCard>
       </div>
 
-      <SurfaceCard title="Eventos recientes" description={`Generado ${formatDate(overview.generatedAt)}.`}>
+      <SurfaceCard title={t("dashboard.adminAnalytics.recentEventsTitle")} description={t("dashboard.adminAnalytics.recentEventsDescription", { date: formatDate(overview.generatedAt) })}>
         <div className="table-wrap">
           <table className="data-table">
             <thead>
               <tr>
-                <th>Evento</th>
-                <th>Sesion</th>
-                <th>Usuario</th>
-                <th>Data</th>
-                <th>Fecha</th>
+                <th>{t("labels.event")}</th>
+                <th>{t("labels.session")}</th>
+                <th>{t("labels.user")}</th>
+                <th>{t("labels.data")}</th>
+                <th>{t("labels.date")}</th>
               </tr>
             </thead>
             <tbody>
@@ -114,7 +113,7 @@ export function AdminAnalyticsPage() {
                 <tr key={event.id}>
                   <td>{event.event}</td>
                   <td>{clampText(event.sessionId, 18)}</td>
-                  <td>{event.userId ? clampText(event.userId, 18) : "Guest"}</td>
+                  <td>{event.userId ? clampText(event.userId, 18) : t("labels.guest")}</td>
                   <td>{event.data ? clampText(JSON.stringify(event.data), 72) : "-"}</td>
                   <td>{formatDate(event.createdAt)}</td>
                 </tr>

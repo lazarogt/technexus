@@ -1,8 +1,17 @@
 import pino from "pino";
 import { env } from "./config";
 
-export const logger = pino({
+const baseLoggerOptions: pino.LoggerOptions = {
   level: env.isProduction ? "info" : "debug",
+  messageKey: "message",
+  timestamp: pino.stdTimeFunctions.isoTime,
+  formatters: {
+    level: (label) => ({ level: label })
+  }
+};
+
+export const logger = pino({
+  ...baseLoggerOptions,
   transport: env.isProduction
     ? undefined
     : {
@@ -15,4 +24,3 @@ export const logger = pino({
 });
 
 export const childLogger = (bindings: Record<string, unknown>) => logger.child(bindings);
-

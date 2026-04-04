@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
 import type { Product } from "@/features/api/types";
@@ -11,12 +12,13 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
+  const { t } = useTranslation();
   const stock = getStockLabel(product.stock);
   const promoBadge = getPromoBadge(badge);
 
   return (
     <article className="product-card" data-testid={`product-card-${product.id}`}>
-      <Link to={`/product/${product.id}`} className="product-card-overlay-link" aria-label={`Ver ${product.name}`} />
+      <Link to={`/product/${product.id}`} className="product-card-overlay-link" aria-label={t("product.viewAria", { productName: product.name })} />
       <Link to={`/product/${product.id}`} className="product-card-image-link" aria-label={product.name}>
         <img
           className="product-card-image"
@@ -36,12 +38,12 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
         </Link>
         <div className="product-card-pricing">
           <p className="product-card-price">{formatCurrency(product.price)}</p>
-          {promoBadge ? <small className="product-card-saving">Oferta activa en TechNexus</small> : null}
+          {promoBadge ? <small className="product-card-saving">{t("product.offerActive")}</small> : null}
         </div>
         <p className="product-card-meta">{stock.urgency}</p>
         <div className="product-card-trust">
-          <span>Pago contra entrega</span>
-          <span>Garantia de satisfaccion</span>
+          <span>{t("product.deliveryOnReceipt")}</span>
+          <span>{t("product.satisfactionGuarantee")}</span>
         </div>
         <div className="product-card-actions">
           <Button
@@ -51,10 +53,10 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
             disabled={product.stock <= 0}
             fullWidth
           >
-            Agregar al carrito
+            {t("buttons.addToCart")}
           </Button>
           <Link to={`/product/${product.id}`} className="product-card-secondary-action">
-            Ver detalle
+            {t("buttons.viewDetail")}
           </Link>
         </div>
       </div>

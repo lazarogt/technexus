@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
+import { recordError } from "../services/observability.service";
 import { AppError, isAppError } from "../utils/errors";
 import { logger } from "../utils/logger";
 
@@ -10,10 +11,12 @@ export const notFoundMiddleware = (_req: Request, _res: Response, next: NextFunc
 
 export const errorMiddleware = (
   error: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction
 ) => {
+  recordError();
+
   if (error instanceof MulterError) {
     const message =
       error.code === "LIMIT_FILE_SIZE"
@@ -50,7 +53,13 @@ export const errorMiddleware = (
   }
 
   logger.error(
-    { error: error instanceof Error ? error.message : "Unknown unhandled error" },
+    {
+      err: error,
+      requestId: req.requestId,
+      method: req.method,
+      route: req.originalUrl,
+      error: error instanceof Error ? error.message : "Unknown unhandled error"
+    },
     "Unhandled request error"
   );
   res.status(500).json({ message: "Internal server error." });

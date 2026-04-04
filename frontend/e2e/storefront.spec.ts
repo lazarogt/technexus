@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { TEST_PRODUCTS } from "./support/test-data";
+import { TEST_CATEGORIES, TEST_PRODUCTS } from "./support/test-data";
 import { addProductToCartFromCatalog } from "./support/ui";
 import { trackFrontendErrors } from "./support/api";
 
@@ -62,6 +62,29 @@ test.describe("Storefront Flow", () => {
     await expect(miniCartPanel).toBeVisible();
     await expect(miniCartPanel).toContainText("Checkout rapido");
     await expect(miniCartPanel).toContainText(/pago contra entrega/i);
+  });
+
+  test("filters storefront categories by category ID and clears back to all products", async ({ page }) => {
+    await page.goto("/products");
+
+    await expect(page.getByRole("button", { name: TEST_CATEGORIES.devices })).toBeVisible();
+    await expect(page.getByRole("button", { name: TEST_CATEGORIES.accessories })).toBeVisible();
+
+    await page.getByRole("button", { name: TEST_CATEGORIES.accessories }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.has("categoryId")).toBe(true);
+    await expect(page.getByText(TEST_PRODUCTS.lowStock, { exact: true })).toBeVisible();
+    await expect(page.getByText(TEST_PRODUCTS.multiSellerTwo, { exact: true })).toBeVisible();
+    await expect(page.getByText(TEST_PRODUCTS.storefront, { exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: TEST_CATEGORIES.devices }).click();
+    await expect(page.getByText(TEST_PRODUCTS.storefront, { exact: true })).toBeVisible();
+    await expect(page.getByText(TEST_PRODUCTS.multiSellerOne, { exact: true })).toBeVisible();
+    await expect(page.getByText(TEST_PRODUCTS.lowStock, { exact: true })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Todas" }).click();
+    await expect.poll(() => new URL(page.url()).searchParams.get("categoryId")).toBeNull();
+    await expect(page.getByText(TEST_PRODUCTS.storefront, { exact: true })).toBeVisible();
+    await expect(page.getByText(TEST_PRODUCTS.lowStock, { exact: true })).toBeVisible();
   });
 
   // Verifies the mobile sticky CTA and mini-cart sheet on the nginx-served storefront.

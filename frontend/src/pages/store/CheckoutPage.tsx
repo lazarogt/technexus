@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -10,23 +11,24 @@ import type { OrderRecord } from "@/features/api/types";
 import { track, trackOnce } from "@/features/analytics/analytics";
 import { useAuth } from "@/features/auth/auth-context";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
-const CHECKOUT_STEPS = [
-  { id: 1, label: "Envio" },
-  { id: 2, label: "Revision" },
-  { id: 3, label: "Confirmacion" }
-] as const;
-
 export function CheckoutPage() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const { cart, checkout } = useCart();
+  const checkoutSteps = [
+    { id: 1, label: ES.checkout.steps.shipping },
+    { id: 2, label: ES.checkout.steps.review },
+    { id: 3, label: ES.checkout.steps.confirmation }
+  ] as const;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [placedOrder, setPlacedOrder] = useState<OrderRecord | null>(null);
-  const [currentStep, setCurrentStep] = useState<(typeof CHECKOUT_STEPS)[number]["id"]>(1);
+  const [currentStep, setCurrentStep] = useState<(typeof checkoutSteps)[number]["id"]>(1);
   const [form, setForm] = useState({
     buyerName: user?.name ?? "",
     buyerEmail: user?.email ?? "",
@@ -39,11 +41,11 @@ export function CheckoutPage() {
 
   const validateStepOne = () => {
     if (!isAuthenticated && (!form.buyerName.trim() || !form.buyerEmail.trim())) {
-      return "Completa nombre y correo para continuar.";
+      return t("checkout.validationNameEmail");
     }
 
     if (!form.shippingAddress.trim()) {
-      return "Agrega una direccion de entrega para continuar.";
+      return t("checkout.validationAddress");
     }
 
     return "";
@@ -100,7 +102,7 @@ export function CheckoutPage() {
       setPlacedOrder(order);
       setCurrentStep(3);
     } catch (checkoutError) {
-      setError(checkoutError instanceof Error ? checkoutError.message : "No se pudo procesar el pedido.");
+      setError(checkoutError instanceof Error ? checkoutError.message : t("checkout.submitError"));
     } finally {
       setIsSubmitting(false);
     }
@@ -110,27 +112,24 @@ export function CheckoutPage() {
     return (
       <div className="store-page">
         <div className="checkout-success-card" data-testid="checkout-success">
-          <p className="section-eyebrow">Pedido confirmado</p>
-          <h1>Orden #{placedOrder.id.slice(0, 8)}</h1>
-          <p>
-            El pedido quedo registrado con pago contra entrega. Guarda este folio y revisa tu correo
-            para el siguiente paso.
-          </p>
+          <p className="section-eyebrow">{ES.checkout.successEyebrow}</p>
+          <h1>{ES.checkout.successTitle(placedOrder.id)}</h1>
+          <p>{ES.checkout.successDescription}</p>
           <div className="checkout-success-grid">
             <div className="stack-sm">
-              <strong>Total confirmado</strong>
+              <strong>{ES.checkout.confirmedTotal}</strong>
               <span>{formatCurrency(placedOrder.total)}</span>
             </div>
             <div className="stack-sm">
-              <strong>Entrega</strong>
-              <span>{placedOrder.shippingAddress ?? "Direccion confirmada en checkout"}</span>
+              <strong>{ES.labels.shipping}</strong>
+              <span>{placedOrder.shippingAddress ?? ES.checkout.fallbackAddress}</span>
             </div>
           </div>
           <TrustBar />
           <div className="button-row">
-            <Button onClick={() => navigate("/products")}>Seguir comprando</Button>
+            <Button onClick={() => navigate("/products")}>{ES.buttons.keepShopping}</Button>
             <Button variant="secondary" onClick={() => navigate("/cart")}>
-              Ver carrito
+              {ES.buttons.viewCart}
             </Button>
           </div>
         </div>
@@ -139,17 +138,14 @@ export function CheckoutPage() {
   }
 
   if (cart.items.length === 0) {
-    return <EmptyState title="No hay items para pagar" description="Agrega productos al carrito antes de abrir el checkout." />;
+    return <EmptyState title={ES.checkout.noProductsTitle} description={ES.checkout.noProductsDescription} />;
   }
 
   return (
     <div className="store-page stack-lg">
-      <SectionHeading
-        title="Checkout"
-        description="Flujo guiado para completar tu pedido con menos friccion y mas confianza."
-      />
-      <div className="checkout-steps" data-testid="checkout-steps" aria-label="Progreso del checkout">
-        {CHECKOUT_STEPS.map((step) => (
+      <SectionHeading title={ES.checkout.title} description={ES.checkout.description} />
+      <div className="checkout-steps" data-testid="checkout-steps" aria-label={t("checkout.progressAria")}>
+        {checkoutSteps.map((step) => (
           <div
             key={step.id}
             data-testid={`checkout-step-${step.id}`}
@@ -166,24 +162,24 @@ export function CheckoutPage() {
             <>
               {!isAuthenticated ? (
                 <>
-                  <TextField label="Nombre" value={form.buyerName} onChange={(event) => setForm((current) => ({ ...current, buyerName: event.target.value }))} required />
-                  <TextField label="Correo" type="email" value={form.buyerEmail} onChange={(event) => setForm((current) => ({ ...current, buyerEmail: event.target.value }))} required />
+                  <TextField label={ES.labels.name} value={form.buyerName} onChange={(event) => setForm((current) => ({ ...current, buyerName: event.target.value }))} required />
+                  <TextField label={ES.labels.email} type="email" value={form.buyerEmail} onChange={(event) => setForm((current) => ({ ...current, buyerEmail: event.target.value }))} required />
                 </>
               ) : (
                 <div className="account-banner">
-                  Comprando como <strong>{user?.email}</strong>
+                  {ES.checkout.accountBanner} <strong>{user?.email}</strong>
                 </div>
               )}
-              <TextField label="Teléfono" value={form.buyerPhone} onChange={(event) => setForm((current) => ({ ...current, buyerPhone: event.target.value }))} />
+              <TextField label={ES.labels.phone} value={form.buyerPhone} onChange={(event) => setForm((current) => ({ ...current, buyerPhone: event.target.value }))} />
               <TextField
-                label="Dirección de entrega"
+                label={ES.labels.shippingAddress}
                 multiline
                 rows={4}
                 value={form.shippingAddress}
                 onChange={(event) => setForm((current) => ({ ...current, shippingAddress: event.target.value }))}
               />
               <TextField
-                label="Costo de envío"
+                label={ES.labels.shippingCost}
                 type="number"
                 min="0"
                 step="0.01"
@@ -196,16 +192,16 @@ export function CheckoutPage() {
           {currentStep === 2 ? (
             <div className="checkout-review stack-md">
               <div className="surface-card-subtle">
-                <strong>Entrega</strong>
+                <strong>{ES.labels.shipping}</strong>
                 <p>{form.shippingAddress}</p>
                 <small>
                   {isAuthenticated ? user?.email : `${form.buyerName} · ${form.buyerEmail}`}
                 </small>
               </div>
               <div className="surface-card-subtle">
-                <strong>Contacto</strong>
-                <p>{form.buyerPhone || "Se confirmara por correo si no agregas telefono."}</p>
-                <small>Metodo de pago: contra entrega</small>
+                <strong>{ES.labels.contact}</strong>
+                <p>{form.buyerPhone || ES.checkout.noPhone}</p>
+                <small>{ES.checkout.paymentMethod}</small>
               </div>
               <TrustBar />
             </div>
@@ -213,8 +209,8 @@ export function CheckoutPage() {
           {currentStep === 3 ? (
             <div className="checkout-review stack-md">
               <div className="surface-card-subtle">
-                <strong>Listo para confirmar</strong>
-                <p>Revisamos tu pedido, direccion y total final. Al confirmar se crea la orden inmediatamente.</p>
+                <strong>{ES.checkout.readyToConfirm}</strong>
+                <p>{ES.checkout.readyToConfirmDescription}</p>
               </div>
               <TrustBar />
             </div>
@@ -223,16 +219,22 @@ export function CheckoutPage() {
           <div className="checkout-actions">
             {currentStep > 1 ? (
               <Button variant="ghost" onClick={() => setCurrentStep((current) => (current === 3 ? 2 : 1))}>
-                Volver
+                {t("buttons.back")}
               </Button>
             ) : null}
             <Button type="submit" fullWidth disabled={isSubmitting}>
-              {currentStep === 1 ? "Continuar a revision" : currentStep === 2 ? "Ir a confirmacion" : isSubmitting ? "Procesando..." : "Confirmar pedido"}
+              {currentStep === 1
+                ? ES.buttons.continueToReview
+                : currentStep === 2
+                  ? ES.buttons.goToConfirmation
+                  : isSubmitting
+                    ? t("buttons.processing")
+                    : ES.buttons.confirmOrder}
             </Button>
           </div>
         </form>
         <aside className="order-summary-card checkout-summary-card">
-          <h3>Tu pedido</h3>
+          <h3>{ES.checkout.summaryTitle}</h3>
           {cart.items.map((item) => (
             <div key={item.id} className="summary-row">
               <span>
@@ -242,22 +244,22 @@ export function CheckoutPage() {
             </div>
           ))}
           <div className="summary-row">
-            <span>Envio</span>
+            <span>{ES.labels.shipping}</span>
             <strong>{formatCurrency(Number(form.shippingCost || 0))}</strong>
           </div>
           <div className="summary-row">
-            <span>Total</span>
+            <span>{ES.labels.total}</span>
             <strong>{formatCurrency(shippingTotal)}</strong>
           </div>
           <div className="checkout-summary-note">
-            <strong>CTA principal</strong>
-            <p>Confirma tu pedido con pago contra entrega y seguimiento por correo.</p>
+            <strong>{ES.checkout.primaryAction}</strong>
+            <p>{ES.checkout.primaryActionDescription}</p>
           </div>
         </aside>
       </div>
       <div className="mobile-checkout-summary">
         <div>
-          <small>Total</small>
+          <small>{ES.labels.total}</small>
           <strong>{formatCurrency(shippingTotal)}</strong>
         </div>
         <button
@@ -269,7 +271,7 @@ export function CheckoutPage() {
           }}
           disabled={isSubmitting}
         >
-          {currentStep === 3 ? "Confirmar pedido" : "Continuar"}
+          {currentStep === 3 ? ES.buttons.confirmOrder : ES.buttons.continue}
         </button>
       </div>
     </div>

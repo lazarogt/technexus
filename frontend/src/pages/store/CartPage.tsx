@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -6,9 +7,11 @@ import { SectionHeading } from "@/components/shared/SectionHeading";
 import { TrustBar } from "@/components/store/TrustBar";
 import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
+import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
 export function CartPage() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const { cart, removeItem, isLoading } = useCart();
@@ -27,14 +30,14 @@ export function CartPage() {
   if (cart.items.length === 0) {
     return (
       <div className="store-page">
-        <EmptyState title="Tu carrito está vacío" description="Agrega productos desde el catálogo para iniciar una compra o un checkout como invitado." />
+        <EmptyState title={ES.cart.emptyTitle} description={t("cart.emptyPageDescription")} />
       </div>
     );
   }
 
   return (
     <div className="store-page stack-lg">
-      <SectionHeading title="Carrito" description="Resumen sincronizado con backend y listo para checkout COD." />
+      <SectionHeading title={ES.nav.cart} description={t("cart.pageDescription")} />
       <TrustBar />
       <div className="cart-layout">
         <div className="cart-items">
@@ -53,25 +56,25 @@ export function CartPage() {
               <div className="stack-xs">
                 <strong>{formatCurrency(item.subtotal)}</strong>
                 <Button variant="ghost" onClick={() => removeItem(item.productId)} disabled={isLoading}>
-                  Quitar
+                  {ES.buttons.remove}
                 </Button>
               </div>
             </article>
           ))}
         </div>
         <aside className="order-summary-card">
-          <h3>Resumen</h3>
+          <h3>{ES.labels.summary}</h3>
           <div className="summary-row">
-            <span>Productos</span>
+            <span>{ES.labels.products}</span>
             <strong>{cart.items.length}</strong>
           </div>
           <div className="summary-row">
-            <span>Total</span>
+            <span>{ES.labels.total}</span>
             <strong data-testid="cart-total">{formatCurrency(cart.total)}</strong>
           </div>
-          <p className="checkout-summary-note">Compra segura, pago contra entrega y confirmacion inmediata por correo.</p>
+          <p className="checkout-summary-note">{t("cart.securePurchaseNote")}</p>
           <Button data-testid="checkout-button" fullWidth onClick={() => navigate("/checkout")}>
-            Continuar al checkout
+            {ES.buttons.checkout}
           </Button>
         </aside>
       </div>

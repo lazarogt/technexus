@@ -1,12 +1,15 @@
 import { ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { SearchBar } from "@/components/store/layout/SearchBar";
 import { useAuth } from "@/features/auth/auth-context";
 import { useCart } from "@/features/cart/cart-context";
+import { ES, getProductCountLabel } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
 
 export function Header() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { cart, isLoading, lastAddedItem, cartAttentionTick } = useCart();
@@ -47,30 +50,30 @@ export function Header() {
           <Link to="/" className="brand-mark">
             <span>Tech</span>Nexus
           </Link>
-          <small>Marketplace tech listo para convertir</small>
+          <small>{t("nav.marketplaceReady")}</small>
         </div>
         <SearchBar className="store-header-search" />
-        <nav className="store-actions" aria-label="Primary">
+        <nav className="store-actions" aria-label={ES.nav.main}>
           {isAuthenticated ? (
             <>
               <Link to={dashboardHref} className="header-link">
                 <UserRound size={18} />
-                <span>{user?.name.split(" ")[0] ?? "Cuenta"}</span>
+                <span>{user?.name.split(" ")[0] ?? ES.nav.account}</span>
               </Link>
               <Link to={ordersHref} className="header-link">
-                Orders
+                {ES.nav.orders}
               </Link>
               <button type="button" className="header-link header-link-button" onClick={logout}>
-                Sign out
+                {ES.buttons.logout}
               </button>
             </>
           ) : (
             <>
               <Link to="/login" className="header-link">
-                Account
+                {ES.nav.account}
               </Link>
               <Link to="/register" className="header-link">
-                Join
+                {ES.buttons.createAccount}
               </Link>
             </>
           )}
@@ -92,7 +95,7 @@ export function Header() {
               aria-controls="mini-cart-panel"
             >
               <ShoppingCart size={18} />
-              <span>Cart</span>
+              <span>{ES.nav.cart}</span>
               <strong key={cartAttentionTick} data-testid="cart-count">
                 {cart.items.length}
               </strong>
@@ -100,8 +103,8 @@ export function Header() {
             <div id="mini-cart-panel" data-testid="mini-cart-panel" className={isMiniCartOpen ? "mini-cart-panel is-open" : "mini-cart-panel"}>
               <div className="mini-cart-header">
                 <div>
-                  <strong>{cart.items.length} items</strong>
-                  <p>{isLoading ? "Refreshing cart..." : "Fast checkout with delivery confirmation."}</p>
+                  <strong>{getProductCountLabel(cart.items.length)}</strong>
+                  <p>{isLoading ? ES.cart.updating : ES.cart.quickPurchase}</p>
                 </div>
                 <button
                   type="button"
@@ -111,7 +114,7 @@ export function Header() {
                     setDismissedTick(cartAttentionTick);
                   }}
                 >
-                  Close
+                  {ES.buttons.close}
                 </button>
               </div>
               {cart.items.length ? (
@@ -132,13 +135,13 @@ export function Header() {
                   </div>
                   <div className="mini-cart-summary">
                     <div className="summary-row">
-                      <span>Total</span>
+                      <span>{ES.labels.total}</span>
                       <strong>{formatCurrency(cart.total)}</strong>
                     </div>
-                    {lastAddedItem ? <p className="mini-cart-highlight">Added {lastAddedItem.productName} to your cart.</p> : null}
+                    {lastAddedItem ? <p className="mini-cart-highlight">{ES.cart.addedToCart(lastAddedItem.productName)}</p> : null}
                     <div className="mini-cart-actions">
                       <Link to="/cart" className="mini-cart-link">
-                        View cart
+                        {ES.buttons.viewCart}
                       </Link>
                       <button
                         type="button"
@@ -146,17 +149,17 @@ export function Header() {
                         className="button button-primary"
                         onClick={() => navigate(cart.items.length ? "/checkout" : "/cart")}
                       >
-                        Checkout
+                        {ES.buttons.checkout}
                       </button>
                     </div>
                   </div>
                 </>
               ) : (
                 <div className="mini-cart-empty">
-                  <strong>Your cart is empty</strong>
-                  <p>Add products to compare pricing, delivery and seller trust signals.</p>
+                  <strong>{ES.cart.emptyTitle}</strong>
+                  <p>{ES.cart.emptyDescription}</p>
                   <Link to="/products" className="mini-cart-link">
-                    Browse catalog
+                    {ES.buttons.viewCatalog}
                   </Link>
                 </div>
               )}
@@ -168,7 +171,7 @@ export function Header() {
         <button
           type="button"
           className="mini-cart-backdrop"
-          aria-label="Cerrar mini carrito"
+          aria-label={t("buttons.close")}
           onClick={() => {
             setManualOpenKey(null);
             setDismissedTick(cartAttentionTick);
@@ -177,8 +180,8 @@ export function Header() {
         <div className="mini-cart-sheet-panel">
           <div className="mini-cart-header">
             <div>
-              <strong>Your cart</strong>
-              <p>Secure delivery and live inventory.</p>
+              <strong>{ES.nav.cart}</strong>
+              <p>{ES.cart.secureDelivery}</p>
             </div>
             <button
               type="button"
@@ -188,7 +191,7 @@ export function Header() {
                 setDismissedTick(cartAttentionTick);
               }}
             >
-              Close
+              {ES.buttons.close}
             </button>
           </div>
           <div className="mini-cart-items">
@@ -207,26 +210,26 @@ export function Header() {
               ))
             ) : (
               <div className="mini-cart-empty">
-                <strong>Your cart is empty</strong>
-                <p>Browse trending products and add a few items to continue.</p>
+                <strong>{ES.cart.emptyTitle}</strong>
+                <p>{ES.cart.emptySheetDescription}</p>
               </div>
             )}
           </div>
           <div className="mini-cart-summary">
             <div className="summary-row">
-              <span>Total</span>
+              <span>{ES.labels.total}</span>
               <strong>{formatCurrency(cart.total)}</strong>
             </div>
             <div className="mini-cart-actions">
               <Link to="/cart" className="mini-cart-link">
-                View cart
+                {ES.buttons.viewCart}
               </Link>
               <button
                 type="button"
                 className="button button-primary"
                 onClick={() => navigate(cart.items.length ? "/checkout" : "/products")}
               >
-                Continue
+                {ES.buttons.continue}
               </button>
             </div>
           </div>
