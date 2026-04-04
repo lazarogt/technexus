@@ -1,11 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { ProductCard } from "@/components/catalog/ProductCard";
-import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
-import { SectionHeading } from "@/components/shared/SectionHeading";
+import { ProductCard } from "@/components/store/ProductCard";
+import { ProductRail } from "@/components/store/ProductRail";
+import { SectionHeader } from "@/components/store/SectionHeader";
 import { HeroBanner } from "@/components/store/HeroBanner";
+import { SellerSpotlightCard } from "@/components/store/SellerSpotlightCard";
 import { TrustBar } from "@/components/store/TrustBar";
+import { buildStorefrontCollections, getProductBadges, orderCategories } from "@/components/store/storefront-data";
+import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
@@ -13,25 +16,20 @@ import { useCart } from "@/features/cart/cart-context";
 export function HomePage() {
   const location = useLocation();
   const { addItem } = useCart();
-  const featuredQuery = useQuery({
-    queryKey: ["home", "featured"],
-    queryFn: () => listProducts({ limit: 12 })
-  });
-  const dealsQuery = useQuery({
-    queryKey: ["home", "deals"],
-    queryFn: () => listProducts({ limit: 4, sort: "price-asc" })
-  });
-  const recommendationsQuery = useQuery({
-    queryKey: ["home", "recommendations"],
-    queryFn: () => listProducts({ limit: 4, sort: "name-asc" })
+  const catalogQuery = useQuery({
+    queryKey: ["home", "catalog"],
+    queryFn: () => listProducts({ limit: 24 })
   });
   const categoriesQuery = useQuery({
     queryKey: ["home", "categories"],
     queryFn: listCategories
   });
 
-  const spotlight = featuredQuery.data?.products[0];
-  const topProducts = useMemo(() => featuredQuery.data?.products.slice(0, 4) ?? [], [featuredQuery.data]);
+  const products = catalogQuery.data?.products ?? [];
+  const orderedCategories = useMemo(() => orderCategories(categoriesQuery.data?.categories ?? []), [categoriesQuery.data?.categories]);
+  const collections = useMemo(() => buildStorefrontCollections(products), [products]);
+  const spotlight = collections.trending[0] ?? products[0];
+  const catalogProducts = useMemo(() => products.slice(0, 12), [products]);
 
   useEffect(() => {
     trackOnce(`view-home:${location.key}`, "view_home");
@@ -39,77 +37,106 @@ export function HomePage() {
 
   return (
     <div className="store-page stack-xl">
-      <HeroBanner spotlight={spotlight} />
+      <HeroBanner
+        spotlight={spotlight}
+        categoryCount={orderedCategories.length}
+        sellerCount={collections.topSellers.length}
+      />
 
-      <section className="stack-md">
-        <SectionHeading
-          eyebrow="Compra con confianza"
-          title="Todo listo para convertir desde la primera vista"
-          description="Señales de confianza y beneficios claros para aumentar add-to-cart y acelerar checkout."
-        />
-        <TrustBar />
-      </section>
-
-      <section className="stack-md">
-        <SectionHeading
-          title="Ofertas"
-          description="Selección orientada a precio para convertir más rápido."
-          action={<Link to="/products">Ver todo</Link>}
-        />
-        {dealsQuery.isLoading ? (
-          <ProductRailSkeleton />
-        ) : (
-          <div className="product-rail">
-            {(dealsQuery.data?.products ?? []).map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addItem} badge="Oferta" />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="stack-md">
-        <SectionHeading
-          title="Más vendidos"
-          description="Base principal del catálogo público para una experiencia tipo marketplace."
-        />
-        {featuredQuery.isLoading ? (
-          <ProductRailSkeleton />
-        ) : (
-          <div className="product-rail">
-            {topProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addItem} badge="Popular" />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="stack-md">
-        <SectionHeading
-          eyebrow="Explora por intención"
-          title="Categorías con salida rápida"
-          description="Navega directo al catálogo con menos fricción y mayor visibilidad de producto."
-        />
-        <div className="category-feature-grid">
-          {(categoriesQuery.data?.categories ?? []).slice(0, 6).map((category) => (
-            <Link key={category.id} to={`/category/${category.id}`} className="category-feature-card">
-              <span>{category.name}</span>
-              <small>Ver productos</small>
+      <section className="store-support-strip">
+        <div className="stack-sm">
+          <SectionHeader
+            eyebrow="Why shoppers convert here"
+            title="Conversion-focused browsing with real seller context"
+            description="Search remains visible, pricing is easy to scan, and each product carries rating, stock and seller signals without mixing in dashboard UI."
+          />
+          <TrustBar />
+        </div>
+        <div className="store-category-grid">
+          {orderedCategories.slice(0, 5).map((category) => (
+            <Link key={category.id} to={`/category/${category.id}`} className="store-category-link">
+              <strong>{category.name}</strong>
+              <span>Explore best picks</span>
             </Link>
           ))}
         </div>
       </section>
 
       <section className="stack-md">
-        <SectionHeading
-          title="Recomendados"
-          description="Surtido equilibrado para descubrir nuevas referencias sin salir de la tienda."
+        <SectionHeader
+          title="Trending Products"
+          description="High-interest items surfaced from the live catalog using rating, review and availability signals."
+          action={<Link to="/products">See all</Link>}
         />
-        {recommendationsQuery.isLoading ? (
-          <ProductRailSkeleton />
+        {catalogQuery.isLoading ? (
+          <ProductRailSkeleton count={6} />
         ) : (
-          <div className="product-rail">
-            {(recommendationsQuery.data?.products ?? []).map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addItem} badge="Recomendado" />
+          <ProductRail>
+            {collections.trending.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addItem}
+                badges={getProductBadges(product, collections.badgeMap)}
+                priorityImage={index < 2}
+              />
+            ))}
+          </ProductRail>
+        )}
+      </section>
+
+      <section className="stack-md">
+        <SectionHeader
+          title="Deals Worth Acting On"
+          description="Price-sensitive picks that still keep review quality and seller confidence front and center."
+          action={<Link to="/products?sort=price-asc">Browse deals</Link>}
+        />
+        {catalogQuery.isLoading ? (
+          <ProductRailSkeleton count={6} />
+        ) : (
+          <ProductRail>
+            {collections.deals.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addItem}
+                badges={getProductBadges(product, collections.badgeMap)}
+              />
+            ))}
+          </ProductRail>
+        )}
+      </section>
+
+      <section className="stack-md">
+        <SectionHeader
+          title="Top Sellers"
+          description="Seller spotlights are derived from catalog depth and customer feedback so shoppers can compare stores quickly."
+        />
+        <div className="seller-spotlight-grid">
+          {collections.topSellers.map((seller) => (
+            <SellerSpotlightCard key={seller.sellerId} seller={seller} />
+          ))}
+        </div>
+      </section>
+
+      <section className="stack-md">
+        <SectionHeader
+          title="Shop the Full Catalog"
+          description="Information-dense cards optimized for scan speed on desktop and touch-first browsing on mobile."
+          action={<Link to="/products">Open full catalog</Link>}
+        />
+        {catalogQuery.isLoading ? (
+          <ProductRailSkeleton count={8} />
+        ) : (
+          <div className="store-product-grid">
+            {catalogProducts.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addItem}
+                badges={getProductBadges(product, collections.badgeMap)}
+                priorityImage={index < 4}
+              />
             ))}
           </div>
         )}

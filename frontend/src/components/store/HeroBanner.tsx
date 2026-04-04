@@ -6,25 +6,37 @@ import { formatCurrency } from "@/lib/format";
 
 type HeroBannerProps = {
   spotlight?: Product;
+  categoryCount: number;
+  sellerCount: number;
 };
 
-export function HeroBanner({ spotlight }: HeroBannerProps) {
+export function HeroBanner({ spotlight, categoryCount, sellerCount }: HeroBannerProps) {
   return (
     <section className="hero-banner">
       <div className="hero-copy">
-        <p className="section-eyebrow">Marketplace tecnológico</p>
-        <h1>Todo tu stack comercial, tienda y operación en una sola vitrina.</h1>
+        <p className="section-eyebrow">Tech marketplace</p>
+        <h1>Find the next device faster with search-first shopping and dense product context.</h1>
         <p>
-          Descubre hardware, accesorios y herramientas listas para entrega inmediata con experiencia
-          de compra clara y paneles operativos separados por rol.
+          Browse laptops, gaming gear and components with live pricing, seller credibility and
+          purchase-ready product detail pages built to reduce friction.
         </p>
+        <div className="hero-stat-row">
+          <div className="hero-stat">
+            <strong>{categoryCount}+</strong>
+            <span>active departments</span>
+          </div>
+          <div className="hero-stat">
+            <strong>{sellerCount}</strong>
+            <span>top sellers featured</span>
+          </div>
+        </div>
         <TrustBar />
         <div className="hero-actions">
           <Link to="/products" className="hero-primary">
-            Ver catálogo
+            Shop Now
           </Link>
-          <Link to="/register" className="hero-secondary">
-            Vender en TechNexus
+          <Link to="/products?sort=price-asc" className="hero-secondary">
+            Explore Deals
           </Link>
         </div>
       </div>
@@ -33,22 +45,22 @@ export function HeroBanner({ spotlight }: HeroBannerProps) {
           <>
             <img src={spotlight.images[0]} alt={spotlight.name} loading="lazy" />
             <div className="hero-spotlight-card">
-              <span>Spotlight</span>
+              <span>Trending now</span>
               <strong>{spotlight.name}</strong>
-              <p>{spotlight.categoryName}</p>
+              <p>{spotlight.categoryName} · {spotlight.sellerName}</p>
               <div>
                 <b>{formatCurrency(spotlight.price)}</b>
                 <Link to={`/product/${spotlight.id}`}>
-                  Ver detalle <ArrowRight size={16} />
+                  View details <ArrowRight size={16} />
                 </Link>
               </div>
-              <small>Pago contra entrega y checkout rapido.</small>
+              <small>High-visibility placement, rating signals and faster path to checkout.</small>
             </div>
           </>
         ) : (
           <div className="hero-placeholder">
-            <strong>Carga inteligente de catálogo</strong>
-            <p>El home se nutre desde `/api/products` sin alterar el backend.</p>
+            <strong>Catalog loading</strong>
+            <p>Home merchandising is derived from the public product feed without API changes.</p>
           </div>
         )}
       </div>

@@ -11,6 +11,17 @@ export const prisma = new PrismaClient({
   log: env.isDevelopment ? ["warn", "error"] : ["error"]
 });
 
+export const calculateDatabaseRetryDelayMs = (
+  attempt: number,
+  baseDelayMs: number,
+  maxDelayMs = Math.max(baseDelayMs, 10_000)
+) => {
+  const normalizedAttempt = Math.max(1, attempt);
+  const exponentialDelay = baseDelayMs * 2 ** (normalizedAttempt - 1);
+
+  return Math.min(exponentialDelay, maxDelayMs);
+};
+
 export const connectDatabase = async () => {
   for (let attempt = 1; attempt <= env.DB_MAX_RETRIES; attempt += 1) {
     try {
@@ -31,8 +42,18 @@ export const connectDatabase = async () => {
         throw error;
       }
 
-      await new Promise((resolve) => setTimeout(resolve, env.DB_RETRY_DELAY_MS));
+      const retryDelayMs = calculateDatabaseRetryDelayMs(attempt, env.DB_RETRY_DELAY_MS);
+
+      logger.warn(
+        {
+          attempt,
+          retryInMs: retryDelayMs,
+          remainingAttempts: env.DB_MAX_RETRIES - attempt
+        },
+        "Retrying database connection"
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
     }
   }
 };
-

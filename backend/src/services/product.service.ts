@@ -24,6 +24,52 @@ const productInclude = {
   }
 };
 
+const productDetailInclude = {
+  ...productInclude,
+  reviews: {
+    orderBy: { createdAt: "desc" as const },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true
+        }
+      }
+    }
+  }
+};
+
+const getReviewSummaryByProductId = async (productIds: string[]) => {
+  if (productIds.length === 0) {
+    return new Map<string, { averageRating: number; reviewCount: number }>();
+  }
+
+  const grouped = await prisma.review.groupBy({
+    by: ["productId"],
+    where: {
+      productId: {
+        in: productIds
+      }
+    },
+    _avg: {
+      rating: true
+    },
+    _count: {
+      _all: true
+    }
+  });
+
+  return new Map(
+    grouped.map((entry) => [
+      entry.productId,
+      {
+        averageRating: Number((entry._avg.rating ?? 0).toFixed(1)),
+        reviewCount: entry._count._all
+      }
+    ])
+  );
+};
+
 const normalizeImageInputs = (input: {
   uploadedFiles?: Express.Multer.File[];
   imageUrls?: string[];
@@ -132,9 +178,14 @@ export const listProducts = async (input: {
         }),
         prisma.product.count({ where })
       ]);
+      const reviewSummaryByProductId = await getReviewSummaryByProductId(
+        products.map((product) => product.id)
+      );
 
       return {
-        products: products.map(toProductDto),
+        products: products.map((product) =>
+          toProductDto(product, reviewSummaryByProductId.get(product.id))
+        ),
         pagination: toPaginationMeta(pagination, total)
       };
     }
@@ -147,14 +198,15 @@ export const getProductById = async (productId: string, includeDeleted = false) 
       id: productId,
       ...(includeDeleted ? {} : { deletedAt: null })
     },
-    include: productInclude
+    include: productDetailInclude
   });
 
   if (!product) {
     throw new AppError(404, "PRODUCT_NOT_FOUND", "Product was not found.");
   }
 
-  return toProductDto(product);
+  const reviewSummary = await getReviewSummaryByProductId([product.id]);
+  return toProductDto(product, reviewSummary.get(product.id));
 };
 
 const assertProductOwnership = (
@@ -180,8 +232,11 @@ export const listProductsBySeller = async (sellerId: string) => {
     include: productInclude,
     orderBy: { createdAt: "desc" }
   });
+  const reviewSummaryByProductId = await getReviewSummaryByProductId(
+    products.map((product) => product.id)
+  );
 
-  return products.map(toProductDto);
+  return products.map((product) => toProductDto(product, reviewSummaryByProductId.get(product.id)));
 };
 
 export const createProduct = async (

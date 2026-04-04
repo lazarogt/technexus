@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { ProductCard } from "@/components/catalog/ProductCard";
+import { ProductCard } from "@/components/store/ProductCard";
+import { SectionHeader } from "@/components/store/SectionHeader";
+import { buildStorefrontCollections, getProductBadges } from "@/components/store/storefront-data";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
-import { SectionHeading } from "@/components/shared/SectionHeading";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
 
@@ -40,15 +41,15 @@ export function CategoryPage() {
     });
   }, [maxPrice, minPrice, productsQuery.data?.products]);
 
-  const categoryName =
-    categoriesQuery.data?.categories.find((category) => category.id === id)?.name ?? "Categoría";
+  const categoryName = categoriesQuery.data?.categories.find((category) => category.id === id)?.name ?? "Category";
+  const collections = useMemo(() => buildStorefrontCollections(filteredProducts), [filteredProducts]);
 
   return (
     <div className="category-layout">
       <aside className="filter-sidebar">
-        <SectionHeading title="Filtros" description="Ajustes rápidos sin mezclar la navegación pública con paneles internos." />
+        <SectionHeader title="Filters" description="Narrow the assortment without leaving the public storefront." />
         <label className="field">
-          <span className="field-label">Ordenar</span>
+          <span className="field-label">Sort</span>
           <select
             className="field-input field-select"
             value={sort}
@@ -58,13 +59,13 @@ export function CategoryPage() {
               setSearchParams(next);
             }}
           >
-            <option value="latest">Más recientes</option>
-            <option value="price-asc">Precio menor</option>
-            <option value="price-desc">Precio mayor</option>
+            <option value="latest">Newest</option>
+            <option value="price-asc">Lowest price</option>
+            <option value="price-desc">Highest price</option>
           </select>
         </label>
         <label className="field">
-          <span className="field-label">Precio mínimo</span>
+          <span className="field-label">Min price</span>
           <input
             className="field-input"
             type="number"
@@ -82,7 +83,7 @@ export function CategoryPage() {
           />
         </label>
         <label className="field">
-          <span className="field-label">Precio máximo</span>
+          <span className="field-label">Max price</span>
           <input
             className="field-input"
             type="number"
@@ -101,21 +102,26 @@ export function CategoryPage() {
         </label>
       </aside>
       <div className="stack-lg">
-        <SectionHeading
-          eyebrow="Categoría"
+        <SectionHeader
+          eyebrow="Department"
           title={categoryName}
-          description={`Mostrando ${filteredProducts.length} productos con filtros responsivos y grid adaptable.`}
+          description={`Showing ${filteredProducts.length} products with storefront filters that stay separate from dashboard management views.`}
         />
         {productsQuery.isLoading ? (
           <ProductRailSkeleton count={8} />
         ) : filteredProducts.length ? (
-          <div className="product-grid">
+          <div className="store-product-grid">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addItem} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addItem}
+                badges={getProductBadges(product, collections.badgeMap)}
+              />
             ))}
           </div>
         ) : (
-          <EmptyState title="No hay productos en esta vista" description="Prueba con otro rango de precio u ordenamiento." />
+          <EmptyState title="No products match these filters" description="Try a different price range or sorting option." />
         )}
       </div>
     </div>

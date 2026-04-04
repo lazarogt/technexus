@@ -58,6 +58,14 @@ const runBackendCommand = (...args: string[]) => {
   });
 };
 
+const runResetAndSeedCommand = () => {
+  runBackendCommand("scripts/resetAndSeed.js");
+};
+
+const runDemoCommand = () => {
+  runBackendCommand("scripts/demoSeed/index.js");
+};
+
 const authHeader = (token: string) => ({
   Authorization: `Bearer ${token}`
 });
@@ -79,8 +87,22 @@ const waitFor = async <T>(callback: () => Promise<T>, timeoutMs = 2_000) => {
 };
 
 const resetUploads = async () => {
-  await fs.rm(configModule.env.uploadsDir, { recursive: true, force: true });
   await fs.mkdir(configModule.env.uploadsDir, { recursive: true });
+
+  const entries = await fs.readdir(configModule.env.uploadsDir, { withFileTypes: true });
+
+  await Promise.all(
+    entries.map(async (entry) => {
+      if (entry.name.startsWith("seed-marketplace-")) {
+        return;
+      }
+
+      await fs.rm(path.join(configModule.env.uploadsDir, entry.name), {
+        recursive: true,
+        force: true
+      });
+    })
+  );
 };
 
 const resetDatabase = async () => {
@@ -91,6 +113,7 @@ const resetDatabase = async () => {
       "OrderItem",
       "Order",
       "CartItem",
+      "Review",
       "Cart",
       "LowStockAlert",
       "Inventory",
@@ -253,7 +276,7 @@ afterAll(async () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
   if (configModule?.env?.uploadsDir) {
-    await fs.rm(configModule.env.uploadsDir, { recursive: true, force: true });
+    await resetUploads();
   }
 }, 30_000);
 
@@ -695,6 +718,220 @@ describe("TechNexus smoke suite", () => {
     expect(overviewResponse.body.funnel.viewHome).toBeGreaterThanOrEqual(1);
     expect(Array.isArray(overviewResponse.body.recentEvents)).toBe(true);
   });
+
+  it("runs db:reset-seed without deleting users and exposes the seeded catalog", async () => {
+    const seller = await registerUser({
+      name: "Seed Seller",
+      email: "seed.seller@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    await registerUser({
+      name: "Seed Customer",
+      email: "seed.customer@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+
+    const usersBefore = await prismaModule.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        role: true
+      },
+      orderBy: {
+        email: "asc"
+      }
+    });
+
+    runResetAndSeedCommand();
+    await prismaModule.prisma.$disconnect();
+    await prismaModule.connectDatabase();
+
+    const productsResponse = await api.get("/api/products").query({ limit: 50 });
+    expect(productsResponse.status).toBe(200);
+    expect(productsResponse.body.products.length).toBeGreaterThanOrEqual(20);
+
+    const categoriesResponse = await api.get("/api/categories").query({ limit: 50 });
+    expect(categoriesResponse.status).toBe(200);
+    expect(categoriesResponse.body.categories.map((category: { name: string }) => category.name)).toEqual(
+      expect.arrayContaining(["Laptops", "PC Components", "Monitors", "Accessories"])
+    );
+
+    const usersAfter = await prismaModule.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        role: true
+      },
+      orderBy: {
+        email: "asc"
+      }
+    });
+
+    expect(usersAfter).toEqual(usersBefore);
+
+    const admin = await prismaModule.prisma.user.findUnique({
+      where: {
+        email: configModule.env.TECHNEXUS_ADMIN_EMAIL.toLowerCase()
+      }
+    });
+    expect(admin?.role).toBe("admin");
+
+    const seededProducts = await prismaModule.prisma.product.findMany({
+      include: {
+        category: true
+      }
+    });
+    expect(seededProducts.length).toBeGreaterThanOrEqual(20);
+    expect(new Set(seededProducts.map((product) => product.category.name))).toEqual(
+      new Set(["Laptops", "PC Components", "Monitors", "Accessories"])
+    );
+    expect(new Set(seededProducts.map((product) => product.sellerId))).toEqual(new Set([seller.user.id]));
+  }, 30_000);
+
+  it("runs db:demo and populates products, orders, reviews and analytics without deleting users", async () => {
+    const seededSeller = await registerUser({
+      name: "Demo Seller",
+      email: "demo.seller@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    await registerUser({
+      name: "Buyer One",
+      email: "buyer.one@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    await registerUser({
+      name: "Buyer Two",
+      email: "buyer.two@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    await registerUser({
+      name: "Buyer Three",
+      email: "buyer.three@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    await registerUser({
+      name: "Buyer Four",
+      email: "buyer.four@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    await registerUser({
+      name: "Buyer Five",
+      email: "buyer.five@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+    await registerUser({
+      name: "Buyer Six",
+      email: "buyer.six@example.com",
+      password: "Customer1234!",
+      role: "customer"
+    });
+
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+
+    const usersBefore = await prismaModule.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true
+      },
+      orderBy: {
+        email: "asc"
+      }
+    });
+
+    runDemoCommand();
+    await prismaModule.prisma.$disconnect();
+    await prismaModule.connectDatabase();
+
+    const usersAfter = await prismaModule.prisma.user.findMany({
+      select: {
+        id: true,
+        email: true
+      },
+      orderBy: {
+        email: "asc"
+      }
+    });
+    expect(usersAfter).toEqual(usersBefore);
+
+    const sellerCount = await prismaModule.prisma.user.count({
+      where: {
+        role: "seller",
+        deletedAt: null,
+        isBlocked: false
+      }
+    });
+    expect(sellerCount).toBeGreaterThanOrEqual(5);
+
+    const productsResponse = await api.get("/api/products").query({ limit: 80 });
+    expect(productsResponse.status).toBe(200);
+    expect(productsResponse.body.products.length).toBeGreaterThanOrEqual(40);
+    expect(productsResponse.body.products.every((product: { averageRating: number; reviewCount: number }) => typeof product.averageRating === "number" && product.reviewCount > 0)).toBe(true);
+
+    const productDetailResponse = await api.get(`/api/products/${productsResponse.body.products[0].id}`);
+    expect(productDetailResponse.status).toBe(200);
+    expect(productDetailResponse.body.product.reviews.length).toBeGreaterThanOrEqual(2);
+
+    const ordersResponse = await api.get("/api/orders").set(authHeader(admin.token)).query({ limit: 100 });
+    expect(ordersResponse.status).toBe(200);
+    expect(ordersResponse.body.orders.length).toBeGreaterThanOrEqual(30);
+
+    const analyticsResponse = await api
+      .get("/api/admin/analytics/overview")
+      .set(authHeader(admin.token))
+      .query({ range: "30d" });
+    expect(analyticsResponse.status).toBe(200);
+    expect(analyticsResponse.body.funnel.viewHome).toBeGreaterThan(0);
+    expect(analyticsResponse.body.funnel.completeOrder).toBeGreaterThan(0);
+    expect(analyticsResponse.body.topProducts.views.length).toBeGreaterThan(0);
+
+    const sellerProductsResponse = await api
+      .get("/api/products/mine")
+      .set(authHeader(seededSeller.token));
+    expect(sellerProductsResponse.status).toBe(200);
+    expect(sellerProductsResponse.body.products.length).toBeGreaterThan(0);
+
+    const sellerOrdersResponse = await api
+      .get("/api/orders/seller")
+      .set(authHeader(seededSeller.token));
+    expect(sellerOrdersResponse.status).toBe(200);
+    expect(sellerOrdersResponse.body.orders.length).toBeGreaterThan(0);
+
+    const adminAfter = await prismaModule.prisma.user.findUnique({
+      where: {
+        email: configModule.env.TECHNEXUS_ADMIN_EMAIL.toLowerCase()
+      }
+    });
+    expect(adminAfter?.role).toBe("admin");
+
+    const negativeInventoryCount = await prismaModule.prisma.inventory.count({
+      where: {
+        quantity: {
+          lt: 0
+        }
+      }
+    });
+    expect(negativeInventoryCount).toBe(0);
+
+    const orders = await prismaModule.prisma.order.findMany({
+      orderBy: {
+        createdAt: "asc"
+      }
+    });
+    expect(orders[0].createdAt.getTime()).toBeGreaterThan(
+      Date.now() - 31 * 24 * 60 * 60 * 1000
+    );
+  }, 60_000);
 
   it("verifies legacy and /api endpoints respond without 404s on basic requests", async () => {
     // Core discovery endpoints should answer on both compatibility surfaces.

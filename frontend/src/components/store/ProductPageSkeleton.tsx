@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/shared/Skeleton";
 export function ProductPageSkeleton() {
   return (
     <div className="store-page stack-xl" aria-hidden="true">
-      <section className="product-detail-layout">
+      <section className="store-product-detail">
         <div className="image-gallery">
           <Skeleton className="image-gallery-main skeleton-media" />
           <div className="image-gallery-thumbs">

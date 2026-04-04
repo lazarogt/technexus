@@ -9,7 +9,6 @@ BUILD_LOG_PATH="$TMP_DIR/docker-build.log"
 BACKEND_LOG_PATH="$TMP_DIR/backend.log"
 FRONTEND_LOG_PATH="$TMP_DIR/frontend.log"
 KEEP_TEMP_DIR=1
-PORT_5432_STATUS="unknown"
 PORT_80_STATUS="unchecked"
 PORT_4000_STATUS="unchecked"
 
@@ -26,8 +25,6 @@ declare -A RESULTS=(
   [analytics_internal]="pending"
   [analytics_posthog]="pending"
 )
-
-PG_HOST_PORT=5432
 
 log() {
   printf '[technexus-local] %s\n' "$*"
@@ -106,14 +103,14 @@ port_listener_details() {
 compose_base() {
   (
     cd "$ROOT_DIR" &&
-      POSTGRES_HOST_PORT="$PG_HOST_PORT" docker compose -f docker-compose.yml "$@"
+      docker compose --env-file .env.docker -f docker-compose.yml "$@"
   )
 }
 
 compose() {
   (
     cd "$ROOT_DIR" &&
-      POSTGRES_HOST_PORT="$PG_HOST_PORT" docker compose -f docker-compose.yml -f "$COMPOSE_OVERRIDE_PATH" "$@"
+      docker compose --env-file .env.docker -f docker-compose.yml -f "$COMPOSE_OVERRIDE_PATH" "$@"
   )
 }
 
@@ -158,11 +155,11 @@ ensure_fixed_port_available() {
   local details
 
   if port_in_use "$port"; then
-    if [[ "$port" == "80" ]]; then
+    if [[ "$port" == "3000" ]]; then
       PORT_80_STATUS="occupied"
     fi
 
-    if [[ "$port" == "4000" ]]; then
+    if [[ "$port" == "5000" ]]; then
       PORT_4000_STATUS="occupied"
     fi
 
@@ -203,14 +200,6 @@ capture_logs() {
 }
 
 docker_port_bindable() {
-  local port="$1"
-  local probe_name="technexus-portcheck-${port}-$$"
-
-  if ! docker run --rm -d --name "$probe_name" -p "${port}:5432" technexus-backend:latest sh -c "sleep 5" >/dev/null 2>&1; then
-    return 1
-  fi
-
-  docker rm -f "$probe_name" >/dev/null 2>&1 || true
   return 0
 }
 
@@ -220,7 +209,7 @@ run_compose_build() {
   log "Docker build attempt ${attempt}/2"
   (
     cd "$ROOT_DIR" &&
-      DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose -f docker-compose.yml -f "$COMPOSE_OVERRIDE_PATH" build backend frontend
+      DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker compose --env-file .env.docker -f docker-compose.yml -f "$COMPOSE_OVERRIDE_PATH" build backend frontend
   ) 2>&1 | tee -a "$BUILD_LOG_PATH"
 }
 
@@ -246,10 +235,9 @@ print_summary() {
 
   echo
   echo "TECHNEXUS_LOCAL_SUMMARY status=${overall_status}"
-  echo "TECHNEXUS_LOCAL_SUMMARY port_5432_status=${PORT_5432_STATUS}"
-  echo "TECHNEXUS_LOCAL_SUMMARY port_80_status=${PORT_80_STATUS}"
-  echo "TECHNEXUS_LOCAL_SUMMARY port_4000_status=${PORT_4000_STATUS}"
-  echo "TECHNEXUS_LOCAL_SUMMARY postgres_port=${PG_HOST_PORT}"
+  echo "TECHNEXUS_LOCAL_SUMMARY postgres_network_access=internal-only"
+  echo "TECHNEXUS_LOCAL_SUMMARY port_3000_status=${PORT_80_STATUS}"
+  echo "TECHNEXUS_LOCAL_SUMMARY port_5000_status=${PORT_4000_STATUS}"
   for key in docker_build healthchecks stack backend_tests backend_smoke frontend_build frontend_lint frontend_tests playwright_internal analytics_internal analytics_posthog; do
     echo "TECHNEXUS_LOCAL_SUMMARY ${key}=${RESULTS[$key]}"
   done
@@ -305,11 +293,7 @@ run_in_dir() {
 }
 
 backend_env_command() {
-  env \
-    POSTGRES_HOST=localhost \
-    POSTGRES_PORT="$PG_HOST_PORT" \
-    UPLOADS_DIR=/tmp/technexus-uploads \
-    "$@"
+  env UPLOADS_DIR=/tmp/technexus-uploads "$@"
 }
 
 frontend_build_env_command() {
@@ -322,23 +306,21 @@ frontend_build_env_command() {
 
 playwright_env_command() {
   env \
-    POSTGRES_HOST=localhost \
-    POSTGRES_PORT="$PG_HOST_PORT" \
     E2E_EXTERNAL_SERVICES=true \
     E2E_ANALYTICS_PROVIDER="$1" \
-    E2E_FRONTEND_URL=http://localhost \
-    E2E_API_URL=http://localhost:4000/api \
-    E2E_HEALTH_URL=http://localhost:4000/health \
-    E2E_FRONTEND_HEALTH_URL=http://localhost/healthz \
+    E2E_FRONTEND_URL=http://localhost:3000 \
+    E2E_API_URL=http://localhost:5000/api \
+    E2E_HEALTH_URL=http://localhost:5000/health \
+    E2E_FRONTEND_HEALTH_URL=http://localhost:3000/healthz \
     "${@:2}"
 }
 
 login_admin_token() {
   curl -fsS \
     -X POST \
-    http://localhost:4000/api/auth/login \
+    http://localhost:5000/api/auth/login \
     -H 'Content-Type: application/json' \
-    -d '{"email":"admin@example.com","password":"Admin1234!"}' \
+    -d '{"email":"admin@example.com","password":"DemoAdmin123!"}' \
     | node -e 'let data="";process.stdin.on("data",(chunk)=>data+=chunk);process.stdin.on("end",()=>{const parsed=JSON.parse(data);process.stdout.write(parsed.token ?? "");});'
 }
 
@@ -354,7 +336,7 @@ validate_internal_analytics_api() {
 
   overview="$(
     curl -fsS \
-      http://localhost:4000/api/admin/analytics/overview?range=24h \
+      http://localhost:5000/api/admin/analytics/overview?range=24h \
       -H "Authorization: Bearer $token"
   )"
 
@@ -382,7 +364,7 @@ validate_posthog_analytics_api() {
 
   overview="$(
     curl -fsS \
-      http://localhost:4000/api/admin/analytics/overview?range=24h \
+      http://localhost:5000/api/admin/analytics/overview?range=24h \
       -H "Authorization: Bearer $token"
   )"
 
@@ -397,7 +379,7 @@ validate_posthog_analytics_api() {
 }
 
 run_posthog_smoke() {
-  bootstrap_stack posthog db backend frontend
+  bootstrap_stack posthog postgres backend frontend
   validate_posthog_analytics_api
   run_in_dir "$ROOT_DIR/frontend" playwright_env_command posthog npm run test:e2e -- e2e/analytics.spec.ts
 }
@@ -405,12 +387,11 @@ run_posthog_smoke() {
 bootstrap_stack() {
   local analytics_provider="$1"
   local build_services=("$@")
-  local remapped_port
 
   write_compose_override "$analytics_provider"
   compose down --remove-orphans || true
-  ensure_fixed_port_available 80 "frontend nginx"
-  ensure_fixed_port_available 4000 "backend api"
+  ensure_fixed_port_available 3000 "frontend nginx"
+  ensure_fixed_port_available 5000 "backend api"
   PORT_80_STATUS="free"
   PORT_4000_STATUS="free"
 
@@ -423,27 +404,14 @@ bootstrap_stack() {
     fail "Docker image build failed after one retry."
   fi
 
-  if ! docker_port_bindable "$PG_HOST_PORT"; then
-    if [[ "$PG_HOST_PORT" -le 5432 ]]; then
-      remapped_port="$(find_next_free_port 5433)"
-    else
-      remapped_port="$(find_next_free_port "$((PG_HOST_PORT + 1))")"
-    fi
-
-    log "PostgreSQL host port ${PG_HOST_PORT} is not bindable by Docker after build. Retrying stack startup on port ${remapped_port}."
-    PG_HOST_PORT="$remapped_port"
-    PORT_5432_STATUS="occupied-remapped"
-    write_compose_override "$analytics_provider"
-  fi
-
   compose up -d "${build_services[@]:1}"
-  wait_for_compose_health db 120
+  wait_for_compose_health postgres 120
   wait_for_compose_health backend 180
   wait_for_compose_health frontend 180
-  wait_for_http "Backend health" "http://localhost:4000/health" 120
-  wait_for_http "Frontend health" "http://localhost/healthz" 120
-  wait_for_http "Frontend homepage" "http://localhost" 120
-  wait_for_http "Frontend API proxy" "http://localhost/api/products" 120
+  wait_for_http "Backend health" "http://localhost:5000/health" 120
+  wait_for_http "Frontend health" "http://localhost:3000/healthz" 120
+  wait_for_http "Frontend homepage" "http://localhost:3000" 120
+  wait_for_http "Frontend API proxy" "http://localhost:3000/api/products" 120
   RESULTS[healthchecks]="passed"
 }
 
@@ -455,23 +423,13 @@ main() {
   mkdir -p /tmp/technexus-uploads
   compose_base down --remove-orphans || true
 
-  if port_in_use 5432; then
-    PG_HOST_PORT="$(find_next_free_port 5433)"
-    PORT_5432_STATUS="occupied-remapped"
-    log "Port 5432 is busy. Using PostgreSQL host port ${PG_HOST_PORT} instead."
-  else
-    PG_HOST_PORT="$(find_next_free_port 5433)"
-    PORT_5432_STATUS="free-reserved"
-    log "Port 5432 appears free, but TechNexus will publish PostgreSQL on host port ${PG_HOST_PORT} to avoid transient local bind conflicts."
-  fi
-
-  run_checked_step stack "Bootstrapping internal-mode Docker stack" bootstrap_stack internal db backend frontend
+  run_checked_step stack "Bootstrapping internal-mode Docker stack" bootstrap_stack internal postgres backend frontend
 
   run_checked_step backend_tests "Running backend unit tests" \
-    run_in_dir "$ROOT_DIR/backend" backend_env_command npm test
+    compose exec -T backend npm test
 
   run_checked_step backend_smoke "Running backend smoke tests" \
-    run_in_dir "$ROOT_DIR/backend" backend_env_command npm run test:smoke
+    compose exec -T backend npm run test:smoke
 
   run_checked_step frontend_build "Building frontend locally" \
     run_in_dir "$ROOT_DIR/frontend" npm run build

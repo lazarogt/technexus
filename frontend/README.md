@@ -38,7 +38,7 @@ Standalone React + TypeScript + Vite frontend for TechNexus. It consumes the exi
 The default local stack is production-like and Docker-first:
 
 ```bash
-docker-compose up --build
+docker compose up -d --build
 ```
 
 You can automate the full local bootstrap, port-conflict handling, validation, Playwright run, and analytics smoke checks with:
@@ -49,21 +49,20 @@ You can automate the full local bootstrap, port-conflict handling, validation, P
 
 Runtime endpoints:
 
-- frontend: `http://localhost`
-- backend: `http://localhost:4000`
-- database: `localhost:5432`
+- frontend: `http://localhost:3000`
+- backend: `http://localhost:5000`
 
-The frontend is served through nginx and proxies both `/api/*` and `/uploads/*` to the backend container, so the existing route contracts stay unchanged.
+The frontend is served through nginx and proxies both `/api/*` and `/uploads/*` to the backend container on port `5000`, so the existing route contracts stay unchanged.
 
-If `5432` is already in use locally, the automation script keeps your local process intact and publishes the Docker PostgreSQL container on the next free port starting at `5433`.
+The compose stack uses service-local Dockerfiles at `backend/Dockerfile` and `frontend/Dockerfile`, `postgres:16-alpine`, `redis:7-alpine`, and a named `postgres_data` volume for persistence.
 
-The script keeps `http://localhost` and `http://localhost:4000` fixed. If `80` or `4000` are occupied by another process after Docker shutdown, it fails explicitly instead of remapping them.
+The backend applies Prisma migrations, bootstraps the seeded users when missing, and runs `npm run db:demo` only when the catalog is empty, so restarts stay stable while fresh volumes still come up with demo data. PostgreSQL is internal-only in Docker; validation goes through `docker compose exec postgres ...` rather than a host-published database port.
 
-When Docker image builds fail because of network or npm timeouts, the script retries the build once with plain Docker progress logs. If it still fails, it preserves the temporary artifact directory and log files for inspection.
+The public demo endpoints stay fixed at `http://localhost:3000` and `http://localhost:5000`.
 
 ## Local development
 
-1. For non-Docker frontend work, start the existing backend on `http://localhost:4000`
+1. For non-Docker frontend work, start the existing backend on its configured local port from `backend/.env`
 2. Install dependencies in this folder:
 
 ```bash
@@ -116,15 +115,15 @@ Tracked events:
 
 The Playwright suite lives in `e2e/` and runs against the real frontend plus real backend APIs. It does not mock `/api/*`.
 
-- Default local mode targets the dockerized nginx frontend on `http://localhost`
-- `e2e/global-setup.ts` brings up `db`, `backend`, and `frontend`, resets PostgreSQL, reseeds the database, provisions E2E users/catalog data, and waits for both backend and frontend readiness
+- Default local mode targets the dockerized nginx frontend on `http://localhost:3000`
+- `e2e/global-setup.ts` brings up `postgres`, `redis`, `backend`, and `frontend`, resets PostgreSQL through the backend container, reseeds the database, provisions E2E users/catalog data, and waits for both backend and frontend readiness
 - Vite mode remains available for CI or fast local runs with `E2E_USE_VITE=true`
-- When Vite mode is active and the backend Docker image is slow to rebuild locally, the harness can still fall back to a local backend process in a writable `.e2e-runtime/` directory
+- Vite mode still uses the Dockerized backend and database services
 
 Run the suite with:
 
 ```bash
-docker-compose up --build -d
+docker compose up -d --build
 cd frontend
 npm run test:e2e
 ```
@@ -146,10 +145,10 @@ E2E_USE_VITE=true npm run test:e2e
 
 GitHub Actions CI lives in `.github/workflows/ci.yml`.
 
-- Uses a real PostgreSQL service on `localhost:5433`
+- Uses a real PostgreSQL service for integration checks
 - Builds backend and frontend
 - Runs backend unit tests, smoke tests, and Playwright E2E
-- Starts the backend on `http://localhost:4000` before Playwright
+- Starts the backend before Playwright and expects the configured local backend port to be reachable
 - Runs Playwright in external-services mode with `E2E_USE_VITE=true`, so CI keeps its current managed-backend path while local default stays nginx on `:80`
 
 ## Architecture

@@ -26,7 +26,18 @@ export type Product = {
   categoryName: string;
   sellerId: string;
   sellerName: string;
+  averageRating: number;
+  reviewCount: number;
   images: string[];
+  reviews?: ProductReview[];
+};
+
+export type ProductReview = {
+  id: string;
+  userName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
 };
 
 export type ProductListResponse = {

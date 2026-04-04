@@ -1,20 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
-import { startTransition, useDeferredValue, useState } from "react";
-import type { FormEvent } from "react";
+import { startTransition, useDeferredValue, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { ProductCard } from "@/components/catalog/ProductCard";
+import { ProductCard } from "@/components/store/ProductCard";
+import { SectionHeader } from "@/components/store/SectionHeader";
+import { buildStorefrontCollections, getProductBadges } from "@/components/store/storefront-data";
+import { SearchBar } from "@/components/store/layout/SearchBar";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
-import { SectionHeading } from "@/components/shared/SectionHeading";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
 
 export function ProductsPage() {
   const { addItem } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [searchText, setSearchText] = useState(searchParams.get("search") ?? "");
   const deferredSearch = useDeferredValue(searchParams.get("search") ?? "");
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "latest";
@@ -37,33 +36,37 @@ export function ProductsPage() {
       })
   });
 
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    startTransition(() => {
-      const next = new URLSearchParams(searchParams);
-      next.set("page", "1");
-      if (searchText.trim()) {
-        next.set("search", searchText.trim());
-      } else {
-        next.delete("search");
-      }
-      setSearchParams(next);
-    });
-  };
+  const products = productsQuery.data?.products ?? [];
+  const pagination = productsQuery.data?.pagination;
+  const collections = useMemo(() => buildStorefrontCollections(products), [products]);
 
   return (
     <div className="store-page stack-lg">
-      <SectionHeading
-        eyebrow="Catálogo completo"
-        title="Productos para compra pública"
-        description="Búsqueda central, filtros rápidos y grid responsive 4/2/1 con datos reales desde `/api/products`."
+      <SectionHeader
+        eyebrow="Store catalog"
+        title="Find products faster with search, sort and reusable storefront modules"
+        description="This catalog keeps the dashboards untouched while tightening scan speed, product context and mobile browse behavior."
       />
 
       <div className="catalog-toolbar">
-        <form className="catalog-search-inline" onSubmit={handleSearch}>
-          <Search size={16} />
-          <input value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder="Buscar por nombre o descripción" />
-        </form>
+        <SearchBar
+          compact
+          className="catalog-search-surface"
+          initialValue={searchParams.get("search") ?? ""}
+          placeholder="Search by product, seller or use case"
+          onSubmit={(value) => {
+            startTransition(() => {
+              const next = new URLSearchParams(searchParams);
+              next.set("page", "1");
+              if (value) {
+                next.set("search", value);
+              } else {
+                next.delete("search");
+              }
+              setSearchParams(next);
+            });
+          }}
+        />
         <select
           value={sort}
           onChange={(event) => {
@@ -73,11 +76,11 @@ export function ProductsPage() {
             setSearchParams(next);
           }}
         >
-          <option value="latest">Más recientes</option>
-          <option value="price-asc">Precio: menor a mayor</option>
-          <option value="price-desc">Precio: mayor a menor</option>
-          <option value="name-asc">Nombre A-Z</option>
-          <option value="name-desc">Nombre Z-A</option>
+          <option value="latest">Newest arrivals</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="name-asc">Name A-Z</option>
+          <option value="name-desc">Name Z-A</option>
         </select>
       </div>
 
@@ -92,7 +95,7 @@ export function ProductsPage() {
             setSearchParams(next);
           }}
         >
-          Todas
+          All
         </button>
         {(categoriesQuery.data?.categories ?? []).map((category) => (
           <button
@@ -113,24 +116,31 @@ export function ProductsPage() {
 
       {productsQuery.isLoading ? (
         <ProductRailSkeleton count={8} />
-      ) : productsQuery.data?.products.length ? (
+      ) : products.length ? (
         <>
-          <div className="product-grid">
-            {productsQuery.data.products.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={addItem} />
+          <div className="store-product-grid">
+            {products.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onAddToCart={addItem}
+                badges={getProductBadges(product, collections.badgeMap)}
+              />
             ))}
           </div>
-          <Pagination
-            pagination={productsQuery.data.pagination}
-            onChange={(nextPage) => {
-              const next = new URLSearchParams(searchParams);
-              next.set("page", String(nextPage));
-              setSearchParams(next);
-            }}
-          />
+          {pagination ? (
+            <Pagination
+              pagination={pagination}
+              onChange={(nextPage) => {
+                const next = new URLSearchParams(searchParams);
+                next.set("page", String(nextPage));
+                setSearchParams(next);
+              }}
+            />
+          ) : null}
         </>
       ) : (
-        <EmptyState title="Sin resultados" description="Ajusta búsqueda, categoría o ordenamiento para encontrar productos." />
+        <EmptyState title="No products found" description="Adjust the search term, category or sorting to discover more products." />
       )}
     </div>
   );

@@ -29,6 +29,13 @@ export const initializeEmailService = async () => {
   }
 
   initialized = true;
+
+  if (!env.EMAIL_ENABLED) {
+    enabled = false;
+    logger.info("Email delivery disabled by configuration");
+    return enabled;
+  }
+
   transporter = createTransport();
 
   try {
@@ -79,4 +86,3 @@ export const sendEmail = async (input: {
     } satisfies EmailDeliveryResult;
   }
 };
-

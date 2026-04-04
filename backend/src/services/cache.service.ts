@@ -1,4 +1,4 @@
-import { createClient, type RedisClientType } from "redis";
+import { createClient } from "redis";
 import { env } from "../utils/config";
 import { logger } from "../utils/logger";
 
@@ -7,9 +7,28 @@ type CacheRecord = {
   expiresAt: number;
 };
 
-class CacheService {
-  private redisClient: RedisClientType | null = null;
+type CacheClient = {
+  isOpen: boolean;
+  on(event: "error", listener: (error: Error) => void): unknown;
+  connect(): Promise<void>;
+  quit(): Promise<void>;
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string, options: { EX: number }): Promise<unknown>;
+  keys(pattern: string): Promise<string[]>;
+  del(keys: string[]): Promise<unknown>;
+  flushDb(): Promise<unknown>;
+};
+
+type CacheClientFactory = (options: { url: string }) => CacheClient;
+
+const defaultCacheClientFactory: CacheClientFactory = ({ url }) =>
+  createClient({ url }) as unknown as CacheClient;
+
+export class CacheService {
+  private redisClient: CacheClient | null = null;
   private memory = new Map<string, CacheRecord>();
+
+  constructor(private readonly clientFactory: CacheClientFactory = defaultCacheClientFactory) {}
 
   async connect() {
     if (!env.REDIS_ENABLED) {
@@ -17,15 +36,30 @@ class CacheService {
       return;
     }
 
-    this.redisClient = createClient({ url: env.redisUrl });
-    this.redisClient.on("error", (error) => {
+    const redisClient = this.clientFactory({ url: env.redisUrl });
+
+    redisClient.on("error", (error) => {
       logger.error(
         { error: error.message },
         "Redis client error, requests will continue without hard failure"
       );
     });
-    await this.redisClient.connect();
-    logger.info("Redis cache connected");
+
+    try {
+      await redisClient.connect();
+      this.redisClient = redisClient;
+      logger.info("Redis cache connected");
+    } catch (error) {
+      this.redisClient = null;
+      logger.error(
+        { error: error instanceof Error ? error.message : "Unknown Redis error" },
+        "Redis cache connection failed, falling back to in-memory cache"
+      );
+
+      if (redisClient.isOpen) {
+        await redisClient.quit().catch(() => undefined);
+      }
+    }
   }
 
   async disconnect() {

@@ -7,6 +7,16 @@ import { initializeEmailService } from "./services/email.service";
 const app = createApp();
 
 async function start() {
+  logger.info(
+    {
+      nodeEnv: env.NODE_ENV,
+      port: env.BACKEND_PORT,
+      postgresHost: env.postgresHost,
+      redisEnabled: env.REDIS_ENABLED
+    },
+    "Environment configuration loaded"
+  );
+
   await bootstrapApplication();
   await initializeEmailService();
 

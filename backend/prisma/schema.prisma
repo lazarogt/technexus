@@ -56,6 +56,7 @@ model User {
   orders              Order[]       @relation("UserOrders")
   sellerOrderItems    OrderItem[]   @relation("SellerOrderItems")
   sellerEmailOutbox   EmailOutbox[] @relation("SellerOutbox")
+  reviews             Review[]
 }
 
 model GuestSession {
@@ -95,6 +96,7 @@ model Product {
   lowStockAlerts LowStockAlert[]
   orderItems  OrderItem[]
   cartItems   CartItem[]
+  reviews     Review[]
 
   @@index([categoryId, deletedAt])
   @@index([sellerId, deletedAt])
@@ -264,5 +266,20 @@ model AnalyticsEvent {
 
   @@index([event, createdAt])
   @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model Review {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @db.Uuid
+  userId    String   @db.Uuid
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([productId, createdAt])
   @@index([userId, createdAt])
 }

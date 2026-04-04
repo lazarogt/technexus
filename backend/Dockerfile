@@ -1,23 +1,45 @@
-FROM node:22-alpine AS base
+FROM node:20-slim AS base
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install
 
-FROM base AS builder
-COPY tsconfig.json ./
-COPY prisma ./prisma
-COPY scripts ./scripts
-COPY src ./src
-RUN npm run build
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/ \
+    NPM_CONFIG_CACHE=/root/.npm \
+    NPM_CONFIG_FETCH_RETRIES=8 \
+    NPM_CONFIG_FETCH_RETRY_FACTOR=2 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000 \
+    NPM_CONFIG_FETCH_TIMEOUT=300000
 
-FROM node:22-alpine AS runner
+RUN apt-get -o Acquire::ForceIPv4=true update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+FROM base AS deps
+
+COPY . ./
+RUN if [ ! -d node_modules ]; then npm ci --prefer-offline --no-audit --no-fund && npm run db:generate; fi \
+  && npm run build
+
+FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY package.json tsconfig.json ./
-COPY prisma ./prisma
-COPY scripts ./scripts
-EXPOSE 4000
-CMD ["sh", "-c", "npm run db:deploy && npm run db:seed && npm start"]
 
+ENV NODE_ENV=production \
+    PRISMA_QUERY_ENGINE_LIBRARY=/app/node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node \
+    PRISMA_SCHEMA_ENGINE_BINARY=/app/node_modules/@prisma/engines/schema-engine-debian-openssl-3.0.x
+
+COPY --from=deps --chown=node:node /app/node_modules ./node_modules
+COPY --from=deps --chown=node:node /app/dist ./dist
+COPY --chown=node:node package.json package-lock.json* tsconfig.json ./
+COPY --chown=node:node prisma ./prisma
+COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node src ./src
+
+RUN mkdir -p /app/uploads \
+  && chown node:node /app/uploads \
+  && chmod +x /app/scripts/docker-entrypoint.sh
+
+USER node
+
+EXPOSE 5000
+
+ENTRYPOINT ["/app/scripts/docker-entrypoint.sh"]
+CMD ["npm", "run", "start"]

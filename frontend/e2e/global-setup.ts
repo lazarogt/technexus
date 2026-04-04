@@ -1,4 +1,4 @@
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
@@ -6,12 +6,11 @@ import { API_URL, FRONTEND_HEALTH_URL, HEALTH_URL, TEST_CATEGORIES, TEST_IMAGE_U
 
 const frontendDir = path.resolve(process.cwd());
 const repoRoot = path.resolve(frontendDir, "..");
-const backendDir = path.resolve(repoRoot, "backend");
-const runtimeDir = path.resolve(frontendDir, ".e2e-runtime", "backend");
 const runtimePidPath = path.resolve(frontendDir, ".e2e-runtime", "backend.pid");
 const useExternalServices = process.env.E2E_EXTERNAL_SERVICES === "true" || process.env.GITHUB_ACTIONS === "true";
 const skipDbReset = process.env.E2E_SKIP_DB_RESET === "true";
 const useViteFrontend = process.env.E2E_USE_VITE === "true";
+const composeArgs = ["compose", "--env-file", ".env.docker"];
 
 function runCommand(command: string, args: string[], cwd: string, timeout?: number) {
   execFileSync(command, args, {
@@ -104,34 +103,12 @@ function stopProcessListeningOnPort(port: number) {
   }
 }
 
-async function startLocalBackend() {
-  fs.rmSync(runtimeDir, { recursive: true, force: true });
-  fs.mkdirSync(runtimeDir, { recursive: true });
-  fs.copyFileSync(path.resolve(backendDir, ".env"), path.resolve(runtimeDir, ".env"));
-  fs.mkdirSync(path.resolve(runtimeDir, "uploads"), { recursive: true });
-
-  const tsxCommand = path.resolve(backendDir, "node_modules", ".bin", process.platform === "win32" ? "tsx.cmd" : "tsx");
-  const child = spawn(tsxCommand, ["watch", path.resolve(backendDir, "src/index.ts")], {
-    cwd: runtimeDir,
-    detached: true,
-    stdio: "ignore",
-    env: {
-      ...process.env,
-      BACKEND_PORT: "4000"
-    }
-  });
-
-  child.unref();
-  fs.mkdirSync(path.dirname(runtimePidPath), { recursive: true });
-  fs.writeFileSync(runtimePidPath, String(child.pid));
-}
-
 async function waitForPostgres(timeoutMs: number) {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      runCommand("docker", ["compose", "exec", "-T", "db", "pg_isready", "-U", "technexus", "-d", "technexus"], repoRoot);
+      runCommand("docker", [...composeArgs, "exec", "-T", "postgres", "pg_isready", "-U", "technexus", "-d", "technexus"], repoRoot);
       return;
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 1_000));
@@ -146,8 +123,13 @@ function resetDatabase() {
     return;
   }
 
-  runCommand("node", ["scripts/prisma.cjs", "migrate", "reset", "--force", "--skip-generate", "--skip-seed"], backendDir);
-  runCommand("npm", ["run", "db:seed"], backendDir);
+  runCommand(
+    "docker",
+    [...composeArgs, "run", "--build", "--rm", "--no-deps", "backend", "node", "scripts/prisma.cjs", "migrate", "reset", "--force", "--skip-generate", "--skip-seed"],
+    repoRoot,
+    120_000
+  );
+  runCommand("docker", [...composeArgs, "run", "--build", "--rm", "--no-deps", "backend", "npm", "run", "db:seed"], repoRoot, 120_000);
 }
 
 async function apiRequest<T>(
@@ -322,27 +304,21 @@ export default async function globalSetup() {
       await waitForFrontend(FRONTEND_HEALTH_URL, 60_000);
     }
   } else {
-    stopProcessListeningOnPort(4000);
-    runCommand("docker", ["compose", "down", "--remove-orphans"], repoRoot);
-    runCommand("docker", ["compose", "up", "-d", "db"], repoRoot);
+    stopProcessListeningOnPort(5000);
+    runCommand("docker", [...composeArgs, "down", "--remove-orphans"], repoRoot);
+    runCommand("docker", [...composeArgs, "up", "-d", "postgres", "redis"], repoRoot);
     await waitForPostgres(60_000);
     resetDatabase();
 
     try {
       const services = useViteFrontend ? ["backend"] : ["backend", "frontend"];
-      runCommand("docker", ["compose", "up", "-d", "--build", "--force-recreate", ...services], repoRoot, 120_000);
+      runCommand("docker", [...composeArgs, "up", "-d", "--build", "--force-recreate", ...services], repoRoot, 120_000);
       await waitForBackend(HEALTH_URL, 120_000);
       if (!useViteFrontend) {
         await waitForFrontend(FRONTEND_HEALTH_URL, 120_000);
       }
     } catch {
-      if (!useViteFrontend) {
-        throw new Error("Dockerized nginx frontend failed to start for the default E2E path.");
-      }
-
-      runCommand("docker", ["compose", "rm", "-sf", "backend"], repoRoot);
-      await startLocalBackend();
-      await waitForBackend(HEALTH_URL, 60_000);
+      throw new Error("Dockerized services failed to start for the E2E path.");
     }
   }
 

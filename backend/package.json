@@ -7,11 +7,15 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx watch src/index.ts",
     "start": "node dist/src/index.js",
-    "test": "node --import tsx --test test/*.service.test.ts",
+    "test": "node --import tsx --test test/*.service.test.ts test/health.service.test.ts",
+    "test:integration": "node --import tsx --test test/database.integration.test.ts",
     "test:smoke": "vitest run test/smoke.test.ts",
     "db:generate": "node ./scripts/prisma.cjs generate",
     "db:deploy": "node ./scripts/prisma.cjs migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
+    "db:reset-seed": "node scripts/resetAndSeed.js",
+    "db:demo": "node scripts/demoSeed/index.js",
+    "docker:bootstrap": "node scripts/docker-bootstrap.cjs",
     "postinstall": "npm run db:generate"
   },
   "dependencies": {

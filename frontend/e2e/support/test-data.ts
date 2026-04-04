@@ -1,16 +1,16 @@
 const useViteFrontend = process.env.E2E_USE_VITE === "true";
 
 export const FRONTEND_URL =
-  process.env.E2E_FRONTEND_URL ?? (useViteFrontend ? "http://localhost:5173" : "http://localhost");
-export const API_URL = process.env.E2E_API_URL ?? "http://localhost:4000/api";
-export const HEALTH_URL = process.env.E2E_HEALTH_URL ?? "http://localhost:4000/health";
+  process.env.E2E_FRONTEND_URL ?? (useViteFrontend ? "http://localhost:5173" : "http://localhost:3000");
+export const API_URL = process.env.E2E_API_URL ?? "http://localhost:5000/api";
+export const HEALTH_URL = process.env.E2E_HEALTH_URL ?? "http://localhost:5000/health";
 export const FRONTEND_HEALTH_URL = process.env.E2E_FRONTEND_HEALTH_URL ?? `${FRONTEND_URL}/healthz`;
 
 export const TEST_USERS = {
   admin: {
     name: "TechNexus Admin",
     email: "admin@example.com",
-    password: "Admin1234!"
+    password: process.env.E2E_ADMIN_PASSWORD ?? "DemoAdmin123!"
   },
   sellerOne: {
     name: "E2E Seller One",
