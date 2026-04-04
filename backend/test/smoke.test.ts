@@ -341,6 +341,93 @@ describe("TechNexus smoke suite", () => {
     expect(sellerForbiddenCategoryResponse.status).toBe(403);
   });
 
+  it("returns stable product creation responses for success, validation, auth and invalid relations", async () => {
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+    const seller = await registerUser({
+      name: "Seller Validation",
+      email: "seller.validation@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const otherSeller = await registerUser({
+      name: "Seller Other",
+      email: "seller.other@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const category = await createAdminCategory(admin.token, "Validation Category");
+
+    const unauthorizedResponse = await api
+      .post("/api/products")
+      .field("name", "Unauthorized Product")
+      .field("description", "This request should be rejected.")
+      .field("price", "99.99")
+      .field("stock", "2")
+      .field("categoryId", category.id)
+      .attach("images", sampleImagePath);
+
+    expect(unauthorizedResponse.status).toBe(401);
+
+    const missingFieldsResponse = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Broken Product")
+      .field("price", "99.99")
+      .field("stock", "2")
+      .field("categoryId", category.id)
+      .attach("images", sampleImagePath);
+
+    expect(missingFieldsResponse.status).toBe(400);
+    expect(missingFieldsResponse.body.success).toBe(false);
+
+    const invalidCategoryResponse = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Invalid Category Product")
+      .field("description", "This product points to a missing category.")
+      .field("price", "39.99")
+      .field("stock", "2")
+      .field("categoryId", "11111111-1111-4111-8111-111111111111")
+      .attach("images", sampleImagePath);
+
+    expect(invalidCategoryResponse.status).toBe(400);
+    expect(invalidCategoryResponse.body.success).toBe(false);
+    expect(invalidCategoryResponse.body.message).toBe("The selected category does not exist.");
+
+    const invalidSellerInjectionResponse = await api
+      .post("/api/products")
+      .set(authHeader(admin.token))
+      .field("name", "Injected Seller Product")
+      .field("description", "This request uses a seller id that does not exist.")
+      .field("price", "49.99")
+      .field("stock", "3")
+      .field("categoryId", category.id)
+      .field("sellerId", "22222222-2222-4222-8222-222222222222")
+      .attach("images", sampleImagePath);
+
+    expect(invalidSellerInjectionResponse.status).toBe(400);
+    expect(invalidSellerInjectionResponse.body.success).toBe(false);
+    expect(invalidSellerInjectionResponse.body.message).toBe("The selected seller does not exist.");
+
+    const createdResponse = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Secured Product")
+      .field("description", "This product should be created successfully.")
+      .field("price", "59.99")
+      .field("stock", "5")
+      .field("categoryId", category.id)
+      .field("sellerId", otherSeller.user.id)
+      .attach("images", sampleImagePath);
+
+    expect(createdResponse.status).toBe(201);
+    expect(createdResponse.body.product.name).toBe("Secured Product");
+    expect(createdResponse.body.product.sellerId).toBe(seller.user.id);
+  });
+
   it("verifies seller product CRUD, upload storage, image URLs and list/read endpoints", async () => {
     // Sellers should be able to create products with uploaded files and remote URLs.
     const admin = await loginUser({

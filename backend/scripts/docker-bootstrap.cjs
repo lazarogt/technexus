@@ -7,6 +7,18 @@ const prisma = createPrismaClient({
   log: ["error"]
 });
 
+const log = (level, message, extra = {}) => {
+  process.stdout.write(
+    `${JSON.stringify({
+      level,
+      time: new Date().toISOString(),
+      component: "docker-bootstrap",
+      message,
+      ...extra
+    })}\n`
+  );
+};
+
 const runScript = (scriptName) => {
   const result = spawnSync("npm", ["run", scriptName], {
     stdio: "inherit",
@@ -36,23 +48,25 @@ async function main() {
     ]);
 
     if (!adminUser) {
-      console.log("Bootstrapping baseline users...");
+      log("info", "Bootstrapping baseline users");
       runScript("db:seed");
     }
 
     if (productCount === 0) {
-      console.log("Bootstrapping demo catalog...");
+      log("info", "Bootstrapping demo catalog");
       runScript("db:demo");
       return;
     }
 
-    console.log("Demo catalog already present. Skipping bootstrap seed.");
+    log("info", "Demo catalog already present. Skipping bootstrap seed");
   } finally {
     await prisma.$disconnect();
   }
 }
 
 main().catch((error) => {
-  console.error("Docker bootstrap failed.", error);
+  log("error", "Docker bootstrap failed", {
+    error: error instanceof Error ? error.message : "Unknown bootstrap error"
+  });
   process.exit(1);
 });

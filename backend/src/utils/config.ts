@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import dotenv from "dotenv";
 import pino from "pino";
@@ -33,6 +35,7 @@ const urlString = (protocols: string[]) =>
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
   ANALYTICS_PROVIDER: z.enum(["posthog", "internal"]).default("internal"),
   DATABASE_URL: z.union([urlString(["postgres:", "postgresql:"]), z.literal("")]).optional(),
   POSTGRES_DB: trimString(z.string().min(1)).default("technexus"),
@@ -107,18 +110,40 @@ const redisUrl =
     ? parsedEnv.REDIS_URL
     : `redis://localhost:${parsedEnv.REDIS_PORT}`;
 
+const resolveUploadsDir = () => {
+  const preferredUploadsDir = process.env.UPLOADS_DIR ?? path.resolve(process.cwd(), "uploads");
+
+  try {
+    fs.mkdirSync(preferredUploadsDir, { recursive: true });
+    fs.accessSync(preferredUploadsDir, fs.constants.W_OK);
+    return preferredUploadsDir;
+  } catch {
+    const fallbackUploadsDir = path.join(os.tmpdir(), "technexus-uploads");
+    fs.mkdirSync(fallbackUploadsDir, { recursive: true });
+    bootstrapLogger.error(
+      {
+        preferredUploadsDir,
+        fallbackUploadsDir
+      },
+      "Uploads directory is not writable, using fallback path"
+    );
+    return fallbackUploadsDir;
+  }
+};
+
 export const env = {
   ...parsedEnv,
   isDevelopment: parsedEnv.NODE_ENV === "development",
   isTest: parsedEnv.NODE_ENV === "test",
   isProduction: parsedEnv.NODE_ENV === "production",
+  logLevel: parsedEnv.LOG_LEVEL ?? (parsedEnv.NODE_ENV === "production" ? "info" : "debug"),
   testPostgresDb: parsedEnv.TEST_POSTGRES_DB ?? `${parsedEnv.POSTGRES_DB}_test`,
   testPostgresPort: parsedEnv.TEST_POSTGRES_PORT ?? parsedEnv.POSTGRES_PORT,
   postgresHost,
   postgresRuntimePort,
   databaseUrl,
   redisUrl,
-  uploadsDir: process.env.UPLOADS_DIR ?? path.resolve(process.cwd(), "uploads"),
+  uploadsDir: resolveUploadsDir(),
   guestSessionDays: 7,
   outboxBatchSize: 10,
   outboxIntervalMs: 30_000,

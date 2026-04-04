@@ -274,6 +274,25 @@ export const createProduct = async (
     throw new AppError(400, "CATEGORY_NOT_FOUND", "The selected category does not exist.");
   }
 
+  const seller = await prisma.user.findFirst({
+    where: {
+      id: sellerId,
+      deletedAt: null,
+      isBlocked: false,
+      role: {
+        in: ["seller", "admin"]
+      }
+    },
+    select: {
+      id: true
+    }
+  });
+
+  if (!seller) {
+    await cleanupFiles(images.map((image) => image.url));
+    throw new AppError(400, "SELLER_NOT_FOUND", "The selected seller does not exist.");
+  }
+
   try {
     const product = await prisma.$transaction(async (tx) => {
       const location = await ensureDefaultLocationForSeller(sellerId, tx);

@@ -1,3 +1,5 @@
+node_modules
+dist
 dist-ssr
 .e2e-runtime
 playwright-report

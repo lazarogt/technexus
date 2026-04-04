@@ -2,7 +2,7 @@ import pino from "pino";
 import { env } from "./config";
 
 const baseLoggerOptions: pino.LoggerOptions = {
-  level: env.isProduction ? "info" : "debug",
+  level: env.logLevel,
   messageKey: "message",
   timestamp: pino.stdTimeFunctions.isoTime,
   formatters: {
