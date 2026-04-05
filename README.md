@@ -72,6 +72,8 @@ docker compose up -d --build
 
 - The backend waits for PostgreSQL, applies Prisma migrations, seeds demo data when the catalog is empty, and then starts the app.
 - Prisma migrations are the only schema bootstrap path for the Docker stack.
+- Docker Compose runs the backend in `production` with structured logs, compiled `dist/` output, and internal database connectivity through the `postgres` service name.
+- The frontend image is built with `npm run build` and served by nginx in production mode; browser requests stay on `http://localhost:3000` while `/api` and `/uploads` are proxied internally to `http://backend:5000`.
 - `POST /api/products` validates product fields and related record ids server-side, derives the seller from the authenticated context for seller accounts, and returns `400` for invalid input/foreign-key issues or `409` for write conflicts instead of surfacing a generic `500`.
 - Frontend UI is currently shipped in Spanish (`es`) and is prepared for future i18n expansion through the lightweight constants module in `frontend/src/i18n/es.ts`.
 - Demo-only backend credentials are seeded automatically:

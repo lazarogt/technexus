@@ -8,6 +8,18 @@ const { seedOrders } = require("./orders");
 
 initializeDatabaseEnv();
 
+const log = (level, message, extra = {}) => {
+  process.stdout.write(
+    `${JSON.stringify({
+      level,
+      time: new Date().toISOString(),
+      component: "demo-seed",
+      message,
+      ...extra
+    })}\n`
+  );
+};
+
 const prisma = createPrismaClient({
   log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"]
 });
@@ -31,7 +43,7 @@ async function resetDemoData(tx) {
 }
 
 async function main() {
-  console.log("Applying pending database migrations...");
+  log("info", "Applying pending database migrations");
   await runMigrateDeployAndGenerate();
 
   const rng = createSeededRandom();
@@ -61,24 +73,24 @@ async function main() {
       });
 
       const sellers = await prepareSellers(tx);
-      console.log(`✔ sellers ready (${sellers.length})`);
+      log("info", "Sellers ready", { count: sellers.length });
 
       const { categoryByName } = await seedCategories(tx);
-      console.log(`✔ categories created (${categoryByName.size})`);
+      log("info", "Categories created", { count: categoryByName.size });
 
       const products = await seedProducts(tx, {
         sellers,
         categoryByName,
         rng
       });
-      console.log(`✔ products inserted (${products.length})`);
+      log("info", "Products inserted", { count: products.length });
 
       const reviewsCount = await seedReviews(tx, {
         products,
         reviewers: users.filter((user) => user.role !== "admin"),
         rng
       });
-      console.log(`✔ reviews generated (${reviewsCount})`);
+      log("info", "Reviews generated", { count: reviewsCount });
 
       const ordersResult = await seedOrders(tx, {
         users,
@@ -86,12 +98,14 @@ async function main() {
         products,
         rng
       });
-      console.log(`✔ orders simulated (${ordersResult.count})`);
+      log("info", "Orders simulated", { count: ordersResult.count });
     });
 
-    console.log("🚀 DEMO MODE READY");
+    log("info", "Demo mode ready");
   } catch (error) {
-    console.error("Demo mode failed. Transaction rolled back.", error);
+    log("error", "Demo mode failed. Transaction rolled back", {
+      error: error instanceof Error ? error.message : "Unknown demo seed error"
+    });
     process.exitCode = 1;
   } finally {
     await prisma.$disconnect();

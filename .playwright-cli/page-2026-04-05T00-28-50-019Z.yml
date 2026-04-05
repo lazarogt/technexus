@@ -1,0 +1,674 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - link "TechNexus" [ref=e7] [cursor=pointer]:
+            - /url: /
+          - generic [ref=e8]: Marketplace de tecnología listo para comprar
+        - generic [ref=e9]:
+          - generic [ref=e10]:
+            - img [ref=e11]
+            - textbox "Buscar productos" [ref=e14]:
+              - /placeholder: Busca laptops, componentes, monitores y más
+          - button "Buscar" [ref=e15] [cursor=pointer]
+        - navigation "Principal" [ref=e16]:
+          - link "Cuenta" [ref=e17] [cursor=pointer]:
+            - /url: /login
+          - link "Crear cuenta" [ref=e18] [cursor=pointer]:
+            - /url: /register
+          - generic [ref=e19]:
+            - button "Carrito 1" [expanded] [ref=e944]:
+              - img [ref=e21]
+              - generic [ref=e25]: Carrito
+              - strong [ref=e945]: "1"
+            - generic [ref=e946]:
+              - generic [ref=e947]:
+                - generic [ref=e948]:
+                  - strong [ref=e949]: 1 productos
+                  - paragraph [ref=e950]: Compra rápida con confirmación de entrega.
+                - button "Cerrar" [ref=e951] [cursor=pointer]
+              - article [ref=e953]:
+                - img "Auriculares Pro NX1" [ref=e954]
+                - generic [ref=e955]:
+                  - strong [ref=e956]: Auriculares Pro NX1
+                  - generic [ref=e957]: 1 x $129.90
+                - generic [ref=e958]: $129.90
+              - generic [ref=e959]:
+                - generic [ref=e960]:
+                  - generic [ref=e961]: Total
+                  - strong [ref=e962]: $129.90
+                - paragraph [ref=e963]: Se añadió Auriculares Pro NX1 a tu carrito.
+                - generic [ref=e964]:
+                  - link "Ver carrito" [ref=e965] [cursor=pointer]:
+                    - /url: /cart
+                  - button "Finalizar compra" [ref=e966] [cursor=pointer]
+    - navigation "Explorar categorías" [ref=e27]:
+      - generic [ref=e28]:
+        - link "Todos los departamentos" [ref=e29] [cursor=pointer]:
+          - /url: /products
+        - link "Electronica" [ref=e311] [cursor=pointer]:
+          - /url: /category/9bc65761-152e-422f-abc4-d2f1cf420eee
+        - link "Herramientas" [ref=e312] [cursor=pointer]:
+          - /url: /category/860f5e6a-29ee-43fc-89e9-0709637e8c80
+        - link "Oficina y hogar" [ref=e313] [cursor=pointer]:
+          - /url: /category/ba95e08b-bd27-4b87-bb8a-679b4a406835
+    - main [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]:
+            - paragraph [ref=e34]: Marketplace tecnológico
+            - heading "Encuentra tu próximo dispositivo más rápido con búsqueda prioritaria y contexto útil en cada producto." [level=1] [ref=e35]
+            - paragraph [ref=e36]: Explora laptops, periféricos gamer y componentes con precios en vivo, credibilidad del vendedor y fichas pensadas para comprar sin fricción.
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - strong [ref=e39]: 3+
+                - generic [ref=e40]: departamentos activos
+              - generic [ref=e41]:
+                - strong [ref=e42]: "2"
+                - generic [ref=e43]: vendedores destacados
+            - generic "Beneficios de compra" [ref=e44]:
+              - generic [ref=e45]: Pago contra entrega
+              - generic [ref=e46]: Garantía de satisfacción
+              - generic [ref=e47]: Soporte disponible
+            - generic [ref=e48]:
+              - link "Comprar ahora" [ref=e49] [cursor=pointer]:
+                - /url: /products
+              - link "Ver ofertas" [ref=e50] [cursor=pointer]:
+                - /url: /products?sort=price-asc
+          - generic [ref=e51]:
+            - img "Auriculares Pro NX1" [ref=e314]
+            - generic [ref=e315]:
+              - generic [ref=e316]: En tendencia
+              - strong [ref=e317]: Auriculares Pro NX1
+              - paragraph [ref=e318]: Electronica · Lina Morales
+              - generic [ref=e319]:
+                - generic [ref=e320]: $129.90
+                - link "Ver detalle" [ref=e321] [cursor=pointer]:
+                  - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                  - text: Ver detalle
+                  - img [ref=e322]
+              - generic [ref=e325]: Alta visibilidad, señales de confianza y una ruta más corta hacia la compra.
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e58]:
+              - paragraph [ref=e59]: Por qué aquí convierten más
+              - heading "Exploración enfocada en compra con contexto real del vendedor" [level=2] [ref=e61]
+              - paragraph [ref=e62]: La búsqueda siempre está visible, el precio se escanea rápido y cada producto muestra calificación, stock y señales del vendedor sin mezclar paneles internos.
+            - generic "Beneficios de compra" [ref=e63]:
+              - generic [ref=e64]: Pago contra entrega
+              - generic [ref=e65]: Garantía de satisfacción
+              - generic [ref=e66]: Soporte disponible
+          - generic [ref=e67]:
+            - link "Electronica Ver productos destacados" [ref=e326] [cursor=pointer]:
+              - /url: /category/9bc65761-152e-422f-abc4-d2f1cf420eee
+              - strong [ref=e327]: Electronica
+              - generic [ref=e328]: Ver productos destacados
+            - link "Herramientas Ver productos destacados" [ref=e329] [cursor=pointer]:
+              - /url: /category/860f5e6a-29ee-43fc-89e9-0709637e8c80
+              - strong [ref=e330]: Herramientas
+              - generic [ref=e331]: Ver productos destacados
+            - link "Oficina y hogar Ver productos destacados" [ref=e332] [cursor=pointer]:
+              - /url: /category/ba95e08b-bd27-4b87-bb8a-679b4a406835
+              - strong [ref=e333]: Oficina y hogar
+              - generic [ref=e334]: Ver productos destacados
+        - generic [ref=e68]:
+          - generic [ref=e70]:
+            - generic [ref=e71]:
+              - heading "Productos en tendencia" [level=2] [ref=e72]
+              - link "Ver todo" [ref=e74] [cursor=pointer]:
+                - /url: /products
+            - paragraph [ref=e75]: Artículos de alto interés detectados desde el catálogo en vivo con señales de calificación, reseñas y disponibilidad.
+          - generic [ref=e336]:
+            - article [ref=e337]:
+              - link "Ver Auriculares Pro NX1" [ref=e338] [cursor=pointer]:
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+              - link "Auriculares Pro NX1" [ref=e339] [cursor=pointer]:
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - img "Auriculares Pro NX1" [ref=e341]
+              - generic [ref=e342]:
+                - generic [ref=e343]:
+                  - generic [ref=e344]: Electronica
+                  - generic [ref=e345]: En stock
+                - generic [ref=e346]:
+                  - generic [ref=e347]: Más vendido
+                  - generic [ref=e348]: Tendencia
+                - link "Auriculares Pro NX1" [ref=e349] [cursor=pointer]:
+                  - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - generic "Aún no hay reseñas" [ref=e350]:
+                  - generic [ref=e351]:
+                    - img [ref=e352]
+                    - img [ref=e354]
+                    - img [ref=e356]
+                    - img [ref=e358]
+                    - img [ref=e360]
+                  - generic [ref=e362]: Nuevo
+                  - generic [ref=e363]: Sé el primero en comprarlo
+                - paragraph [ref=e364]: $129.90
+                - paragraph [ref=e365]: Vendido por Lina Morales
+                - paragraph [ref=e366]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [active] [ref=e368] [cursor=pointer]
+            - article [ref=e369]:
+              - link "Ver Router Mesh Atlas 6" [ref=e370] [cursor=pointer]:
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+              - link "Router Mesh Atlas 6" [ref=e371] [cursor=pointer]:
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - img "Router Mesh Atlas 6" [ref=e373]
+              - generic [ref=e374]:
+                - generic [ref=e375]:
+                  - generic [ref=e376]: Electronica
+                  - generic [ref=e377]: En stock
+                - generic [ref=e378]:
+                  - generic [ref=e379]: Más vendido
+                  - generic [ref=e380]: Tendencia
+                - link "Router Mesh Atlas 6" [ref=e381] [cursor=pointer]:
+                  - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - generic "Aún no hay reseñas" [ref=e382]:
+                  - generic [ref=e383]:
+                    - img [ref=e384]
+                    - img [ref=e386]
+                    - img [ref=e388]
+                    - img [ref=e390]
+                    - img [ref=e392]
+                  - generic [ref=e394]: Nuevo
+                  - generic [ref=e395]: Sé el primero en comprarlo
+                - paragraph [ref=e396]: $159.00
+                - paragraph [ref=e397]: Vendido por Diego Salazar
+                - paragraph [ref=e398]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e400] [cursor=pointer]
+            - article [ref=e401]:
+              - link "Ver Teclado Mecanico Forge K2" [ref=e402] [cursor=pointer]:
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+              - link "Teclado Mecanico Forge K2" [ref=e403] [cursor=pointer]:
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - img "Teclado Mecanico Forge K2" [ref=e405]
+              - generic [ref=e406]:
+                - generic [ref=e407]:
+                  - generic [ref=e408]: Oficina y hogar
+                  - generic [ref=e409]: En stock
+                - generic [ref=e411]: Tendencia
+                - link "Teclado Mecanico Forge K2" [ref=e412] [cursor=pointer]:
+                  - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - generic "Aún no hay reseñas" [ref=e413]:
+                  - generic [ref=e414]:
+                    - img [ref=e415]
+                    - img [ref=e417]
+                    - img [ref=e419]
+                    - img [ref=e421]
+                    - img [ref=e423]
+                  - generic [ref=e425]: Nuevo
+                  - generic [ref=e426]: Sé el primero en comprarlo
+                - paragraph [ref=e427]: $89.50
+                - paragraph [ref=e428]: Vendido por Lina Morales
+                - paragraph [ref=e429]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e431] [cursor=pointer]
+            - article [ref=e432]:
+              - link "Ver Webcam Studio 4K" [ref=e433] [cursor=pointer]:
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+              - link "Webcam Studio 4K" [ref=e434] [cursor=pointer]:
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - img "Webcam Studio 4K" [ref=e436]
+              - generic [ref=e437]:
+                - generic [ref=e438]:
+                  - generic [ref=e439]: Electronica
+                  - generic [ref=e440]: En stock
+                - generic [ref=e442]: Tendencia
+                - link "Webcam Studio 4K" [ref=e443] [cursor=pointer]:
+                  - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - generic "Aún no hay reseñas" [ref=e444]:
+                  - generic [ref=e445]:
+                    - img [ref=e446]
+                    - img [ref=e448]
+                    - img [ref=e450]
+                    - img [ref=e452]
+                    - img [ref=e454]
+                  - generic [ref=e456]: Nuevo
+                  - generic [ref=e457]: Sé el primero en comprarlo
+                - paragraph [ref=e458]: $149.00
+                - paragraph [ref=e459]: Vendido por Lina Morales
+                - paragraph [ref=e460]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e462] [cursor=pointer]
+            - article [ref=e463]:
+              - link "Ver Taladro Smart Drill X" [ref=e464] [cursor=pointer]:
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+              - link "Taladro Smart Drill X" [ref=e465] [cursor=pointer]:
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - img "Taladro Smart Drill X" [ref=e467]
+              - generic [ref=e468]:
+                - generic [ref=e469]:
+                  - generic [ref=e470]: Herramientas
+                  - generic [ref=e471]: En stock
+                - generic [ref=e473]: Tendencia
+                - link "Taladro Smart Drill X" [ref=e474] [cursor=pointer]:
+                  - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - generic "Aún no hay reseñas" [ref=e475]:
+                  - generic [ref=e476]:
+                    - img [ref=e477]
+                    - img [ref=e479]
+                    - img [ref=e481]
+                    - img [ref=e483]
+                    - img [ref=e485]
+                  - generic [ref=e487]: Nuevo
+                  - generic [ref=e488]: Sé el primero en comprarlo
+                - paragraph [ref=e489]: $199.90
+                - paragraph [ref=e490]: Vendido por Diego Salazar
+                - paragraph [ref=e491]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e493] [cursor=pointer]
+            - article [ref=e494]:
+              - link "Ver Monitor UltraWide 34" [ref=e495] [cursor=pointer]:
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+              - link "Monitor UltraWide 34" [ref=e496] [cursor=pointer]:
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - img "Monitor UltraWide 34" [ref=e498]
+              - generic [ref=e499]:
+                - generic [ref=e500]:
+                  - generic [ref=e501]: Oficina y hogar
+                  - generic [ref=e502]: En stock
+                - generic [ref=e504]: Tendencia
+                - link "Monitor UltraWide 34" [ref=e505] [cursor=pointer]:
+                  - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - generic "Aún no hay reseñas" [ref=e506]:
+                  - generic [ref=e507]:
+                    - img [ref=e508]
+                    - img [ref=e510]
+                    - img [ref=e512]
+                    - img [ref=e514]
+                    - img [ref=e516]
+                  - generic [ref=e518]: Nuevo
+                  - generic [ref=e519]: Sé el primero en comprarlo
+                - paragraph [ref=e520]: $429.00
+                - paragraph [ref=e521]: Vendido por Diego Salazar
+                - paragraph [ref=e522]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e524] [cursor=pointer]
+        - generic [ref=e138]:
+          - generic [ref=e140]:
+            - generic [ref=e141]:
+              - heading "Ofertas que vale la pena aprovechar" [level=2] [ref=e142]
+              - link "Ver ofertas" [ref=e144] [cursor=pointer]:
+                - /url: /products?sort=price-asc
+            - paragraph [ref=e145]: Selecciones sensibles al precio que mantienen al frente la calidad de reseñas y la confianza en el vendedor.
+          - generic [ref=e526]:
+            - article [ref=e527]:
+              - link "Ver Teclado Mecanico Forge K2" [ref=e528] [cursor=pointer]:
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+              - link "Teclado Mecanico Forge K2" [ref=e529] [cursor=pointer]:
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - img "Teclado Mecanico Forge K2" [ref=e531]
+              - generic [ref=e532]:
+                - generic [ref=e533]:
+                  - generic [ref=e534]: Oficina y hogar
+                  - generic [ref=e535]: En stock
+                - generic [ref=e537]: Tendencia
+                - link "Teclado Mecanico Forge K2" [ref=e538] [cursor=pointer]:
+                  - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - generic "Aún no hay reseñas" [ref=e539]:
+                  - generic [ref=e540]:
+                    - img [ref=e541]
+                    - img [ref=e543]
+                    - img [ref=e545]
+                    - img [ref=e547]
+                    - img [ref=e549]
+                  - generic [ref=e551]: Nuevo
+                  - generic [ref=e552]: Sé el primero en comprarlo
+                - paragraph [ref=e553]: $89.50
+                - paragraph [ref=e554]: Vendido por Lina Morales
+                - paragraph [ref=e555]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e557] [cursor=pointer]
+            - article [ref=e558]:
+              - link "Ver Auriculares Pro NX1" [ref=e559] [cursor=pointer]:
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+              - link "Auriculares Pro NX1" [ref=e560] [cursor=pointer]:
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - img "Auriculares Pro NX1" [ref=e562]
+              - generic [ref=e563]:
+                - generic [ref=e564]:
+                  - generic [ref=e565]: Electronica
+                  - generic [ref=e566]: En stock
+                - generic [ref=e567]:
+                  - generic [ref=e568]: Más vendido
+                  - generic [ref=e569]: Tendencia
+                - link "Auriculares Pro NX1" [ref=e570] [cursor=pointer]:
+                  - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - generic "Aún no hay reseñas" [ref=e571]:
+                  - generic [ref=e572]:
+                    - img [ref=e573]
+                    - img [ref=e575]
+                    - img [ref=e577]
+                    - img [ref=e579]
+                    - img [ref=e581]
+                  - generic [ref=e583]: Nuevo
+                  - generic [ref=e584]: Sé el primero en comprarlo
+                - paragraph [ref=e585]: $129.90
+                - paragraph [ref=e586]: Vendido por Lina Morales
+                - paragraph [ref=e587]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e589] [cursor=pointer]
+            - article [ref=e590]:
+              - link "Ver Webcam Studio 4K" [ref=e591] [cursor=pointer]:
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+              - link "Webcam Studio 4K" [ref=e592] [cursor=pointer]:
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - img "Webcam Studio 4K" [ref=e594]
+              - generic [ref=e595]:
+                - generic [ref=e596]:
+                  - generic [ref=e597]: Electronica
+                  - generic [ref=e598]: En stock
+                - generic [ref=e600]: Tendencia
+                - link "Webcam Studio 4K" [ref=e601] [cursor=pointer]:
+                  - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - generic "Aún no hay reseñas" [ref=e602]:
+                  - generic [ref=e603]:
+                    - img [ref=e604]
+                    - img [ref=e606]
+                    - img [ref=e608]
+                    - img [ref=e610]
+                    - img [ref=e612]
+                  - generic [ref=e614]: Nuevo
+                  - generic [ref=e615]: Sé el primero en comprarlo
+                - paragraph [ref=e616]: $149.00
+                - paragraph [ref=e617]: Vendido por Lina Morales
+                - paragraph [ref=e618]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e620] [cursor=pointer]
+            - article [ref=e621]:
+              - link "Ver Router Mesh Atlas 6" [ref=e622] [cursor=pointer]:
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+              - link "Router Mesh Atlas 6" [ref=e623] [cursor=pointer]:
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - img "Router Mesh Atlas 6" [ref=e625]
+              - generic [ref=e626]:
+                - generic [ref=e627]:
+                  - generic [ref=e628]: Electronica
+                  - generic [ref=e629]: En stock
+                - generic [ref=e630]:
+                  - generic [ref=e631]: Más vendido
+                  - generic [ref=e632]: Tendencia
+                - link "Router Mesh Atlas 6" [ref=e633] [cursor=pointer]:
+                  - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - generic "Aún no hay reseñas" [ref=e634]:
+                  - generic [ref=e635]:
+                    - img [ref=e636]
+                    - img [ref=e638]
+                    - img [ref=e640]
+                    - img [ref=e642]
+                    - img [ref=e644]
+                  - generic [ref=e646]: Nuevo
+                  - generic [ref=e647]: Sé el primero en comprarlo
+                - paragraph [ref=e648]: $159.00
+                - paragraph [ref=e649]: Vendido por Diego Salazar
+                - paragraph [ref=e650]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e652] [cursor=pointer]
+            - article [ref=e653]:
+              - link "Ver Taladro Smart Drill X" [ref=e654] [cursor=pointer]:
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+              - link "Taladro Smart Drill X" [ref=e655] [cursor=pointer]:
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - img "Taladro Smart Drill X" [ref=e657]
+              - generic [ref=e658]:
+                - generic [ref=e659]:
+                  - generic [ref=e660]: Herramientas
+                  - generic [ref=e661]: En stock
+                - generic [ref=e663]: Tendencia
+                - link "Taladro Smart Drill X" [ref=e664] [cursor=pointer]:
+                  - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - generic "Aún no hay reseñas" [ref=e665]:
+                  - generic [ref=e666]:
+                    - img [ref=e667]
+                    - img [ref=e669]
+                    - img [ref=e671]
+                    - img [ref=e673]
+                    - img [ref=e675]
+                  - generic [ref=e677]: Nuevo
+                  - generic [ref=e678]: Sé el primero en comprarlo
+                - paragraph [ref=e679]: $199.90
+                - paragraph [ref=e680]: Vendido por Diego Salazar
+                - paragraph [ref=e681]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e683] [cursor=pointer]
+            - article [ref=e684]:
+              - link "Ver Monitor UltraWide 34" [ref=e685] [cursor=pointer]:
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+              - link "Monitor UltraWide 34" [ref=e686] [cursor=pointer]:
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - img "Monitor UltraWide 34" [ref=e688]
+              - generic [ref=e689]:
+                - generic [ref=e690]:
+                  - generic [ref=e691]: Oficina y hogar
+                  - generic [ref=e692]: En stock
+                - generic [ref=e694]: Tendencia
+                - link "Monitor UltraWide 34" [ref=e695] [cursor=pointer]:
+                  - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - generic "Aún no hay reseñas" [ref=e696]:
+                  - generic [ref=e697]:
+                    - img [ref=e698]
+                    - img [ref=e700]
+                    - img [ref=e702]
+                    - img [ref=e704]
+                    - img [ref=e706]
+                  - generic [ref=e708]: Nuevo
+                  - generic [ref=e709]: Sé el primero en comprarlo
+                - paragraph [ref=e710]: $429.00
+                - paragraph [ref=e711]: Vendido por Diego Salazar
+                - paragraph [ref=e712]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e714] [cursor=pointer]
+        - generic [ref=e208]:
+          - generic [ref=e210]:
+            - heading "Vendedores destacados" [level=2] [ref=e212]
+            - paragraph [ref=e213]: Los destacados se calculan con profundidad de catálogo y feedback de clientes para comparar tiendas más rápido.
+          - generic [ref=e715]:
+            - article [ref=e716]:
+              - img "Router Mesh Atlas 6" [ref=e717]
+              - generic [ref=e718]:
+                - paragraph [ref=e719]: Vendedores destacados
+                - heading "Diego Salazar" [level=3] [ref=e720]
+                - generic "Aún no hay reseñas" [ref=e721]:
+                  - generic [ref=e722]:
+                    - img [ref=e723]
+                    - img [ref=e725]
+                    - img [ref=e727]
+                    - img [ref=e729]
+                    - img [ref=e731]
+                  - generic [ref=e733]: Nuevo
+                  - generic [ref=e734]: Sé el primero en comprarlo
+                - generic [ref=e735]:
+                  - generic [ref=e736]: 3 productos
+                  - generic [ref=e737]: Precio $159.00
+                - link "Ver productos destacados" [ref=e738] [cursor=pointer]:
+                  - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+            - article [ref=e739]:
+              - img "Auriculares Pro NX1" [ref=e740]
+              - generic [ref=e741]:
+                - paragraph [ref=e742]: Vendedores destacados
+                - heading "Lina Morales" [level=3] [ref=e743]
+                - generic "Aún no hay reseñas" [ref=e744]:
+                  - generic [ref=e745]:
+                    - img [ref=e746]
+                    - img [ref=e748]
+                    - img [ref=e750]
+                    - img [ref=e752]
+                    - img [ref=e754]
+                  - generic [ref=e756]: Nuevo
+                  - generic [ref=e757]: Sé el primero en comprarlo
+                - generic [ref=e758]:
+                  - generic [ref=e759]: 3 productos
+                  - generic [ref=e760]: Precio $89.50
+                - link "Ver productos destacados" [ref=e761] [cursor=pointer]:
+                  - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+        - generic [ref=e214]:
+          - generic [ref=e216]:
+            - generic [ref=e217]:
+              - heading "Explora el catálogo completo" [level=2] [ref=e218]
+              - link "Abrir catálogo completo" [ref=e220] [cursor=pointer]:
+                - /url: /products
+            - paragraph [ref=e221]: Tarjetas densas en información, optimizadas para escaneo rápido en escritorio y navegación táctil en móvil.
+          - generic:
+            - article [ref=e762]:
+              - link "Ver Router Mesh Atlas 6":
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+              - link "Router Mesh Atlas 6" [ref=e763] [cursor=pointer]:
+                - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - img "Router Mesh Atlas 6" [ref=e765]
+              - generic [ref=e766]:
+                - generic [ref=e767]:
+                  - generic [ref=e768]: Electronica
+                  - generic [ref=e769]: En stock
+                - generic [ref=e770]:
+                  - generic [ref=e771]: Más vendido
+                  - generic [ref=e772]: Tendencia
+                - link "Router Mesh Atlas 6" [ref=e773] [cursor=pointer]:
+                  - /url: /product/8f98f0b5-f3fc-4862-af09-9ff17ce03df4
+                - generic "Aún no hay reseñas" [ref=e774]:
+                  - generic [ref=e775]:
+                    - img [ref=e776]
+                    - img [ref=e778]
+                    - img [ref=e780]
+                    - img [ref=e782]
+                    - img [ref=e784]
+                  - generic [ref=e786]: Nuevo
+                  - generic [ref=e787]: Sé el primero en comprarlo
+                - paragraph [ref=e788]: $159.00
+                - paragraph [ref=e789]: Vendido por Diego Salazar
+                - paragraph [ref=e790]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e792] [cursor=pointer]
+            - article [ref=e793]:
+              - link "Ver Monitor UltraWide 34":
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+              - link "Monitor UltraWide 34" [ref=e794] [cursor=pointer]:
+                - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - img "Monitor UltraWide 34" [ref=e796]
+              - generic [ref=e797]:
+                - generic [ref=e798]:
+                  - generic [ref=e799]: Oficina y hogar
+                  - generic [ref=e800]: En stock
+                - generic [ref=e802]: Tendencia
+                - link "Monitor UltraWide 34" [ref=e803] [cursor=pointer]:
+                  - /url: /product/ecc444ce-ec6a-487b-9657-6350541d3bb7
+                - generic "Aún no hay reseñas" [ref=e804]:
+                  - generic [ref=e805]:
+                    - img [ref=e806]
+                    - img [ref=e808]
+                    - img [ref=e810]
+                    - img [ref=e812]
+                    - img [ref=e814]
+                  - generic [ref=e816]: Nuevo
+                  - generic [ref=e817]: Sé el primero en comprarlo
+                - paragraph [ref=e818]: $429.00
+                - paragraph [ref=e819]: Vendido por Diego Salazar
+                - paragraph [ref=e820]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e822] [cursor=pointer]
+            - article [ref=e823]:
+              - link "Ver Taladro Smart Drill X":
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+              - link "Taladro Smart Drill X" [ref=e824] [cursor=pointer]:
+                - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - img "Taladro Smart Drill X" [ref=e826]
+              - generic [ref=e827]:
+                - generic [ref=e828]:
+                  - generic [ref=e829]: Herramientas
+                  - generic [ref=e830]: En stock
+                - generic [ref=e832]: Tendencia
+                - link "Taladro Smart Drill X" [ref=e833] [cursor=pointer]:
+                  - /url: /product/e7543dbb-e124-494c-8692-2aa8d2dfadba
+                - generic "Aún no hay reseñas" [ref=e834]:
+                  - generic [ref=e835]:
+                    - img [ref=e836]
+                    - img [ref=e838]
+                    - img [ref=e840]
+                    - img [ref=e842]
+                    - img [ref=e844]
+                  - generic [ref=e846]: Nuevo
+                  - generic [ref=e847]: Sé el primero en comprarlo
+                - paragraph [ref=e848]: $199.90
+                - paragraph [ref=e849]: Vendido por Diego Salazar
+                - paragraph [ref=e850]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e852] [cursor=pointer]
+            - article [ref=e853]:
+              - link "Ver Webcam Studio 4K":
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+              - link "Webcam Studio 4K" [ref=e854] [cursor=pointer]:
+                - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - img "Webcam Studio 4K" [ref=e856]
+              - generic [ref=e857]:
+                - generic [ref=e858]:
+                  - generic [ref=e859]: Electronica
+                  - generic [ref=e860]: En stock
+                - generic [ref=e862]: Tendencia
+                - link "Webcam Studio 4K" [ref=e863] [cursor=pointer]:
+                  - /url: /product/56e80251-4233-44b3-97fe-ea1d9da2a7f4
+                - generic "Aún no hay reseñas" [ref=e864]:
+                  - generic [ref=e865]:
+                    - img [ref=e866]
+                    - img [ref=e868]
+                    - img [ref=e870]
+                    - img [ref=e872]
+                    - img [ref=e874]
+                  - generic [ref=e876]: Nuevo
+                  - generic [ref=e877]: Sé el primero en comprarlo
+                - paragraph [ref=e878]: $149.00
+                - paragraph [ref=e879]: Vendido por Lina Morales
+                - paragraph [ref=e880]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e882] [cursor=pointer]
+            - article [ref=e883]:
+              - link "Ver Teclado Mecanico Forge K2":
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+              - link "Teclado Mecanico Forge K2" [ref=e884] [cursor=pointer]:
+                - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - img "Teclado Mecanico Forge K2" [ref=e886]
+              - generic [ref=e887]:
+                - generic [ref=e888]:
+                  - generic [ref=e889]: Oficina y hogar
+                  - generic [ref=e890]: En stock
+                - generic [ref=e892]: Tendencia
+                - link "Teclado Mecanico Forge K2" [ref=e893] [cursor=pointer]:
+                  - /url: /product/33c64620-d098-4738-95ef-9873c89c9628
+                - generic "Aún no hay reseñas" [ref=e894]:
+                  - generic [ref=e895]:
+                    - img [ref=e896]
+                    - img [ref=e898]
+                    - img [ref=e900]
+                    - img [ref=e902]
+                    - img [ref=e904]
+                  - generic [ref=e906]: Nuevo
+                  - generic [ref=e907]: Sé el primero en comprarlo
+                - paragraph [ref=e908]: $89.50
+                - paragraph [ref=e909]: Vendido por Lina Morales
+                - paragraph [ref=e910]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e912] [cursor=pointer]
+            - article [ref=e913]:
+              - link "Ver Auriculares Pro NX1":
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+              - link "Auriculares Pro NX1" [ref=e914] [cursor=pointer]:
+                - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - img "Auriculares Pro NX1" [ref=e916]
+              - generic [ref=e917]:
+                - generic [ref=e918]:
+                  - generic [ref=e919]: Electronica
+                  - generic [ref=e920]: En stock
+                - generic [ref=e921]:
+                  - generic [ref=e922]: Más vendido
+                  - generic [ref=e923]: Tendencia
+                - link "Auriculares Pro NX1" [ref=e924] [cursor=pointer]:
+                  - /url: /product/0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa
+                - generic "Aún no hay reseñas" [ref=e925]:
+                  - generic [ref=e926]:
+                    - img [ref=e927]
+                    - img [ref=e929]
+                    - img [ref=e931]
+                    - img [ref=e933]
+                    - img [ref=e935]
+                  - generic [ref=e937]: Nuevo
+                  - generic [ref=e938]: Sé el primero en comprarlo
+                - paragraph [ref=e939]: $129.90
+                - paragraph [ref=e940]: Vendido por Lina Morales
+                - paragraph [ref=e941]: Entrega disponible con pago contra entrega
+                - button "Añadir al carrito" [ref=e943] [cursor=pointer]
+    - contentinfo [ref=e304]:
+      - generic [ref=e305]:
+        - strong [ref=e306]: TechNexus
+        - paragraph [ref=e307]: Marketplace integral para tecnología, gadgets y gestión multirol.
+      - generic [ref=e308]:
+        - paragraph [ref=e309]: Compra segura con pago contra entrega.
+        - paragraph [ref=e310]: Paneles separados para administración, vendedores y cuenta.
+  - article [ref=e968]:
+    - generic [ref=e969]:
+      - strong [ref=e970]: Producto añadido al carrito
+      - paragraph [ref=e971]: Auriculares Pro NX1 listo para finalizar la compra.
+    - button "Cerrar notificación" [ref=e972] [cursor=pointer]:
+      - img [ref=e973]

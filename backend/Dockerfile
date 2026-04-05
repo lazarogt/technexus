@@ -3,6 +3,9 @@ WORKDIR /app
 
 ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/ \
     NPM_CONFIG_CACHE=/root/.npm \
+    NPM_CONFIG_UPDATE_NOTIFIER=false \
+    NPM_CONFIG_FUND=false \
+    NPM_CONFIG_AUDIT=false \
     NPM_CONFIG_FETCH_RETRIES=8 \
     NPM_CONFIG_FETCH_RETRY_FACTOR=2 \
     NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
@@ -20,9 +23,10 @@ RUN npm ci --prefer-offline --ignore-scripts --no-audit --no-fund
 
 COPY tsconfig.json ./
 COPY prisma ./prisma
-RUN npm run db:generate
 
 COPY scripts ./scripts
+RUN npm run db:generate
+
 COPY src ./src
 RUN npm run build
 
@@ -39,6 +43,7 @@ COPY --from=build --chown=node:node /app/dist ./dist
 COPY --chown=node:node package.json package-lock.json* tsconfig.json ./
 COPY --chown=node:node prisma ./prisma
 COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node src ./src
 
 RUN mkdir -p /app/uploads \
   && chown node:node /app/uploads \
