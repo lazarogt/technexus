@@ -1,5 +1,3 @@
-import { z } from "zod";
-import { OrderStatus } from "@prisma/client";
 import { asyncHandler } from "../utils/async-handler";
 import {
   createOrderFromCart,
@@ -15,19 +13,14 @@ import {
   retryFailedOutboxRows,
   retryOutboxById
 } from "../services/outbox.service";
-import { idParamSchema, metricsFormatQuerySchema, orderListQuerySchema, outboxOverviewQuerySchema } from "../utils/request-validation";
-
-const createOrderSchema = z.object({
-  buyerName: z.string().trim().min(2).optional(),
-  buyerEmail: z.string().email().optional(),
-  buyerPhone: z.string().trim().min(7).optional(),
-  shippingAddress: z.string().trim().min(5).optional(),
-  shippingCost: z.union([z.string(), z.number()]).optional()
-});
-
-const updateStatusSchema = z.object({
-  status: z.nativeEnum(OrderStatus)
-});
+import {
+  createOrderSchema,
+  idParamSchema,
+  metricsFormatQuerySchema,
+  orderListQuerySchema,
+  outboxOverviewQuerySchema,
+  updateStatusSchema
+} from "../utils/request-validation";
 
 export const storeOrder = asyncHandler(async (req, res) => {
   const payload = createOrderSchema.parse(req.body);

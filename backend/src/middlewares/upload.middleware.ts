@@ -1,14 +1,13 @@
 import fs from "node:fs";
-import path from "node:path";
 import { randomUUID } from "node:crypto";
 import multer from "multer";
 import { env } from "../utils/config";
 
-const acceptedMimeTypes = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif"
+const acceptedMimeTypes = new Map([
+  ["image/jpeg", ".jpg"],
+  ["image/png", ".png"],
+  ["image/webp", ".webp"],
+  ["image/gif", ".gif"]
 ]);
 
 const storage = multer.diskStorage({
@@ -17,7 +16,14 @@ const storage = multer.diskStorage({
     callback(null, env.uploadsDir);
   },
   filename: (_req, file, callback) => {
-    callback(null, `${randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
+    const extension = acceptedMimeTypes.get(file.mimetype);
+
+    if (!extension) {
+      callback(new Error("Only JPG, PNG, WEBP and GIF images are allowed."), "");
+      return;
+    }
+
+    callback(null, `${randomUUID()}${extension}`);
   }
 });
 
@@ -36,4 +42,3 @@ export const productImageUpload = multer({
     callback(null, true);
   }
 });
-

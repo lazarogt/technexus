@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { PageSeo } from "@/components/seo/PageSeo";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeader } from "@/components/store/SectionHeader";
 import { buildStorefrontCollections, getProductBadges } from "@/components/store/storefront-data";
@@ -10,12 +11,16 @@ import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { useCart } from "@/features/cart/cart-context";
 import { ES } from "@/i18n/es";
+import { buildCategoryPath, extractStorefrontEntityId } from "@/lib/storefront-routes";
 
 export function CategoryPage() {
   const { t } = useTranslation();
-  const { id = "" } = useParams();
+  const { categoryParam = "" } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { addItem } = useCart();
+  const categoryId = extractStorefrontEntityId(categoryParam);
   const sort = searchParams.get("sort") ?? "latest";
   const maxPrice = Number(searchParams.get("maxPrice") ?? 0);
   const minPrice = Number(searchParams.get("minPrice") ?? 0);
@@ -26,8 +31,8 @@ export function CategoryPage() {
   });
 
   const productsQuery = useQuery({
-    queryKey: ["category", id, sort],
-    queryFn: () => listProducts({ categoryId: id, sort, limit: 24 })
+    queryKey: ["category", categoryId, sort],
+    queryFn: () => listProducts({ categoryId, sort, limit: 24 })
   });
 
   const filteredProducts = useMemo(() => {
@@ -44,11 +49,36 @@ export function CategoryPage() {
     });
   }, [maxPrice, minPrice, productsQuery.data?.products]);
 
-  const categoryName = categoriesQuery.data?.categories.find((category) => category.id === id)?.name ?? ES.labels.category;
+  const category = categoriesQuery.data?.categories.find((entry) => entry.id === categoryId);
+  const categoryName = category?.name ?? ES.labels.category;
   const collections = useMemo(() => buildStorefrontCollections(filteredProducts), [filteredProducts]);
+
+  useEffect(() => {
+    if (!category) {
+      return;
+    }
+
+    const canonicalPath = buildCategoryPath(category);
+
+    if (location.pathname !== canonicalPath) {
+      navigate(
+        {
+          pathname: canonicalPath,
+          search: location.search,
+          hash: location.hash
+        },
+        { replace: true }
+      );
+    }
+  }, [category, location.hash, location.pathname, location.search, navigate]);
 
   return (
     <div className="category-layout">
+      <PageSeo
+        title={`${categoryName} | TechNexus`}
+        description={`Explora ${categoryName.toLowerCase()} y encuentra productos destacados disponibles en TechNexus.`}
+        canonicalPath={category ? buildCategoryPath(category) : "/products"}
+      />
       <aside className="filter-sidebar">
         <SectionHeader title={ES.labels.filters} description={t("categoryPage.sidebarDescription")} />
         <label className="field">

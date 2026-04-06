@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import { MulterError } from "multer";
 import { ZodError } from "zod";
 import { recordError } from "../services/observability.service";
@@ -17,6 +18,15 @@ export const errorMiddleware = (
 ) => {
   recordError();
 
+  if (error instanceof SyntaxError && "body" in error) {
+    res.status(400).json({
+      success: false,
+      message: "Request body is not valid JSON.",
+      code: "INVALID_JSON"
+    });
+    return;
+  }
+
   if (error instanceof MulterError) {
     const message =
       error.code === "LIMIT_FILE_SIZE"
@@ -25,17 +35,18 @@ export const errorMiddleware = (
           ? "You can upload up to 5 images per product."
           : error.message;
 
-    res.status(400).json({ message });
+    res.status(400).json({ success: false, message });
     return;
   }
 
   if (error instanceof Error && error.message === "Only JPG, PNG, WEBP and GIF images are allowed.") {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ success: false, message: error.message });
     return;
   }
 
   if (error instanceof ZodError) {
     res.status(400).json({
+      success: false,
       message: error.issues[0]?.message ?? "Validation failed.",
       code: "VALIDATION_ERROR",
       details: error.flatten()
@@ -43,8 +54,29 @@ export const errorMiddleware = (
     return;
   }
 
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    if (error.code === "P2002") {
+      res.status(409).json({
+        success: false,
+        message: "A record conflict was detected while saving the request.",
+        code: "CONFLICT"
+      });
+      return;
+    }
+
+    if (error.code === "P2003" || error.code === "P2025") {
+      res.status(400).json({
+        success: false,
+        message: "One or more related records are invalid for this request.",
+        code: "INVALID_RELATION"
+      });
+      return;
+    }
+  }
+
   if (isAppError(error)) {
     res.status(error.statusCode).json({
+      success: false,
       message: error.message,
       code: error.code,
       details: error.details
@@ -62,5 +94,5 @@ export const errorMiddleware = (
     },
     "Unhandled request error"
   );
-  res.status(500).json({ message: "Internal server error." });
+  res.status(500).json({ success: false, message: "Internal server error." });
 };

@@ -4,6 +4,7 @@ import { Button } from "@/components/shared/Button";
 import type { Product } from "@/features/api/types";
 import { getPromoBadge, getStockLabel } from "@/features/catalog/product-display";
 import { formatCurrency } from "@/lib/format";
+import { buildProductPath } from "@/lib/storefront-routes";
 
 type ProductCardProps = {
   product: Product;
@@ -15,16 +16,18 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
   const { t } = useTranslation();
   const stock = getStockLabel(product.stock);
   const promoBadge = getPromoBadge(badge);
+  const productPath = buildProductPath(product);
 
   return (
     <article className="product-card" data-testid={`product-card-${product.id}`}>
-      <Link to={`/product/${product.id}`} className="product-card-overlay-link" aria-label={t("product.viewAria", { productName: product.name })} />
-      <Link to={`/product/${product.id}`} className="product-card-image-link" aria-label={product.name}>
+      <Link to={productPath} className="product-card-overlay-link" aria-label={t("product.viewAria", { productName: product.name })} />
+      <Link to={productPath} className="product-card-image-link" aria-label={product.name}>
         <img
           className="product-card-image"
           src={product.images[0] ?? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"}
           alt={product.name}
           loading="lazy"
+          decoding="async"
         />
         <div className="product-card-flags">
           {promoBadge ? <span className="product-badge">{promoBadge}</span> : null}
@@ -33,7 +36,7 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
       </Link>
       <div className="product-card-body">
         <p className="product-card-category">{product.categoryName}</p>
-        <Link to={`/product/${product.id}`} className="product-card-title">
+        <Link to={productPath} className="product-card-title">
           {product.name}
         </Link>
         <div className="product-card-pricing">
@@ -55,7 +58,7 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
           >
             {t("buttons.addToCart")}
           </Button>
-          <Link to={`/product/${product.id}`} className="product-card-secondary-action">
+          <Link to={productPath} className="product-card-secondary-action">
             {t("buttons.viewDetail")}
           </Link>
         </div>

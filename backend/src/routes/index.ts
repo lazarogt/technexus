@@ -98,7 +98,7 @@ export const legacyRouter = Router();
 
 legacyRouter.post("/register", authRateLimit, register);
 legacyRouter.post("/login", authRateLimit, login);
-legacyRouter.post("/guest", authRateLimit, createGuest);
+legacyRouter.post("/guest", createGuest);
 legacyRouter.get("/profile", requireUserAuth, profile);
 
 legacyRouter.get("/categories", indexCategories);

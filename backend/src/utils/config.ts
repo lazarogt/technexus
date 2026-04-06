@@ -33,6 +33,8 @@ const urlString = (protocols: string[]) =>
     return protocols.includes(parsed.protocol);
   });
 
+const bytesLimitString = trimString(z.string().regex(/^\d+\s*(kb|mb|gb)$/i));
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
@@ -52,6 +54,8 @@ const envSchema = z.object({
   JWT_SECRET: trimString(z.string().min(1)),
   JWT_EXPIRES_IN: trimString(z.string().min(1)).default("7d"),
   CORS_ORIGIN: trimString(z.string().min(1)).default("http://localhost:3000,http://127.0.0.1:3000"),
+  REQUEST_BODY_LIMIT: bytesLimitString.default("2mb"),
+  URLENCODED_PARAMETER_LIMIT: z.coerce.number().int().positive().max(1_000).default(100),
   EMAIL_ENABLED: booleanString("false"),
   EMAIL_FROM: trimString(z.string().min(1)).default("no-reply@technexus.local"),
   SMTP_HOST: trimString(z.string().min(1)).default("localhost"),
@@ -66,8 +70,8 @@ const envSchema = z.object({
   CACHE_TTL_PROFILE: z.coerce.number().int().positive().default(90),
   CACHE_TTL_SEARCH: z.coerce.number().int().positive().default(60),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(900_000),
-  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(300),
-  AUTH_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(50),
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
+  AUTH_RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(10),
   DB_MAX_RETRIES: z.coerce.number().int().positive().default(30),
   DB_RETRY_DELAY_MS: z.coerce.number().int().positive().default(2_000),
   PASSWORD_SALT_ROUNDS: z.coerce.number().int().positive().default(12),
@@ -90,6 +94,44 @@ if (!parsedEnvResult.success) {
 }
 
 const parsedEnv = parsedEnvResult.data;
+
+const parseCorsAllowedOrigins = (value: string) =>
+  Array.from(
+    new Set(
+      value
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean)
+        .map((origin) => {
+          const parsed = new URL(origin);
+
+          if (!["http:", "https:"].includes(parsed.protocol)) {
+            throw new Error("CORS_ORIGIN entries must use http or https.");
+          }
+
+          return parsed.origin;
+        })
+    )
+  );
+
+const isWeakSecret = (value: string) => {
+  const normalized = value.trim().toLowerCase();
+  return normalized.length < 32 || new Set([
+    "changeme",
+    "change-me",
+    "default",
+    "secret",
+    "jwt-secret",
+    "test-jwt-secret"
+  ]).has(normalized);
+};
+
+const corsAllowedOrigins = parseCorsAllowedOrigins(parsedEnv.CORS_ORIGIN);
+
+if (parsedEnv.NODE_ENV === "production" && isWeakSecret(parsedEnv.JWT_SECRET)) {
+  bootstrapLogger.error("JWT_SECRET is too weak for production.");
+  throw new Error("Invalid production JWT_SECRET.");
+}
 
 const postgresHost = process.env.POSTGRES_HOST ?? "localhost";
 const postgresRuntimePort = Number(
@@ -143,6 +185,7 @@ export const env = {
   postgresRuntimePort,
   databaseUrl,
   redisUrl,
+  corsAllowedOrigins,
   uploadsDir: resolveUploadsDir(),
   guestSessionDays: 7,
   outboxBatchSize: 10,

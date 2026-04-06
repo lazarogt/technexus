@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { RouterProvider } from "react-router-dom";
 import { AppProviders } from "@/app/providers";
@@ -8,10 +9,12 @@ export function App() {
   const { t } = useTranslation();
 
   return (
-    <AppProviders>
-      <Suspense fallback={<div className="app-loader">{t("app.loading")}</div>}>
-        <RouterProvider router={appRouter} />
-      </Suspense>
-    </AppProviders>
+    <HelmetProvider>
+      <AppProviders>
+        <Suspense fallback={<div className="app-loader">{t("app.loading")}</div>}>
+          <RouterProvider router={appRouter} />
+        </Suspense>
+      </AppProviders>
+    </HelmetProvider>
   );
 }

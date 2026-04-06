@@ -1,5 +1,3 @@
-import { z } from "zod";
-import { UserRole } from "@prisma/client";
 import { asyncHandler } from "../utils/async-handler";
 import { AppError } from "../utils/errors";
 import { cacheService } from "../services/cache.service";
@@ -10,18 +8,7 @@ import {
   registerUser
 } from "../services/auth.service";
 import { env } from "../utils/config";
-
-const registerSchema = z.object({
-  name: z.string().trim().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.nativeEnum(UserRole).default(UserRole.customer)
-});
-
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1)
-});
+import { loginSchema, registerSchema } from "../utils/request-validation";
 
 export const register = asyncHandler(async (req, res) => {
   const payload = registerSchema.parse(req.body);
@@ -51,4 +38,3 @@ export const profile = asyncHandler(async (req, res) => {
   );
   res.status(200).json({ user });
 });
-

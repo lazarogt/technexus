@@ -9,6 +9,7 @@ import type { Product } from "@/features/api/types";
 import { getStockLabel } from "@/features/catalog/product-display";
 import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { buildProductPath } from "@/lib/storefront-routes";
 
 type ProductCardProps = {
   product: Product;
@@ -29,13 +30,20 @@ export function ProductCard({
 }: ProductCardProps) {
   const { t } = useTranslation();
   const stock = getStockLabel(product.stock);
+  const productPath = buildProductPath(product);
 
   return (
     <article className="store-product-card" data-testid={`store-product-card-${product.id}`}>
-      <Link to={`/product/${product.id}`} className="store-product-overlay" aria-label={t("product.viewAria", { productName: product.name })} />
-      <Link to={`/product/${product.id}`} className="store-product-media-link" aria-label={product.name}>
+      <Link to={productPath} className="store-product-overlay" aria-label={t("product.viewAria", { productName: product.name })} />
+      <Link to={productPath} className="store-product-media-link" aria-label={product.name}>
         <div className="store-product-media">
-          <img src={product.images[0] ?? FALLBACK_IMAGE} alt={product.name} loading={priorityImage ? "eager" : "lazy"} />
+          <img
+            src={product.images[0] ?? FALLBACK_IMAGE}
+            alt={product.name}
+            loading={priorityImage ? "eager" : "lazy"}
+            fetchPriority={priorityImage ? "high" : "auto"}
+            decoding={priorityImage ? "sync" : "async"}
+          />
         </div>
       </Link>
       <div className="store-product-body">
@@ -52,7 +60,7 @@ export function ProductCard({
             ))}
           </div>
         ) : null}
-        <Link to={`/product/${product.id}`} className="store-product-title">
+        <Link to={productPath} className="store-product-title">
           {product.name}
         </Link>
         <ProductRating rating={product.averageRating} count={product.reviewCount} compact />

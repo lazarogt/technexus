@@ -68,7 +68,7 @@ export const optionalActor = async (
 
 export const requireActor = (req: Request, res: Response, next: NextFunction) => {
   if (!req.actor) {
-    res.status(401).json({ message: "Authentication token is required." });
+    res.status(401).json({ success: false, message: "Authentication token is required." });
     return;
   }
 
@@ -77,10 +77,9 @@ export const requireActor = (req: Request, res: Response, next: NextFunction) =>
 
 export const requireUserAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.actor || req.actor.type !== "user" || !req.actor.userId || !req.actor.role) {
-    res.status(401).json({ message: "Authentication token is required." });
+    res.status(401).json({ success: false, message: "Authentication token is required." });
     return;
   }
 
   next();
 };
-

@@ -7,6 +7,5 @@ export const authRouter = Router();
 
 authRouter.post("/register", authRateLimit, register);
 authRouter.post("/login", authRateLimit, login);
-authRouter.post("/guest", authRateLimit, createGuest);
+authRouter.post("/guest", createGuest);
 authRouter.get("/profile", requireUserAuth, profile);
-

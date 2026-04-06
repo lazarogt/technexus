@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductPage } from "@/pages/store/ProductPage";
 import { getProduct, listProducts } from "@/features/api/catalog-api";
@@ -34,6 +35,11 @@ function createProduct(id: string, name: string, categoryId = "c1", sellerId = "
     reviewCount: 24,
     images: [`/uploads/${id}.jpg`]
   };
+}
+
+function LocationProbe() {
+  const location = useLocation();
+  return <output data-testid="location-pathname">{location.pathname}</output>;
 }
 
 describe("ProductPage", () => {
@@ -102,13 +108,23 @@ describe("ProductPage", () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
     render(
-      <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={["/product/p1"]}>
-          <Routes>
-            <Route path="/product/:id" element={<ProductPage />} />
-          </Routes>
-        </MemoryRouter>
-      </QueryClientProvider>
+      <HelmetProvider>
+        <QueryClientProvider client={queryClient}>
+          <MemoryRouter initialEntries={["/product/p1"]}>
+            <Routes>
+              <Route
+                path="/product/:productParam"
+                element={
+                  <>
+                    <ProductPage />
+                    <LocationProbe />
+                  </>
+                }
+              />
+            </Routes>
+          </MemoryRouter>
+        </QueryClientProvider>
+      </HelmetProvider>
     );
 
     await waitFor(() => {
@@ -120,5 +136,18 @@ describe("ProductPage", () => {
     expect(screen.getByRole("heading", { name: "Productos relacionados" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Los clientes también compraron" })).toBeInTheDocument();
     expect(screen.getByTestId("mobile-buybar")).toBeInTheDocument();
-  });
+    await waitFor(() => {
+      expect(screen.getByTestId("location-pathname")).toHaveTextContent("/product/dell-xps-13-p1");
+    }, { timeout: 5_000 });
+    expect(document.title).toBe("Dell XPS 13");
+    expect(document.head.querySelector("meta[property='og:title']")?.getAttribute("content")).toBe("Dell XPS 13");
+    expect(document.head.querySelector("meta[property='og:image']")?.getAttribute("content")).toBe(
+      "http://localhost:3000/uploads/p1.jpg"
+    );
+    await waitFor(() => {
+      expect(document.querySelector("script[type='application/ld+json']")?.textContent ?? "").toContain(
+        '"@type":"Product"'
+      );
+    }, { timeout: 5_000 });
+  }, 15_000);
 });

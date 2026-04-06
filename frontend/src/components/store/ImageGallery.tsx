@@ -14,7 +14,13 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
 
   return (
     <div className="image-gallery">
-      <img className="image-gallery-main" src={safeImages[selected]} alt={productName} loading="lazy" />
+      <img
+        className="image-gallery-main"
+        src={safeImages[selected]}
+        alt={productName}
+        loading="eager"
+        fetchPriority="high"
+      />
       <div className="image-gallery-thumbs">
         {safeImages.map((image, index) => (
           <button
@@ -23,7 +29,7 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
             className={index === selected ? "is-active" : undefined}
             onClick={() => setSelected(index)}
           >
-            <img src={image} alt={`${productName} vista ${index + 1}`} loading="lazy" />
+            <img src={image} alt={`${productName} vista ${index + 1}`} loading="lazy" decoding="async" />
           </button>
         ))}
       </div>

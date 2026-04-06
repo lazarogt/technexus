@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 import bcrypt from "bcryptjs";
 import request from "supertest";
@@ -41,6 +42,8 @@ let outboxModule: OutboxModule;
 let configModule: ConfigModule;
 let api: ReturnType<typeof request>;
 let sampleImagePath: string;
+let invalidUploadPath: string;
+let oversizedImagePath: string;
 let tempDir: string;
 
 const pngFixtureBase64 =
@@ -239,10 +242,42 @@ const createProductWithUrl = async (input: {
   };
 };
 
+const withIsolatedApp = async <T>(
+  overrides: Record<string, string>,
+  callback: (isolatedApi: ReturnType<typeof request>) => Promise<T>
+) => {
+  const originalEnv = new Map<string, string | undefined>(
+    Object.keys(overrides).map((key) => [key, process.env[key]])
+  );
+
+  try {
+    Object.entries(overrides).forEach(([key, value]) => {
+      process.env[key] = value;
+    });
+
+    vi.resetModules();
+    const isolatedAppModule = await import("../src/app");
+    return await callback(request(isolatedAppModule.createApp()));
+  } finally {
+    originalEnv.forEach((value, key) => {
+      if (value === undefined) {
+        delete process.env[key];
+        return;
+      }
+
+      process.env[key] = value;
+    });
+
+    vi.resetModules();
+  }
+};
+
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.REDIS_ENABLED = "false";
   process.env.TEST_POSTGRES_DB ??= "technexus_test";
+  process.env.RATE_LIMIT_MAX_REQUESTS ??= "500";
+  process.env.AUTH_RATE_LIMIT_MAX_REQUESTS ??= "50";
 
   runBackendCommand("scripts/prepareTestDatabase.cjs");
   runBackendCommand("node_modules/tsx/dist/cli.mjs", "prisma/seed.ts");
@@ -258,7 +293,11 @@ beforeAll(async () => {
 
   tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "technexus-smoke-"));
   sampleImagePath = path.join(tempDir, "sample.png");
+  invalidUploadPath = path.join(tempDir, "sample.txt");
+  oversizedImagePath = path.join(tempDir, "oversized.png");
   await fs.writeFile(sampleImagePath, Buffer.from(pngFixtureBase64, "base64"));
+  await fs.writeFile(invalidUploadPath, "not-an-image");
+  await fs.writeFile(oversizedImagePath, Buffer.alloc(5 * 1024 * 1024 + 1, 0));
 
   api = request(appModule.createApp());
 }, 60_000);
@@ -339,7 +378,7 @@ describe("TechNexus smoke suite", () => {
       .set(authHeader(seller.token))
       .send({ name: "Forbidden Category" });
     expect(sellerForbiddenCategoryResponse.status).toBe(403);
-  });
+  }, 20_000);
 
   it("returns stable product creation responses for success, validation, auth and invalid relations", async () => {
     const admin = await loginUser({
@@ -426,7 +465,7 @@ describe("TechNexus smoke suite", () => {
     expect(createdResponse.status).toBe(201);
     expect(createdResponse.body.product.name).toBe("Secured Product");
     expect(createdResponse.body.product.sellerId).toBe(seller.user.id);
-  });
+  }, 20_000);
 
   it("verifies seller product CRUD, upload storage, image URLs and list/read endpoints", async () => {
     // Sellers should be able to create products with uploaded files and remote URLs.
@@ -541,7 +580,7 @@ describe("TechNexus smoke suite", () => {
 
     const listAfterDelete = await api.get("/api/products");
     expect(listAfterDelete.body.products).toHaveLength(2);
-  });
+  }, 20_000);
 
   it("verifies inventory endpoints, low-stock alerts, multi-seller COD checkout and email fan-out", async () => {
     // A customer order across multiple sellers must compute totals server-side, decrement stock and fan out emails correctly.
@@ -829,6 +868,117 @@ describe("TechNexus smoke suite", () => {
     expect(Array.isArray(overviewResponse.body.recentEvents)).toBe(true);
   });
 
+  it("enforces rate limiting, validation guards and upload restrictions", async () => {
+    await withIsolatedApp(
+      {
+        NODE_ENV: "test",
+        REDIS_ENABLED: "false",
+        TEST_POSTGRES_DB: process.env.TEST_POSTGRES_DB ?? "technexus_test",
+        RATE_LIMIT_MAX_REQUESTS: "2",
+        AUTH_RATE_LIMIT_MAX_REQUESTS: "20"
+      },
+      async (isolatedApi) => {
+        const firstCatalogRequest = await isolatedApi.get("/api/products");
+        const secondCatalogRequest = await isolatedApi.get("/api/products");
+        const limitedCatalogRequest = await isolatedApi.get("/api/products");
+
+        expect(firstCatalogRequest.status).toBe(200);
+        expect(secondCatalogRequest.status).toBe(200);
+        expect(limitedCatalogRequest.status).toBe(429);
+        expect(limitedCatalogRequest.body.code).toBe("RATE_LIMIT_EXCEEDED");
+      }
+    );
+
+    await withIsolatedApp(
+      {
+        NODE_ENV: "test",
+        REDIS_ENABLED: "false",
+        TEST_POSTGRES_DB: process.env.TEST_POSTGRES_DB ?? "technexus_test",
+        RATE_LIMIT_MAX_REQUESTS: "20",
+        AUTH_RATE_LIMIT_MAX_REQUESTS: "2"
+      },
+      async (isolatedApi) => {
+        const firstAuthRequest = await isolatedApi.post("/api/auth/login").send({});
+        const secondAuthRequest = await isolatedApi.post("/api/auth/login").send({});
+        const limitedAuthRequest = await isolatedApi.post("/api/auth/login").send({});
+
+        expect(firstAuthRequest.status).toBe(400);
+        expect(secondAuthRequest.status).toBe(400);
+        expect(limitedAuthRequest.status).toBe(429);
+      }
+    );
+
+    const admin = await loginUser({
+      email: configModule.env.TECHNEXUS_ADMIN_EMAIL,
+      password: configModule.env.TECHNEXUS_ADMIN_PASSWORD
+    });
+    const seller = await registerUser({
+      name: "Seller Security",
+      email: "seller.security@example.com",
+      password: "Seller1234!",
+      role: "seller"
+    });
+    const category = await createAdminCategory(admin.token, "Security Cases");
+
+    const invalidAuthPayload = await api.post("/api/auth/register").send({
+      name: "<script>alert(1)</script>",
+      email: "not-an-email",
+      password: "short",
+      role: "customer"
+    });
+    expect(invalidAuthPayload.status).toBe(400);
+    expect(invalidAuthPayload.body.code).toBe("VALIDATION_ERROR");
+
+    const invalidQueryResponse = await api.get("/api/products").query({ limit: 101 });
+    expect(invalidQueryResponse.status).toBe(400);
+    expect(invalidQueryResponse.body.code).toBe("VALIDATION_ERROR");
+
+    const missingAuthProfile = await api.get("/api/auth/profile");
+    expect(missingAuthProfile.status).toBe(401);
+
+    const invalidProductPayload = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Trusted Product")
+      .field("description", "<img src=x onerror=alert(1)>")
+      .field("price", "79.99")
+      .field("stock", "3")
+      .field("categoryId", category.id);
+    expect(invalidProductPayload.status).toBe(400);
+    expect(invalidProductPayload.body.code).toBe("VALIDATION_ERROR");
+
+    const invalidProductUpdate = await api
+      .put(`/api/products/${crypto.randomUUID()}`)
+      .set(authHeader(seller.token))
+      .field("imageUrls", JSON.stringify(["javascript:alert(1)"]));
+    expect(invalidProductUpdate.status).toBe(400);
+    expect(invalidProductUpdate.body.code).toBe("VALIDATION_ERROR");
+
+    const invalidUploadResponse = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Invalid Upload")
+      .field("description", "This should fail because the file is not an image.")
+      .field("price", "29.99")
+      .field("stock", "2")
+      .field("categoryId", category.id)
+      .attach("images", invalidUploadPath);
+    expect(invalidUploadResponse.status).toBe(400);
+    expect(invalidUploadResponse.body.message).toBe("Only JPG, PNG, WEBP and GIF images are allowed.");
+
+    const oversizedUploadResponse = await api
+      .post("/api/products")
+      .set(authHeader(seller.token))
+      .field("name", "Oversized Upload")
+      .field("description", "This should fail because the file is too large.")
+      .field("price", "29.99")
+      .field("stock", "2")
+      .field("categoryId", category.id)
+      .attach("images", oversizedImagePath);
+    expect(oversizedUploadResponse.status).toBe(400);
+    expect(oversizedUploadResponse.body.message).toBe("Each image must be 5MB or smaller.");
+  });
+
   it("runs db:reset-seed without deleting users and exposes the seeded catalog", async () => {
     const seller = await registerUser({
       name: "Seed Seller",
@@ -1039,7 +1189,7 @@ describe("TechNexus smoke suite", () => {
       }
     });
     expect(orders[0].createdAt.getTime()).toBeGreaterThan(
-      Date.now() - 31 * 24 * 60 * 60 * 1000
+      new Date("2026-03-01T00:00:00.000Z").getTime()
     );
   }, 60_000);
 

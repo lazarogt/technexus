@@ -1,6 +1,10 @@
 node_modules/
 dist/
 coverage/
+.env
+.env.*
+!.env.example
+!.env.docker
 .DS_Store
 *.log
 logs
@@ -10,6 +14,7 @@ backend/dist
 backend/generated
 backend/uploads
 backend/.env
+backend/.env.*
 backend/test-results
 data/postgres/*
 !data/postgres/.gitkeep

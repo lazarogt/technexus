@@ -8,12 +8,14 @@ import { SectionHeader } from "@/components/store/SectionHeader";
 import { HeroBanner } from "@/components/store/HeroBanner";
 import { SellerSpotlightCard } from "@/components/store/SellerSpotlightCard";
 import { TrustBar } from "@/components/store/TrustBar";
+import { PageSeo } from "@/components/seo/PageSeo";
 import { buildStorefrontCollections, getProductBadges, orderCategories } from "@/components/store/storefront-data";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
 import { ES } from "@/i18n/es";
+import { buildCategoryPath } from "@/lib/storefront-routes";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -28,8 +30,9 @@ export function HomePage() {
     queryFn: listCategories
   });
 
-  const products = catalogQuery.data?.products ?? [];
-  const orderedCategories = useMemo(() => orderCategories(categoriesQuery.data?.categories ?? []), [categoriesQuery.data?.categories]);
+  const products = useMemo(() => catalogQuery.data?.products ?? [], [catalogQuery.data?.products]);
+  const categories = useMemo(() => categoriesQuery.data?.categories ?? [], [categoriesQuery.data?.categories]);
+  const orderedCategories = useMemo(() => orderCategories(categories), [categories]);
   const collections = useMemo(() => buildStorefrontCollections(products), [products]);
   const spotlight = collections.trending[0] ?? products[0];
   const catalogProducts = useMemo(() => products.slice(0, 12), [products]);
@@ -40,6 +43,11 @@ export function HomePage() {
 
   return (
     <div className="store-page stack-xl">
+      <PageSeo
+        title="TechNexus | Marketplace de tecnologia"
+        description="Explora laptops, monitores, accesorios y ofertas destacadas en TechNexus."
+        canonicalPath="/"
+      />
       <HeroBanner
         spotlight={spotlight}
         categoryCount={orderedCategories.length}
@@ -57,7 +65,7 @@ export function HomePage() {
         </div>
         <div className="store-category-grid">
           {orderedCategories.slice(0, 5).map((category) => (
-            <Link key={category.id} to={`/category/${category.id}`} className="store-category-link">
+            <Link key={category.id} to={buildCategoryPath(category)} className="store-category-link">
               <strong>{category.name}</strong>
               <span>{ES.buttons.viewFeaturedProducts}</span>
             </Link>

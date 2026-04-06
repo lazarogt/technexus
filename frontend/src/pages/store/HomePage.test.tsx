@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HomePage } from "@/pages/store/HomePage";
@@ -23,11 +24,13 @@ function renderPage() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <HomePage />
-      </MemoryRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>
+          <HomePage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
@@ -105,5 +108,7 @@ describe("HomePage", () => {
     expect(screen.getByRole("heading", { name: "Vendedores destacados" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "Explora el catálogo completo" })).toBeInTheDocument();
     expect(screen.getAllByText("Dell XPS 13").length).toBeGreaterThan(0);
+    expect(document.title).toBe("TechNexus | Marketplace de tecnologia");
+    expect(document.head.querySelector("meta[name='description']")?.getAttribute("content")).toContain("TechNexus");
   }, 10_000);
 });

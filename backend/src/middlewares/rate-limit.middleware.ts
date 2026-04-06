@@ -6,18 +6,22 @@ const skipSystemEndpoints = (req: { path: string }) =>
   req.path.startsWith("/metrics") ||
   req.path.startsWith("/observability");
 
-export const generalRateLimit = rateLimit({
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  limit: env.RATE_LIMIT_MAX_REQUESTS,
-  standardHeaders: "draft-8",
-  legacyHeaders: false,
-  skip: skipSystemEndpoints
-});
+const buildLimiter = (limit: number) =>
+  rateLimit({
+    windowMs: env.RATE_LIMIT_WINDOW_MS,
+    limit,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    skip: skipSystemEndpoints,
+    handler: (_req, res) => {
+      res.status(429).json({
+        success: false,
+        message: "Too many requests. Please try again later.",
+        code: "RATE_LIMIT_EXCEEDED"
+      });
+    }
+  });
 
-export const authRateLimit = rateLimit({
-  windowMs: env.RATE_LIMIT_WINDOW_MS,
-  limit: env.AUTH_RATE_LIMIT_MAX_REQUESTS,
-  standardHeaders: "draft-8",
-  legacyHeaders: false,
-  skip: skipSystemEndpoints
-});
+export const generalRateLimit = buildLimiter(env.RATE_LIMIT_MAX_REQUESTS);
+
+export const authRateLimit = buildLimiter(env.AUTH_RATE_LIMIT_MAX_REQUESTS);

@@ -5,6 +5,7 @@ import { TrustBar } from "@/components/store/TrustBar";
 import type { Product } from "@/features/api/types";
 import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { buildProductPath } from "@/lib/storefront-routes";
 
 type HeroBannerProps = {
   spotlight?: Product;
@@ -44,14 +45,20 @@ export function HeroBanner({ spotlight, categoryCount, sellerCount }: HeroBanner
       <div className="hero-spotlight">
         {spotlight ? (
           <>
-            <img src={spotlight.images[0]} alt={spotlight.name} loading="lazy" />
+            <img
+              src={spotlight.images[0]}
+              alt={spotlight.name}
+              loading="eager"
+              fetchPriority="high"
+              decoding="sync"
+            />
             <div className="hero-spotlight-card">
               <span>{t("hero.trending")}</span>
               <strong>{spotlight.name}</strong>
               <p>{t("hero.spotlightMeta", { categoryName: spotlight.categoryName, sellerName: spotlight.sellerName })}</p>
               <div>
                 <b>{formatCurrency(spotlight.price)}</b>
-                <Link to={`/product/${spotlight.id}`}>
+                <Link to={buildProductPath(spotlight)}>
                   {ES.buttons.viewDetail} <ArrowRight size={16} />
                 </Link>
               </div>

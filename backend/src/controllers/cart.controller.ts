@@ -1,15 +1,6 @@
-import { z } from "zod";
 import { asyncHandler } from "../utils/async-handler";
 import { addToCart, getCart, removeFromCart } from "../services/cart.service";
-
-const addCartSchema = z.object({
-  productId: z.string().uuid(),
-  quantity: z.coerce.number().int().positive()
-});
-
-const removeCartSchema = z.object({
-  productId: z.string().uuid()
-});
+import { addCartSchema, removeCartSchema } from "../utils/request-validation";
 
 export const showCart = asyncHandler(async (req, res) => {
   const cart = await getCart(req.actor!);
@@ -27,4 +18,3 @@ export const destroyCartItem = asyncHandler(async (req, res) => {
   const cart = await removeFromCart(req.actor!, payload.productId);
   res.status(200).json(cart);
 });
-

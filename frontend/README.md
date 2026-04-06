@@ -7,8 +7,9 @@ Standalone React + TypeScript + Vite frontend for TechNexus. It consumes the exi
 - `StoreLayout` for public storefront routes:
   - `/`
   - `/products`
-  - `/category/:id`
-  - `/product/:id`
+  - canonical `/category/:slug-:id`
+  - canonical `/product/:slug-:id`
+  - legacy `/category/:id` and `/product/:id` still resolve and redirect to the canonical URL
   - `/cart`
   - `/checkout`
 - `DashboardLayout` for authenticated product surfaces:
@@ -80,6 +81,15 @@ npm run dev
 ```
 
 Vite proxies both `/api` and `/uploads` to the backend, so the frontend can use backend-relative paths without rewriting contracts.
+
+SEO-specific env values:
+
+- `VITE_SITE_URL`
+  - public site origin used for canonical tags, OpenGraph URLs, `robots.txt`, and `sitemap.xml`
+  - set it explicitly for CI and production builds
+- `VITE_SITEMAP_API_URL`
+  - backend origin used by the prebuild sitemap generator
+  - defaults to `VITE_API_URL` when present, otherwise `http://localhost:4000` for local Vite-backed builds
 
 ## Scripts
 
@@ -170,4 +180,6 @@ GitHub Actions CI lives in `.github/workflows/ci.yml`.
 
 - The frontend does not modify or depend on backend internals beyond the published route contracts.
 - Legacy backend routes remain intact because the UI talks to `/api/*` and the backend continues exposing legacy endpoints on its own.
+- SEO metadata is client-rendered with `react-helmet-async`; the storefront remains an SPA, not an SSR build.
+- `npm run build` generates `public/robots.txt` and `public/sitemap.xml` before Vite writes the final `dist/` bundle.
 - If Docker-owned files in `backend/uploads` cause host permission issues during smoke runs, use `UPLOADS_DIR=/tmp/technexus-uploads`.

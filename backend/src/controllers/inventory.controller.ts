@@ -1,16 +1,14 @@
-import { z } from "zod";
 import { asyncHandler } from "../utils/async-handler";
 import {
   listInventoryAlerts,
   listInventoryByProduct,
   updateInventoryRecord
 } from "../services/inventory.service";
-import { inventoryIdParamSchema, productIdParamSchema } from "../utils/request-validation";
-
-const updateInventorySchema = z.object({
-  quantity: z.number().int().nonnegative().optional(),
-  lowStockThreshold: z.number().int().nonnegative().optional()
-});
+import {
+  inventoryIdParamSchema,
+  productIdParamSchema,
+  updateInventorySchema
+} from "../utils/request-validation";
 
 export const indexProductInventory = asyncHandler(async (req, res) => {
   const params = productIdParamSchema.parse(req.params);

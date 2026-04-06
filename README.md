@@ -80,6 +80,22 @@ docker compose up -d --build
   - email: `admin@example.com`
   - password: `DemoAdmin123!`
 
+## Security Defaults
+
+- Express now disables `X-Powered-By`, applies explicit Helmet CSP headers, denies framing, and enables HSTS only in production.
+- CORS accepts only exact origins listed in `CORS_ORIGIN`. The current auth model remains bearer-token based, so `credentials` stay disabled.
+- Global rate limiting defaults to `100` requests per `15` minutes, and `/api/auth/login`, `/api/auth/register`, `/login`, and `/register` are further restricted to `10` requests per `15` minutes.
+- Request payload validation is centralized in Zod. Invalid auth payloads, product writes, and query params return `400` before reaching Prisma.
+- Product uploads remain under `/uploads`, but uploads are restricted to image MIME types, safe server-generated filenames, `5MB` per file, and five files per request.
+- CSRF middleware is intentionally not enabled in this version because the app does not use cookie-backed auth. If auth is later migrated to `httpOnly` cookies, CSRF protection becomes mandatory.
+
+## Required Backend Environment
+
+- `JWT_SECRET` must be a strong non-placeholder secret. Production startup now rejects weak values such as `changeme`.
+- `CORS_ORIGIN` must be a comma-separated list of `http` or `https` origins.
+- `REQUEST_BODY_LIMIT` and `URLENCODED_PARAMETER_LIMIT` control parser limits and are validated at startup.
+- See [.env.example](/media/rebeca-lazaro/1CB41B1EB41AF9CA3/Dev/Proyectos sistemas web/TechNexus/.env.example) for the current baseline values.
+
 ## Validation
 
 ```bash

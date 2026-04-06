@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { orderCategories } from "@/components/store/storefront-data";
 import { listCategories } from "@/features/api/catalog-api";
 import { ES } from "@/i18n/es";
+import { buildCategoryPath } from "@/lib/storefront-routes";
 
 export function CategoryNav() {
   const { data } = useQuery({
@@ -20,7 +21,7 @@ export function CategoryNav() {
           {ES.nav.allDepartments}
         </Link>
         {categories.map((category) => (
-          <Link key={category.id} className="category-nav-item" to={`/category/${category.id}`}>
+          <Link key={category.id} className="category-nav-item" to={buildCategoryPath(category)}>
             {category.name}
           </Link>
         ))}

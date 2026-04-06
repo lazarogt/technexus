@@ -1,7 +1,10 @@
+export const STORE_LOCALE = "es-MX";
+export const STORE_CURRENCY_CODE = "MXN";
+
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("es-MX", {
+  return new Intl.NumberFormat(STORE_LOCALE, {
     style: "currency",
-    currency: "MXN",
+    currency: STORE_CURRENCY_CODE,
     maximumFractionDigits: 2
   }).format(value);
 }

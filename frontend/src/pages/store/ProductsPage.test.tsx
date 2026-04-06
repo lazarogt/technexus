@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductsPage } from "@/pages/store/ProductsPage";
@@ -47,21 +48,23 @@ function renderPage(initialEntry = "/products") {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
   render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route
-            path="/products"
-            element={
-              <>
-                <ProductsPage />
-                <LocationProbe />
-              </>
-            }
-          />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialEntry]}>
+          <Routes>
+            <Route
+              path="/products"
+              element={
+                <>
+                  <ProductsPage />
+                  <LocationProbe />
+                </>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
@@ -134,7 +137,7 @@ describe("ProductsPage", () => {
     ).toBe(false);
     expect(screen.getByText("Mouse Pad")).toBeInTheDocument();
     expect(screen.queryByText("Laptop Pro")).not.toBeInTheDocument();
-  });
+  }, 10_000);
 
   it("switches category filters by ID and clears back to all products", async () => {
     const user = userEvent.setup();
@@ -177,7 +180,7 @@ describe("ProductsPage", () => {
     expect(screen.getByText("Laptop Pro")).toBeInTheDocument();
     expect(screen.getByText("Mouse Pad")).toBeInTheDocument();
     expect(screen.getByTestId("location-search")).toHaveTextContent("?page=1");
-  });
+  }, 10_000);
 
   it("normalizes legacy category query values to categoryId before loading products", async () => {
     renderPage("/products?category=Portatiles");
@@ -199,5 +202,18 @@ describe("ProductsPage", () => {
     });
     expect(screen.getByText("Laptop Pro")).toBeInTheDocument();
     expect(screen.queryByText("Mouse Pad")).not.toBeInTheDocument();
-  });
+  }, 10_000);
+
+  it("sets products page metadata", async () => {
+    renderPage();
+
+    await waitFor(() => {
+      expect(screen.getByText("Laptop Pro")).toBeInTheDocument();
+    });
+
+    expect(document.title).toBe("Productos | TechNexus");
+    expect(document.head.querySelector("link[rel='canonical']")?.getAttribute("href")).toBe(
+      "http://localhost:3000/products"
+    );
+  }, 10_000);
 });

@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { BadgePill } from "@/components/store/BadgePill";
 import { BuyBox } from "@/components/store/BuyBox";
 import { ImageGallery } from "@/components/store/ImageGallery";
+import { PageSeo } from "@/components/seo/PageSeo";
 import { ProductCard } from "@/components/store/ProductCard";
 import { ProductPageSkeleton } from "@/components/store/ProductPageSkeleton";
 import { ProductRail } from "@/components/store/ProductRail";
@@ -25,22 +26,27 @@ import { trackOnce } from "@/features/analytics/analytics";
 import { getStockLabel } from "@/features/catalog/product-display";
 import { useCart } from "@/features/cart/cart-context";
 import { ES } from "@/i18n/es";
-import { formatCurrency } from "@/lib/format";
+import { clampText, formatCurrency } from "@/lib/format";
+import { buildProductJsonLd } from "@/lib/seo";
+import { buildProductPath, extractStorefrontEntityId } from "@/lib/storefront-routes";
 
 export function ProductPage() {
   const { t } = useTranslation();
-  const { id = "" } = useParams();
+  const { productParam = "" } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const productId = extractStorefrontEntityId(productParam);
 
   const productQuery = useQuery({
-    queryKey: ["product", id],
-    queryFn: () => getProduct(id)
+    queryKey: ["product", productId],
+    enabled: Boolean(productId),
+    queryFn: () => getProduct(productId)
   });
 
   const relatedProductsQuery = useQuery({
-    queryKey: ["product", id, "related", productQuery.data?.product.categoryId],
+    queryKey: ["product", productId, "related", productQuery.data?.product.categoryId],
     enabled: Boolean(productQuery.data?.product.categoryId),
     queryFn: () =>
       listProducts({
@@ -50,7 +56,7 @@ export function ProductPage() {
   });
 
   const browseProductsQuery = useQuery({
-    queryKey: ["product", id, "browse"],
+    queryKey: ["product", productId, "browse"],
     queryFn: () => listProducts({ limit: 18 })
   });
 
@@ -98,6 +104,25 @@ export function ProductPage() {
     });
   }, [location.key, product]);
 
+  useEffect(() => {
+    if (!product) {
+      return;
+    }
+
+    const canonicalPath = buildProductPath(product);
+
+    if (location.pathname !== canonicalPath) {
+      navigate(
+        {
+          pathname: canonicalPath,
+          search: location.search,
+          hash: location.hash
+        },
+        { replace: true }
+      );
+    }
+  }, [location.hash, location.pathname, location.search, navigate, product]);
+
   if (productQuery.isLoading || !product) {
     return <ProductPageSkeleton />;
   }
@@ -107,6 +132,14 @@ export function ProductPage() {
 
   return (
     <div className="store-page stack-xl">
+      <PageSeo
+        title={product.name}
+        description={clampText(product.description, 160)}
+        canonicalPath={buildProductPath(product)}
+        image={product.images[0]}
+        openGraphType="product"
+        structuredData={buildProductJsonLd(product)}
+      />
       <section className="store-product-detail">
         <ImageGallery images={product.images} productName={product.name} />
         <div className="store-product-summary stack-md">

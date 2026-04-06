@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { startTransition, useDeferredValue, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
+import { PageSeo } from "@/components/seo/PageSeo";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeader } from "@/components/store/SectionHeader";
 import { buildStorefrontCollections, getProductBadges } from "@/components/store/storefront-data";
@@ -56,7 +57,7 @@ export function ProductsPage() {
     queryKey: ["products", "categories"],
     queryFn: listCategories
   });
-  const categories = categoriesQuery.data?.categories ?? [];
+  const categories = useMemo(() => categoriesQuery.data?.categories ?? [], [categoriesQuery.data?.categories]);
   const categoryId = useMemo(
     () =>
       normalizeCategoryFilter(
@@ -106,12 +107,17 @@ export function ProductsPage() {
       })
   });
 
-  const products = productsQuery.data?.products ?? [];
+  const products = useMemo(() => productsQuery.data?.products ?? [], [productsQuery.data?.products]);
   const pagination = productsQuery.data?.pagination;
   const collections = useMemo(() => buildStorefrontCollections(products), [products]);
 
   return (
     <div className="store-page stack-lg">
+      <PageSeo
+        title="Productos | TechNexus"
+        description="Descubre el catalogo completo de TechNexus con filtros por categoria, precio y busqueda."
+        canonicalPath="/products"
+      />
       <SectionHeader
         eyebrow={t("productsPage.eyebrow")}
         title={t("productsPage.title")}

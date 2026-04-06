@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { asyncHandler } from "../utils/async-handler";
 import {
   createCategory,
@@ -6,11 +5,7 @@ import {
   listCategories,
   updateCategory
 } from "../services/category.service";
-import { categoryListQuerySchema, idParamSchema } from "../utils/request-validation";
-
-const categorySchema = z.object({
-  name: z.string().trim().min(2)
-});
+import { categoryListQuerySchema, categorySchema, idParamSchema } from "../utils/request-validation";
 
 export const indexCategories = asyncHandler(async (req, res) => {
   const query = categoryListQuerySchema.parse(req.query);
