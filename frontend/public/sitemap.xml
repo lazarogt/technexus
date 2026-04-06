@@ -6,31 +6,4 @@
   <url>
     <loc>http://localhost:3000/products</loc>
   </url>
-  <url>
-    <loc>http://localhost:3000/category/electronica-9bc65761-152e-422f-abc4-d2f1cf420eee</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/category/herramientas-860f5e6a-29ee-43fc-89e9-0709637e8c80</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/category/oficina-y-hogar-ba95e08b-bd27-4b87-bb8a-679b4a406835</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/router-mesh-atlas-6-8f98f0b5-f3fc-4862-af09-9ff17ce03df4</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/monitor-ultrawide-34-ecc444ce-ec6a-487b-9657-6350541d3bb7</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/taladro-smart-drill-x-e7543dbb-e124-494c-8692-2aa8d2dfadba</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/webcam-studio-4k-56e80251-4233-44b3-97fe-ea1d9da2a7f4</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/teclado-mecanico-forge-k2-33c64620-d098-4738-95ef-9873c89c9628</loc>
-  </url>
-  <url>
-    <loc>http://localhost:3000/product/auriculares-pro-nx1-0a500b0c-8e1a-4c7b-ac76-e1e7957c50aa</loc>
-  </url>
 </urlset>

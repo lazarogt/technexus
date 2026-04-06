@@ -90,6 +90,9 @@ SEO-specific env values:
 - `VITE_SITEMAP_API_URL`
   - backend origin used by the prebuild sitemap generator
   - defaults to `VITE_API_URL` when present, otherwise `http://localhost:4000` for local Vite-backed builds
+- `SEO_ASSETS_ALLOW_FALLBACK`
+  - optional local Docker build escape hatch for sitemap generation when the catalog API is not reachable during image build
+  - keep this disabled in CI/production so full sitemap generation still fails loudly when misconfigured
 
 ## Scripts
 

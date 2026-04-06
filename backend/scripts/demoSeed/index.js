@@ -50,62 +50,54 @@ async function main() {
   await prisma.$connect();
 
   try {
-    await prisma.$transaction(
-      async (tx) => {
-        await resetDemoData(tx);
+    await resetDemoData(prisma);
 
-        const users = await tx.user.findMany({
-          where: {
-            deletedAt: null,
-            isBlocked: false
-          },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            isBlocked: true,
-            deletedAt: true,
-            createdAt: true
-          },
-          orderBy: {
-            createdAt: "asc"
-          }
-        });
-
-        const sellers = await prepareSellers(tx);
-        log("info", "Sellers ready", { count: sellers.length });
-
-        const { categoryByName } = await seedCategories(tx);
-        log("info", "Categories created", { count: categoryByName.size });
-
-        const products = await seedProducts(tx, {
-          sellers,
-          categoryByName,
-          rng
-        });
-        log("info", "Products inserted", { count: products.length });
-
-        const reviewsCount = await seedReviews(tx, {
-          products,
-          reviewers: users.filter((user) => user.role !== "admin"),
-          rng
-        });
-        log("info", "Reviews generated", { count: reviewsCount });
-
-        const ordersResult = await seedOrders(tx, {
-          users,
-          selectedSellers: sellers,
-          products,
-          rng
-        });
-        log("info", "Orders simulated", { count: ordersResult.count });
+    const users = await prisma.user.findMany({
+      where: {
+        deletedAt: null,
+        isBlocked: false
       },
-      {
-        maxWait: 10_000,
-        timeout: 120_000
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isBlocked: true,
+        deletedAt: true,
+        createdAt: true
+      },
+      orderBy: {
+        createdAt: "asc"
       }
-    );
+    });
+
+    const sellers = await prepareSellers(prisma);
+    log("info", "Sellers ready", { count: sellers.length });
+
+    const { categoryByName } = await seedCategories(prisma);
+    log("info", "Categories created", { count: categoryByName.size });
+
+    const products = await seedProducts(prisma, {
+      sellers,
+      categoryByName,
+      rng
+    });
+    log("info", "Products inserted", { count: products.length });
+
+    const reviewsCount = await seedReviews(prisma, {
+      products,
+      reviewers: users.filter((user) => user.role !== "admin"),
+      rng
+    });
+    log("info", "Reviews generated", { count: reviewsCount });
+
+    const ordersResult = await seedOrders(prisma, {
+      users,
+      selectedSellers: sellers,
+      products,
+      rng
+    });
+    log("info", "Orders simulated", { count: ordersResult.count });
 
     log("info", "Demo mode ready");
   } catch (error) {

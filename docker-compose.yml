@@ -74,7 +74,7 @@ services:
       DATABASE_URL: postgresql://technexus:technexus@postgres:5432/technexus?schema=public
       REDIS_ENABLED: "true"
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-changeme}
+      JWT_SECRET: ${JWT_SECRET:-technexus-local-docker-jwt-secret-2026}
       CORS_ORIGIN: http://localhost:3000,http://127.0.0.1:3000
       ANALYTICS_PROVIDER: internal
       EMAIL_ENABLED: "false"
@@ -102,6 +102,8 @@ services:
       context: ./frontend
       args:
         VITE_API_URL: http://localhost:5000
+        VITE_SITE_URL: http://localhost:3000
+        SEO_ASSETS_ALLOW_FALLBACK: "true"
         VITE_ANALYTICS_PROVIDER: internal
         VITE_POSTHOG_KEY: ""
         VITE_POSTHOG_HOST: https://app.posthog.com

@@ -13,6 +13,7 @@ const apiBaseUrl = (
   process.env.VITE_API_URL?.trim() ||
   "http://localhost:4000"
 ).replace(/\/$/, "");
+const allowFallbackSitemap = process.env.SEO_ASSETS_ALLOW_FALLBACK === "true";
 
 if (process.env.CI === "true" && !siteUrlEnv) {
   throw new Error("VITE_SITE_URL must be set in CI builds so sitemap.xml uses the public site origin.");
@@ -83,19 +84,7 @@ ${entries}
 `;
 }
 
-async function main() {
-  const [{ categories = [] }, products] = await Promise.all([
-    fetchJson("/api/categories"),
-    fetchAllProducts()
-  ]);
-
-  const urls = [
-    `${siteUrl}/`,
-    `${siteUrl}/products`,
-    ...categories.map((category) => `${siteUrl}${buildCategoryPath(category)}`),
-    ...products.map((product) => `${siteUrl}${buildProductPath(product)}`)
-  ];
-
+async function writeSeoAssets(urls) {
   const uniqueUrls = [...new Set(urls)];
   const sitemapXml = buildSitemapXml(uniqueUrls);
   const robotsTxt = `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`;
@@ -103,6 +92,32 @@ async function main() {
   await mkdir(publicDir, { recursive: true });
   await writeFile(path.join(publicDir, "sitemap.xml"), sitemapXml, "utf8");
   await writeFile(path.join(publicDir, "robots.txt"), robotsTxt, "utf8");
+}
+
+async function main() {
+  try {
+    const [{ categories = [] }, products] = await Promise.all([
+      fetchJson("/api/categories"),
+      fetchAllProducts()
+    ]);
+
+    await writeSeoAssets([
+      `${siteUrl}/`,
+      `${siteUrl}/products`,
+      ...categories.map((category) => `${siteUrl}${buildCategoryPath(category)}`),
+      ...products.map((product) => `${siteUrl}${buildProductPath(product)}`)
+    ]);
+  } catch (error) {
+    if (!allowFallbackSitemap || process.env.CI === "true") {
+      throw error;
+    }
+
+    console.warn(
+      `Falling back to a minimal sitemap because the catalog API is unavailable at build time (${apiBaseUrl}).`
+    );
+
+    await writeSeoAssets([`${siteUrl}/`, `${siteUrl}/products`]);
+  }
 }
 
 main().catch((error) => {

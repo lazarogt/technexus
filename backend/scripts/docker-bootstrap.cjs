@@ -30,13 +30,32 @@ const runScript = (scriptName) => {
   }
 };
 
+const hasCompleteDemoCatalog = (counts) =>
+  counts.productCount > 0 &&
+  counts.categoryCount > 0 &&
+  counts.reviewCount > 0 &&
+  counts.orderCount > 0 &&
+  counts.analyticsEventCount > 0;
+
 async function main() {
   await prisma.$connect();
 
   try {
     const adminEmail = String(process.env.TECHNEXUS_ADMIN_EMAIL ?? "admin@example.com").trim().toLowerCase();
-    const [productCount, adminUser] = await Promise.all([
-      prisma.product.count(),
+    const [counts, adminUser] = await Promise.all([
+      Promise.all([
+        prisma.product.count(),
+        prisma.category.count(),
+        prisma.review.count(),
+        prisma.order.count(),
+        prisma.analyticsEvent.count()
+      ]).then(([productCount, categoryCount, reviewCount, orderCount, analyticsEventCount]) => ({
+        productCount,
+        categoryCount,
+        reviewCount,
+        orderCount,
+        analyticsEventCount
+      })),
       prisma.user.findUnique({
         where: {
           email: adminEmail
@@ -52,13 +71,13 @@ async function main() {
       runScript("db:seed");
     }
 
-    if (productCount === 0) {
-      log("info", "Bootstrapping demo catalog");
+    if (!hasCompleteDemoCatalog(counts)) {
+      log("info", "Bootstrapping demo catalog", counts);
       runScript("db:demo");
       return;
     }
 
-    log("info", "Demo catalog already present. Skipping bootstrap seed");
+    log("info", "Demo catalog already present. Skipping bootstrap seed", counts);
   } finally {
     await prisma.$disconnect();
   }
