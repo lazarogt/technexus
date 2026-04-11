@@ -38,6 +38,7 @@ const bytesLimitString = trimString(z.string().regex(/^\d+\s*(kb|mb|gb)$/i));
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"]).optional(),
+  DEMO_MODE: booleanString("false"),
   ANALYTICS_PROVIDER: z.enum(["posthog", "internal"]).default("internal"),
   DATABASE_URL: z.union([urlString(["postgres:", "postgresql:"]), z.literal("")]).optional(),
   POSTGRES_DB: trimString(z.string().min(1)).default("technexus"),
@@ -178,6 +179,7 @@ export const env = {
   isDevelopment: parsedEnv.NODE_ENV === "development",
   isTest: parsedEnv.NODE_ENV === "test",
   isProduction: parsedEnv.NODE_ENV === "production",
+  demoMode: parsedEnv.DEMO_MODE,
   logLevel: parsedEnv.LOG_LEVEL ?? (parsedEnv.NODE_ENV === "production" ? "info" : "debug"),
   testPostgresDb: parsedEnv.TEST_POSTGRES_DB ?? `${parsedEnv.POSTGRES_DB}_test`,
   testPostgresPort: parsedEnv.TEST_POSTGRES_PORT ?? parsedEnv.POSTGRES_PORT,

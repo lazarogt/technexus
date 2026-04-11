@@ -2,13 +2,14 @@ import { asyncHandler } from "../utils/async-handler";
 import { AppError } from "../utils/errors";
 import { cacheService } from "../services/cache.service";
 import {
+  createDemoSession,
   createGuestAccess,
   getProfileById,
   loginUser,
   registerUser
 } from "../services/auth.service";
 import { env } from "../utils/config";
-import { loginSchema, registerSchema } from "../utils/request-validation";
+import { demoSessionSchema, loginSchema, registerSchema } from "../utils/request-validation";
 
 export const register = asyncHandler(async (req, res) => {
   const payload = registerSchema.parse(req.body);
@@ -25,6 +26,16 @@ export const login = asyncHandler(async (req, res) => {
 export const createGuest = asyncHandler(async (_req, res) => {
   const result = await createGuestAccess();
   res.status(201).json(result);
+});
+
+export const demoSession = asyncHandler(async (req, res) => {
+  if (!env.demoMode) {
+    throw new AppError(404, "DEMO_MODE_DISABLED", "Demo mode is not enabled.");
+  }
+
+  const payload = demoSessionSchema.parse(req.body);
+  const result = await createDemoSession(payload.role);
+  res.status(200).json(result);
 });
 
 export const profile = asyncHandler(async (req, res) => {

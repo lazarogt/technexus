@@ -9,6 +9,7 @@ import { trackOnce } from "@/features/analytics/analytics";
 import { useCart } from "@/features/cart/cart-context";
 import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 import { buildProductPath } from "@/lib/storefront-routes";
 
 export function CartPage() {
@@ -44,7 +45,13 @@ export function CartPage() {
         <div className="cart-items">
           {cart.items.map((item) => (
             <article key={item.id} className="cart-item" data-testid={`cart-item-${item.productId}`}>
-              <img src={item.productImages[0]} alt={item.productName} loading="lazy" decoding="async" />
+              <img
+                src={item.productImages[0] ?? DEFAULT_PRODUCT_IMAGE}
+                alt={item.productName}
+                loading="lazy"
+                decoding="async"
+                onError={applyImageFallback}
+              />
               <div className="stack-xs">
                 <Link to={buildProductPath({ id: item.productId, name: item.productName })} className="product-card-title">
                   {item.productName}

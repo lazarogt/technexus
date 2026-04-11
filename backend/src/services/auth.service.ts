@@ -20,6 +20,12 @@ type GuestTokenPayload = {
 
 export type AuthTokenPayload = UserTokenPayload | GuestTokenPayload;
 
+const demoRoleEmailMap: Record<UserRole, string> = {
+  customer: "customer.one@technexus.local",
+  seller: "seller.one@technexus.local",
+  admin: env.TECHNEXUS_ADMIN_EMAIL
+};
+
 const signToken = (payload: AuthTokenPayload) =>
   jwt.sign(payload, env.JWT_SECRET, {
     expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"]
@@ -103,6 +109,24 @@ export const createGuestAccess = async () => {
     token: signToken({ type: "guest", sub: session.id }),
     guestSessionId: session.id,
     expiresAt: session.expiresAt.toISOString()
+  };
+};
+
+export const createDemoSession = async (role: UserRole) => {
+  const email = demoRoleEmailMap[role].trim().toLowerCase();
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || user.deletedAt) {
+    throw new AppError(404, "DEMO_USER_NOT_FOUND", "The requested demo user is not available.");
+  }
+
+  if (user.isBlocked) {
+    throw new AppError(403, "DEMO_USER_BLOCKED", "The requested demo user is blocked.");
+  }
+
+  return {
+    token: signToken({ type: "user", sub: user.id, role: user.role }),
+    user: toPublicUser(user)
   };
 };
 

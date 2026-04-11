@@ -35,3 +35,8 @@ backend/node_modules
 backend/dist
 backend/generated
 backend/test-results
+# Docker volumes / database
+data/
+data/postgres/
+
+.git/objects

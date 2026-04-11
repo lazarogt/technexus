@@ -77,6 +77,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-technexus-local-docker-jwt-secret-2026}
       CORS_ORIGIN: http://localhost:3000,http://127.0.0.1:3000
       ANALYTICS_PROVIDER: internal
+      DEMO_MODE: ${DEMO_MODE:-false}
       EMAIL_ENABLED: "false"
       TECHNEXUS_ADMIN_EMAIL: admin@example.com
       TECHNEXUS_ADMIN_PASSWORD: DemoAdmin123!
@@ -107,6 +108,7 @@ services:
         VITE_ANALYTICS_PROVIDER: internal
         VITE_POSTHOG_KEY: ""
         VITE_POSTHOG_HOST: https://app.posthog.com
+        VITE_DEMO_MODE: ${DEMO_MODE:-false}
     restart: unless-stopped
     logging: *default-logging
     mem_limit: 256m

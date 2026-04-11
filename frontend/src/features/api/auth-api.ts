@@ -26,6 +26,13 @@ export function createGuestSession() {
   });
 }
 
+export function createDemoSession(payload: { role: UserRole }) {
+  return apiFetch<AuthResponse>("/api/auth/demo-session", {
+    method: "POST",
+    body: payload
+  });
+}
+
 export function getProfile(token: string) {
   return apiFetch<{ user: PublicUser }>("/api/auth/profile", {
     token

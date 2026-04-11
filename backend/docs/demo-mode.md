@@ -10,6 +10,7 @@ This workflow:
 - safely resets marketplace demo data only
 - promotes safe existing users to seller when fewer than five sellers are available
 - seeds realistic categories, products, reviews, orders, analytics events, and outbox rows
+- enables guided demo helpers when `DEMO_MODE=true`
 
 Reset tables:
 
@@ -26,3 +27,23 @@ Preserved tables:
 - `Location`
 - `Cart`
 - `GuestSession`
+
+## Guided demo sessions
+
+When `DEMO_MODE=true`, the backend also exposes:
+
+- `POST /api/auth/demo-session`
+
+Request body:
+
+```json
+{ "role": "customer" }
+```
+
+Allowed roles:
+
+- `customer`
+- `seller`
+- `admin`
+
+The endpoint returns the normal auth payload `{ token, user }` for seeded demo identities and is intended for the guided demo tour and demo-only role switching.

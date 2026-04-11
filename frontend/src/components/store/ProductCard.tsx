@@ -9,6 +9,7 @@ import type { Product } from "@/features/api/types";
 import { getStockLabel } from "@/features/catalog/product-display";
 import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 import { buildProductPath } from "@/lib/storefront-routes";
 
 type ProductCardProps = {
@@ -18,8 +19,6 @@ type ProductCardProps = {
   sellerLabel?: string;
   priorityImage?: boolean;
 };
-
-const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80";
 
 export function ProductCard({
   product,
@@ -33,16 +32,17 @@ export function ProductCard({
   const productPath = buildProductPath(product);
 
   return (
-    <article className="store-product-card" data-testid={`store-product-card-${product.id}`}>
+    <article className="store-product-card product-card" data-testid={`store-product-card-${product.id}`} data-tour="product-card">
       <Link to={productPath} className="store-product-overlay" aria-label={t("product.viewAria", { productName: product.name })} />
       <Link to={productPath} className="store-product-media-link" aria-label={product.name}>
         <div className="store-product-media">
           <img
-            src={product.images[0] ?? FALLBACK_IMAGE}
+            src={product.images[0] ?? DEFAULT_PRODUCT_IMAGE}
             alt={product.name}
             loading={priorityImage ? "eager" : "lazy"}
             fetchPriority={priorityImage ? "high" : "auto"}
             decoding={priorityImage ? "sync" : "async"}
+            onError={applyImageFallback}
           />
         </div>
       </Link>

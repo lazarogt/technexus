@@ -114,8 +114,10 @@ Storefront analytics is opt-in and non-blocking. When the provider is missing or
   - `VITE_ANALYTICS_PROVIDER=internal|posthog`
   - `VITE_POSTHOG_KEY`
   - `VITE_POSTHOG_HOST`
+  - `VITE_DEMO_MODE=true|false`
 - Backend env value:
   - `ANALYTICS_PROVIDER=internal|posthog`
+  - `DEMO_MODE=true|false`
 
 Tracked events:
 
@@ -157,6 +159,22 @@ Use the old Vite target explicitly with:
 cd frontend
 E2E_USE_VITE=true npm run test:e2e
 ```
+
+Run the guided demo tour E2E explicitly with demo mode enabled:
+
+```bash
+cd frontend
+E2E_DEMO_MODE=true npm run test:e2e -- e2e/demo-tour.spec.ts
+```
+
+## Guided Demo Tour
+
+- The guided demo tour is enabled only when `VITE_DEMO_MODE=true`.
+- The backend demo session endpoint is enabled only when `DEMO_MODE=true`.
+- The tour auto-starts once per browser, persists completion in local storage, and can be replayed from:
+  - the storefront header
+  - the dashboard topbar
+- Demo-only role switching signs into seeded demo identities without exposing passwords in the frontend bundle.
 
 ## CI
 

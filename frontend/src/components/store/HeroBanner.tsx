@@ -5,6 +5,7 @@ import { TrustBar } from "@/components/store/TrustBar";
 import type { Product } from "@/features/api/types";
 import { ES } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 import { buildProductPath } from "@/lib/storefront-routes";
 
 type HeroBannerProps = {
@@ -46,11 +47,12 @@ export function HeroBanner({ spotlight, categoryCount, sellerCount }: HeroBanner
         {spotlight ? (
           <>
             <img
-              src={spotlight.images[0]}
+              src={spotlight.images[0] ?? DEFAULT_PRODUCT_IMAGE}
               alt={spotlight.name}
               loading="eager"
               fetchPriority="high"
               decoding="sync"
+              onError={applyImageFallback}
             />
             <div className="hero-spotlight-card">
               <span>{t("hero.trending")}</span>

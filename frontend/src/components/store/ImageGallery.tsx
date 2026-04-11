@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 
 type ImageGalleryProps = {
   images: string[];
@@ -10,7 +11,7 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
   const safeImages =
     images.length > 0
       ? images
-      : ["https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"];
+      : [DEFAULT_PRODUCT_IMAGE];
 
   return (
     <div className="image-gallery">
@@ -20,6 +21,7 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
         alt={productName}
         loading="eager"
         fetchPriority="high"
+        onError={applyImageFallback}
       />
       <div className="image-gallery-thumbs">
         {safeImages.map((image, index) => (
@@ -29,7 +31,13 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
             className={index === selected ? "is-active" : undefined}
             onClick={() => setSelected(index)}
           >
-            <img src={image} alt={`${productName} vista ${index + 1}`} loading="lazy" decoding="async" />
+            <img
+              src={image}
+              alt={`${productName} vista ${index + 1}`}
+              loading="lazy"
+              decoding="async"
+              onError={applyImageFallback}
+            />
           </button>
         ))}
       </div>

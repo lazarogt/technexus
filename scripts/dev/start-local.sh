@@ -122,12 +122,14 @@ services:
   backend:
     environment:
       ANALYTICS_PROVIDER: "${analytics_provider}"
+      DEMO_MODE: "${DEMO_MODE:-false}"
   frontend:
     build:
       args:
         VITE_ANALYTICS_PROVIDER: "${analytics_provider}"
         VITE_POSTHOG_KEY: "${VITE_POSTHOG_KEY:-}"
         VITE_POSTHOG_HOST: "${VITE_POSTHOG_HOST:-https://app.posthog.com}"
+        VITE_DEMO_MODE: "${DEMO_MODE:-false}"
 EOF
 }
 
@@ -301,6 +303,7 @@ frontend_build_env_command() {
     VITE_ANALYTICS_PROVIDER="$1" \
     VITE_POSTHOG_KEY="${VITE_POSTHOG_KEY:-}" \
     VITE_POSTHOG_HOST="${VITE_POSTHOG_HOST:-https://app.posthog.com}" \
+    VITE_DEMO_MODE="${DEMO_MODE:-false}" \
     "${@:2}"
 }
 

@@ -15,6 +15,7 @@ import {
   productUpdateSchema,
   sellerProductsQuerySchema
 } from "../utils/request-validation";
+import { env } from "../utils/config";
 
 export const indexProducts = asyncHandler(async (req, res) => {
   const query = productListQuerySchema.parse(req.query);
@@ -98,6 +99,11 @@ export const updateManagedProduct = asyncHandler(async (req, res) => {
 });
 
 export const destroyProduct = asyncHandler(async (req, res) => {
+  if (env.demoMode) {
+    res.status(403).json({ message: "Demo action disabled" });
+    return;
+  }
+
   const params = idParamSchema.parse(req.params);
   await softDeleteProduct(
     {

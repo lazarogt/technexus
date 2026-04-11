@@ -9,7 +9,7 @@ test.describe("Storefront Flow", () => {
     const frontendErrors = await trackFrontendErrors(page);
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Todo tu stack comercial/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Encuentra tu próximo dispositivo|Find your next device/i })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Ofertas" })).toBeVisible();
 
     await addProductToCartFromCatalog(page, TEST_PRODUCTS.storefront);

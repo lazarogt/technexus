@@ -43,7 +43,7 @@ export function SearchBar({
   };
 
   return (
-    <form className={clsx("store-search-bar", compact && "is-compact", className)} onSubmit={handleSubmit}>
+    <form className={clsx("store-search-bar", "search-bar", compact && "is-compact", className)} data-tour="search-bar" onSubmit={handleSubmit}>
       <label className="store-search-input-shell">
         <Search size={18} />
         <input

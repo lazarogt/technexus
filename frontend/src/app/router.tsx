@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
+import { AppShell } from "@/app/AppShell";
 import { ProtectedRoute, PublicOnlyRoute } from "@/app/route-guards";
 import { DashboardLayout } from "@/layouts/DashboardLayout";
 import { StoreLayout } from "@/layouts/StoreLayout";
@@ -55,71 +56,76 @@ const NotFoundPage = lazy(() => import("@/pages/store/NotFoundPage").then((modul
 
 export const appRouter = createBrowserRouter([
   {
-    element: <StoreLayout />,
-    children: [
-      { index: true, element: <HomePage /> },
-      { path: "products", element: <ProductsPage /> },
-      { path: "category/:categoryParam", element: <CategoryPage /> },
-      { path: "product/:productParam", element: <ProductPage /> },
-      { path: "cart", element: <CartPage /> },
-      { path: "checkout", element: <CheckoutPage /> },
-      {
-        element: <PublicOnlyRoute />,
-        children: [
-          { path: "login", element: <LoginPage /> },
-          { path: "register", element: <RegisterPage /> }
-        ]
-      }
-    ]
-  },
-  {
-    element: <ProtectedRoute roles={["customer", "seller", "admin"]} />,
+    element: <AppShell />,
     children: [
       {
-        path: "/account",
-        element: <DashboardLayout section="account" />,
+        element: <StoreLayout />,
         children: [
-          { index: true, element: <AccountOverviewPage /> },
-          { path: "orders", element: <AccountOrdersPage /> }
+          { index: true, element: <HomePage /> },
+          { path: "products", element: <ProductsPage /> },
+          { path: "category/:categoryParam", element: <CategoryPage /> },
+          { path: "product/:productParam", element: <ProductPage /> },
+          { path: "cart", element: <CartPage /> },
+          { path: "checkout", element: <CheckoutPage /> },
+          {
+            element: <PublicOnlyRoute />,
+            children: [
+              { path: "login", element: <LoginPage /> },
+              { path: "register", element: <RegisterPage /> }
+            ]
+          }
         ]
-      }
-    ]
-  },
-  {
-    element: <ProtectedRoute roles={["seller", "admin"]} />,
-    children: [
+      },
       {
-        path: "/seller",
-        element: <DashboardLayout section="seller" />,
+        element: <ProtectedRoute roles={["customer", "seller", "admin"]} />,
         children: [
-          { index: true, element: <SellerOverviewPage /> },
-          { path: "products", element: <SellerProductsPage /> },
-          { path: "orders", element: <SellerOrdersPage /> },
-          { path: "inventory", element: <SellerInventoryPage /> }
+          {
+            path: "/account",
+            element: <DashboardLayout section="account" />,
+            children: [
+              { index: true, element: <AccountOverviewPage /> },
+              { path: "orders", element: <AccountOrdersPage /> }
+            ]
+          }
         ]
-      }
-    ]
-  },
-  {
-    element: <ProtectedRoute roles={["admin"]} />,
-    children: [
+      },
       {
-        path: "/admin",
-        element: <DashboardLayout section="admin" />,
+        element: <ProtectedRoute roles={["seller", "admin"]} />,
         children: [
-          { index: true, element: <AdminOverviewPage /> },
-          { path: "analytics", element: <AdminAnalyticsPage /> },
-          { path: "products", element: <AdminProductsPage /> },
-          { path: "categories", element: <AdminCategoriesPage /> },
-          { path: "users", element: <AdminUsersPage /> },
-          { path: "orders", element: <AdminOrdersPage /> },
-          { path: "operations", element: <AdminOperationsPage /> }
+          {
+            path: "/seller",
+            element: <DashboardLayout section="seller" />,
+            children: [
+              { index: true, element: <SellerOverviewPage /> },
+              { path: "products", element: <SellerProductsPage /> },
+              { path: "orders", element: <SellerOrdersPage /> },
+              { path: "inventory", element: <SellerInventoryPage /> }
+            ]
+          }
         ]
+      },
+      {
+        element: <ProtectedRoute roles={["admin"]} />,
+        children: [
+          {
+            path: "/admin",
+            element: <DashboardLayout section="admin" />,
+            children: [
+              { index: true, element: <AdminOverviewPage /> },
+              { path: "analytics", element: <AdminAnalyticsPage /> },
+              { path: "products", element: <AdminProductsPage /> },
+              { path: "categories", element: <AdminCategoriesPage /> },
+              { path: "users", element: <AdminUsersPage /> },
+              { path: "orders", element: <AdminOrdersPage /> },
+              { path: "operations", element: <AdminOperationsPage /> }
+            ]
+          }
+        ]
+      },
+      {
+        path: "*",
+        element: <NotFoundPage />
       }
     ]
-  },
-  {
-    path: "*",
-    element: <NotFoundPage />
   }
 ]);

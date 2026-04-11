@@ -1,5 +1,6 @@
 import { Bell, LogOut } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { DemoControls } from "@/components/demo/DemoControls";
 import { useAuth } from "@/features/auth/auth-context";
 
 type TopbarProps = {
@@ -12,12 +13,13 @@ export function Topbar({ title, subtitle }: TopbarProps) {
   const { logout, user } = useAuth();
 
   return (
-    <header className="dashboard-topbar">
+    <header className="dashboard-topbar" data-tour="dashboard-overview">
       <div>
         <h1>{title}</h1>
         <p>{subtitle}</p>
       </div>
       <div className="dashboard-topbar-actions">
+        <DemoControls />
         <div className="dashboard-user-chip">
           <Bell size={16} />
           <span>{user?.email}</span>

@@ -397,6 +397,21 @@
       "authRequired": "Falta autenticación."
     }
   },
+  "demo": {
+    "startTour": "Iniciar tour demo",
+    "skip": "Omitir",
+    "roleSwitchLabel": "Cambio de rol demo",
+    "steps": {
+      "navbar": "Bienvenido a TechNexus, tu marketplace listo para demo y exploración guiada.",
+      "searchBar": "Usa la barra de búsqueda para encontrar laptops, teléfonos y accesorios en segundos.",
+      "productCard": "Aquí puedes explorar productos reales de varios vendedores y revisar señales de confianza.",
+      "cartButton": "El carrito te permite simular una compra completa sin salir del flujo demo.",
+      "roleSwitch": "Cambia de rol al instante para recorrer la experiencia de cliente, vendedor y administrador.",
+      "dashboardLink": "Desde aquí puedes entrar al dashboard activo y ver cada área operativa del marketplace.",
+      "sellerOverview": "Este panel resume la operación del vendedor: catálogo, pedidos e inventario en un solo lugar.",
+      "adminOverview": "El centro de administración muestra la vista global del marketplace y sus operaciones clave."
+    }
+  },
   "routeGuards": {
     "checkingAccess": "Verificando acceso...",
     "loadingSession": "Cargando sesión..."

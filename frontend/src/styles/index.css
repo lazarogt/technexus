@@ -507,11 +507,51 @@ a {
   color: var(--color-danger);
 }
 
+.demo-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.demo-role-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+}
+
+.demo-role-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.demo-role-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.demo-role-button:disabled {
+  cursor: wait;
+}
+
+.demo-tour-button {
+  white-space: nowrap;
+}
+
 .catalog-toolbar,
 .summary-row,
 .surface-card-header,
 .profile-block,
 .dashboard-topbar,
+.dashboard-topbar-actions,
 .dashboard-user-chip,
 .compact-list,
 .resource-list {
@@ -800,11 +840,32 @@ a {
   color: var(--color-text-soft);
 }
 
+.dashboard-topbar-actions {
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .dashboard-user-chip {
   align-items: center;
   padding: 10px 14px;
   border-radius: 999px;
   background: white;
+}
+
+.dashboard-topbar .demo-role-switch {
+  background: #eef3f8;
+}
+
+.dashboard-topbar .demo-role-button {
+  background: transparent;
+  color: var(--color-text-soft);
+}
+
+.dashboard-topbar .demo-role-button.is-active {
+  background: white;
+  color: var(--color-primary);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
 }
 
 .dashboard-main {
@@ -984,6 +1045,7 @@ a {
   .section-heading,
   .catalog-toolbar,
   .dashboard-topbar,
+  .dashboard-topbar-actions,
   .summary-row,
   .store-footer {
     flex-direction: column;
@@ -1685,6 +1747,24 @@ a {
   min-width: 0;
 }
 
+.store-header .demo-role-switch {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.store-header .demo-role-button {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.store-header .demo-role-button.is-active {
+  background: white;
+  color: var(--color-primary);
+}
+
+.store-header .demo-tour-button {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .store-search-bar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -2302,6 +2382,19 @@ a {
 
   .store-actions {
     justify-content: space-between;
+  }
+
+  .demo-controls {
+    width: 100%;
+  }
+
+  .demo-role-switch {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .demo-role-button {
+    flex: 1 1 0;
   }
 }
 

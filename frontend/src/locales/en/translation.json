@@ -397,6 +397,21 @@
       "authRequired": "Authentication is required."
     }
   },
+  "demo": {
+    "startTour": "Start Demo Tour",
+    "skip": "Skip",
+    "roleSwitchLabel": "Demo role switcher",
+    "steps": {
+      "navbar": "Welcome to TechNexus, your marketplace ready for a guided demo.",
+      "searchBar": "Use the search bar to find laptops, phones, and accessories in seconds.",
+      "productCard": "Browse real products from multiple sellers and review trust signals before buying.",
+      "cartButton": "The cart lets you simulate a complete checkout flow without leaving the demo.",
+      "roleSwitch": "Switch roles instantly to explore the customer, seller, and admin experiences.",
+      "dashboardLink": "Use this shortcut to jump into the active dashboard and inspect each operating surface.",
+      "sellerOverview": "This seller workspace centralizes catalog, order, and inventory operations.",
+      "adminOverview": "The admin center gives you a full marketplace view across operations and oversight."
+    }
+  },
   "routeGuards": {
     "checkingAccess": "Checking access...",
     "loadingSession": "Loading session..."

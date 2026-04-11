@@ -127,6 +127,10 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128)
 });
 
+export const demoSessionSchema = z.object({
+  role: z.nativeEnum(UserRole)
+});
+
 export const idParamSchema = z.object({
   id: z.string().uuid()
 });

@@ -12,6 +12,8 @@ const skipDbReset = process.env.E2E_SKIP_DB_RESET === "true";
 const useViteFrontend = process.env.E2E_USE_VITE === "true";
 const composeArgs = ["compose", "--env-file", ".env.docker"];
 
+process.env.DEMO_MODE = process.env.E2E_DEMO_MODE === "true" ? "true" : process.env.DEMO_MODE ?? "false";
+
 function runCommand(command: string, args: string[], cwd: string, timeout?: number) {
   execFileSync(command, args, {
     cwd,
@@ -127,9 +129,9 @@ function resetDatabase() {
     "docker",
     [...composeArgs, "run", "--build", "--rm", "--no-deps", "backend", "node", "scripts/prisma.cjs", "migrate", "reset", "--force", "--skip-generate", "--skip-seed"],
     repoRoot,
-    120_000
+    240_000
   );
-  runCommand("docker", [...composeArgs, "run", "--build", "--rm", "--no-deps", "backend", "npm", "run", "db:seed"], repoRoot, 120_000);
+  runCommand("docker", [...composeArgs, "run", "--build", "--rm", "--no-deps", "backend", "npm", "run", "db:seed"], repoRoot, 240_000);
 }
 
 async function apiRequest<T>(
@@ -312,7 +314,7 @@ export default async function globalSetup() {
 
     try {
       const services = useViteFrontend ? ["backend"] : ["backend", "frontend"];
-      runCommand("docker", [...composeArgs, "up", "-d", "--build", "--force-recreate", ...services], repoRoot, 120_000);
+      runCommand("docker", [...composeArgs, "up", "-d", "--build", "--force-recreate", ...services], repoRoot, 240_000);
       await waitForBackend(HEALTH_URL, 120_000);
       if (!useViteFrontend) {
         await waitForFrontend(FRONTEND_HEALTH_URL, 120_000);
@@ -320,6 +322,10 @@ export default async function globalSetup() {
     } catch {
       throw new Error("Dockerized services failed to start for the E2E path.");
     }
+  }
+
+  if (useExternalServices && skipDbReset) {
+    return;
   }
 
   await provisionUsers();

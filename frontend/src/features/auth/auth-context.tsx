@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { getProfile, createGuestSession, login as loginRequest, register as registerRequest } from "@/features/api/auth-api";
-import type { GuestResponse, PublicUser, UserRole } from "@/features/api/types";
+import type { AuthResponse, GuestResponse, PublicUser, UserRole } from "@/features/api/types";
 import { identify } from "@/features/analytics/analytics";
 import { removeStorage, readStorage, writeStorage } from "@/lib/storage";
 
@@ -26,6 +26,7 @@ type AuthContextValue = {
   role: UserRole | null;
   isAuthenticated: boolean;
   isBootstrapping: boolean;
+  applySession: (response: AuthResponse) => void;
   login: (payload: { email: string; password: string }) => Promise<PublicUser>;
   register: (payload: { name: string; email: string; password: string; role: "seller" | "customer" }) => Promise<PublicUser>;
   logout: () => void;
@@ -42,6 +43,17 @@ function persistGuestSession(response: GuestResponse): GuestSession {
     token: response.token,
     guestSessionId: response.guestSessionId,
     expiresAt: response.expiresAt
+  };
+
+  writeStorage(SESSION_KEY, session);
+  return session;
+}
+
+function persistUserSession(response: AuthResponse): UserSession {
+  const session: UserSession = {
+    kind: "user",
+    token: response.token,
+    user: response.user
   };
 
   writeStorage(SESSION_KEY, session);
@@ -131,26 +143,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: session?.kind === "user" ? session.user.role : null,
       isAuthenticated: session?.kind === "user",
       isBootstrapping,
+      applySession(response) {
+        setSession(persistUserSession(response));
+      },
       async login(payload) {
         const response = await loginRequest(payload);
-        const nextSession: UserSession = {
-          kind: "user",
-          token: response.token,
-          user: response.user
-        };
-        writeStorage(SESSION_KEY, nextSession);
-        setSession(nextSession);
+        setSession(persistUserSession(response));
         return response.user;
       },
       async register(payload) {
         const response = await registerRequest(payload);
-        const nextSession: UserSession = {
-          kind: "user",
-          token: response.token,
-          user: response.user
-        };
-        writeStorage(SESSION_KEY, nextSession);
-        setSession(nextSession);
+        setSession(persistUserSession(response));
         return response.user;
       },
       logout() {

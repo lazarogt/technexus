@@ -2,11 +2,13 @@ import { ShoppingCart, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { DemoControls } from "@/components/demo/DemoControls";
 import { SearchBar } from "@/components/store/layout/SearchBar";
 import { useAuth } from "@/features/auth/auth-context";
 import { useCart } from "@/features/cart/cart-context";
 import { ES, getProductCountLabel } from "@/i18n/es";
 import { formatCurrency } from "@/lib/format";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 
 export function Header() {
   const { t } = useTranslation();
@@ -44,7 +46,7 @@ export function Header() {
   }, [cartAttentionTick, isMiniCartOpen]);
 
   return (
-    <header className="store-header">
+    <header className="store-header navbar" data-tour="navbar">
       <div className="store-header-inner">
         <div className="store-header-brand">
           <Link to="/" className="brand-mark">
@@ -54,9 +56,10 @@ export function Header() {
         </div>
         <SearchBar className="store-header-search" />
         <nav className="store-actions" aria-label={ES.nav.main}>
+          <DemoControls />
           {isAuthenticated ? (
             <>
-              <Link to={dashboardHref} className="header-link">
+              <Link to={dashboardHref} className="header-link dashboard-link" data-tour="dashboard-link">
                 <UserRound size={18} />
                 <span>{user?.name.split(" ")[0] ?? ES.nav.account}</span>
               </Link>
@@ -80,8 +83,9 @@ export function Header() {
           <div ref={miniCartRef} className="mini-cart-shell">
             <button
               type="button"
-              className={`header-link cart-link cart-trigger ${cartTriggerClass}`}
+              className={`header-link cart-link cart-trigger cart-button ${cartTriggerClass}`}
               data-testid="cart-trigger"
+              data-tour="cart-button"
               onClick={() => {
                 if (isMiniCartOpen) {
                   setManualOpenKey(null);
@@ -122,7 +126,12 @@ export function Header() {
                   <div className="mini-cart-items">
                     {cart.items.slice(0, 4).map((item) => (
                       <article key={item.id} className="mini-cart-item">
-                        <img src={item.productImages[0]} alt={item.productName} loading="lazy" />
+                        <img
+                          src={item.productImages[0] ?? DEFAULT_PRODUCT_IMAGE}
+                          alt={item.productName}
+                          loading="lazy"
+                          onError={applyImageFallback}
+                        />
                         <div className="stack-xs">
                           <strong>{item.productName}</strong>
                           <small>
@@ -198,7 +207,12 @@ export function Header() {
             {cart.items.length ? (
               cart.items.slice(0, 4).map((item) => (
                 <article key={item.id} className="mini-cart-item">
-                  <img src={item.productImages[0]} alt={item.productName} loading="lazy" />
+                  <img
+                    src={item.productImages[0] ?? DEFAULT_PRODUCT_IMAGE}
+                    alt={item.productName}
+                    loading="lazy"
+                    onError={applyImageFallback}
+                  />
                   <div className="stack-xs">
                     <strong>{item.productName}</strong>
                     <small>

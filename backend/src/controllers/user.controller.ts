@@ -47,6 +47,11 @@ export const updateManagedUser = asyncHandler(async (req, res) => {
 });
 
 export const destroyUser = asyncHandler(async (req, res) => {
+  if (env.demoMode) {
+    res.status(403).json({ message: "Demo action disabled" });
+    return;
+  }
+
   const params = idParamSchema.parse(req.params);
   const userId = params.id;
   await softDeleteUser(req.actor!.userId!, userId);
