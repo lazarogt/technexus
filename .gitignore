@@ -40,3 +40,4 @@ data/
 data/postgres/
 
 .git/objects
+.codex
