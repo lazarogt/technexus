@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { mockDemoCatalog } from "./support/demo-mocks";
 
 test.describe("Guided Demo Tour", () => {
   test.skip(process.env.E2E_DEMO_MODE !== "true", "Demo tour E2E runs only when E2E_DEMO_MODE=true.");
@@ -7,11 +8,12 @@ test.describe("Guided Demo Tour", () => {
     await page.addInitScript(() => {
       window.localStorage.clear();
     });
+    await mockDemoCatalog(page);
 
     await page.goto("/");
-    await expect(page.getByText(/Bienvenido a TechNexus|Welcome to TechNexus/)).toBeVisible();
+    await expect(page.getByTestId("button-primary")).toBeVisible();
 
-    for (let step = 0; step < 6; step += 1) {
+    for (let step = 0; step < 5; step += 1) {
       await page.getByTestId("button-primary").click();
     }
 
@@ -26,6 +28,6 @@ test.describe("Guided Demo Tour", () => {
     await expect.poll(() => page.evaluate(() => window.localStorage.getItem("technexus:demoTourSeen"))).toContain("true");
 
     await page.getByRole("button", { name: /Iniciar tour demo|Start Demo Tour/ }).click();
-    await expect(page.getByText(/Bienvenido a TechNexus|Welcome to TechNexus/)).toBeVisible();
+    await expect(page.getByTestId("button-primary")).toBeVisible();
   });
 });

@@ -21,6 +21,8 @@ export default function DemoTour() {
       options={{
         buttons: ["back", "close", "primary", "skip"],
         closeButtonAction: "skip",
+        dismissKeyAction: false,
+        overlayClickAction: false,
         primaryColor: "#2563eb",
         zIndex: 9999,
         textColor: "#17202c",
@@ -38,6 +40,7 @@ export default function DemoTour() {
         close: t("buttons.close"),
         last: t("buttons.close"),
         next: t("buttons.continue"),
+        nextWithProgress: t("buttons.continue"),
         skip: t("demo.skip")
       }}
       styles={{
@@ -62,6 +65,9 @@ export default function DemoTour() {
           color: "#475569"
         },
         buttonSkip: {
+          color: "#475569"
+        },
+        buttonClose: {
           color: "#475569"
         }
       }}

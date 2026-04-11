@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
 import { API_URL } from "./support/test-data";
 import { readLocalSession, trackFrontendErrors } from "./support/api";
+import { mockDemoCatalog } from "./support/demo-mocks";
 
 const DEMO_START_TOUR = /Iniciar tour demo|Start Demo Tour/;
 const ADMIN_LABEL = /Administrador|Admin/;
 const SELLER_LABEL = /Vendedor|Seller/;
-const CUSTOMER_LABEL = /Cliente|Customer/;
+const CUSTOMER_LABEL = /Cliente|Comprador|Customer/;
 const ACCOUNT_TITLE = /Mi cuenta|My account/;
 const SELLER_TITLE = /Centro de vendedores|Seller center/;
 const ADMIN_TITLE = /Centro de administracion|Centro de administración|Admin center/;
@@ -22,7 +23,9 @@ test.describe("Demo Mode Validation", () => {
 
     await page.addInitScript(() => {
       window.localStorage.clear();
+      window.localStorage.setItem("technexus:demoTourSeen", "true");
     });
+    await mockDemoCatalog(page);
 
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Encuentra tu próximo dispositivo|Find your next device/i })).toBeVisible();
@@ -94,7 +97,9 @@ test.describe("Demo Mode Validation", () => {
   });
 
   test("keeps demo fail-safes stable across API failures, image fallback, and mobile tour layout", async ({ page }) => {
-    const frontendErrors = await trackFrontendErrors(page);
+    const frontendErrors = await trackFrontendErrors(page, {
+      ignoreConsolePatterns: [/Failed to load resource: the server responded with a status of 500/]
+    });
 
     await page.route("**/api/products**", async (route) => {
       await route.fulfill({
@@ -108,6 +113,7 @@ test.describe("Demo Mode Validation", () => {
     await expect(page.locator(".empty-state")).toBeVisible();
 
     await page.unroute("**/api/products**");
+    await mockDemoCatalog(page);
 
     await page.goto("/");
     const firstCardImage = page.locator(".product-card img").first();
@@ -125,7 +131,7 @@ test.describe("Demo Mode Validation", () => {
       window.localStorage.clear();
     });
     await page.goto("/");
-    await expect(page.getByText(/Bienvenido a TechNexus|Welcome to TechNexus/)).toBeVisible();
+    await expect(page.getByTestId("button-primary")).toBeVisible();
 
     const tooltip = page.locator(".react-joyride__tooltip");
     await expect(tooltip).toBeVisible();

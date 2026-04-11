@@ -399,6 +399,7 @@
   },
   "demo": {
     "startTour": "Iniciar tour demo",
+    "exit": "Salir demo",
     "skip": "Omitir",
     "roleSwitchLabel": "Cambio de rol demo",
     "steps": {
@@ -406,6 +407,7 @@
       "searchBar": "Usa la barra de búsqueda para encontrar laptops, teléfonos y accesorios en segundos.",
       "productCard": "Aquí puedes explorar productos reales de varios vendedores y revisar señales de confianza.",
       "cartButton": "El carrito te permite simular una compra completa sin salir del flujo demo.",
+      "checkout": "El checkout demo mantiene el flujo lineal para enseñar la compra sin depender de acciones manuales.",
       "roleSwitch": "Cambia de rol al instante para recorrer la experiencia de cliente, vendedor y administrador.",
       "dashboardLink": "Desde aquí puedes entrar al dashboard activo y ver cada área operativa del marketplace.",
       "sellerOverview": "Este panel resume la operación del vendedor: catálogo, pedidos e inventario en un solo lugar.",
@@ -452,7 +454,9 @@
     "sortNameDesc": "Nombre Z-A",
     "allCategories": "Todas",
     "emptyTitle": "No se encontraron productos",
-    "emptyDescription": "Ajusta la búsqueda, la categoría o el orden para descubrir más productos."
+    "emptyDescription": "Ajusta la búsqueda, la categoría o el orden para descubrir más productos.",
+    "errorTitle": "No se pudieron cargar los productos",
+    "errorDescription": "Intenta nuevamente para recuperar el catálogo de la demo."
   },
   "categoryPage": {
     "description": "Mostrando {{count}} productos con filtros de tienda separados de las vistas de administración.",

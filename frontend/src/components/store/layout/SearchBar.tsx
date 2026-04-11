@@ -43,18 +43,26 @@ export function SearchBar({
   };
 
   return (
-    <form className={clsx("store-search-bar", "search-bar", compact && "is-compact", className)} data-tour="search-bar" onSubmit={handleSubmit}>
+    <form
+      className={clsx("store-search-bar", "search-bar", compact && "is-compact", className)}
+      data-tour="search-bar"
+      data-demo-lock="true"
+      onSubmit={handleSubmit}
+    >
       <label className="store-search-input-shell">
         <Search size={18} />
         <input
           aria-label={t("search.ariaLabel")}
           data-testid="store-search-input"
+          data-demo-lock="true"
           value={value}
           onChange={(event) => setValue(event.target.value)}
           placeholder={placeholder ?? t("search.placeholder")}
         />
       </label>
-      <button type="submit">{t("buttons.search")}</button>
+      <button type="submit" data-demo-lock="true">
+        {t("buttons.search")}
+      </button>
     </form>
   );
 }

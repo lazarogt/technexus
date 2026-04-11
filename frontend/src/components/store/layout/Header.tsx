@@ -49,7 +49,7 @@ export function Header() {
     <header className="store-header navbar" data-tour="navbar">
       <div className="store-header-inner">
         <div className="store-header-brand">
-          <Link to="/" className="brand-mark">
+          <Link to="/" className="brand-mark" data-demo-lock="true">
             <span>Tech</span>Nexus
           </Link>
           <small>{t("nav.marketplaceReady")}</small>
@@ -59,23 +59,23 @@ export function Header() {
           <DemoControls />
           {isAuthenticated ? (
             <>
-              <Link to={dashboardHref} className="header-link dashboard-link" data-tour="dashboard-link">
+              <Link to={dashboardHref} className="header-link dashboard-link" data-tour="dashboard-link" data-demo-lock="true">
                 <UserRound size={18} />
                 <span>{user?.name.split(" ")[0] ?? ES.nav.account}</span>
               </Link>
-              <Link to={ordersHref} className="header-link">
+              <Link to={ordersHref} className="header-link" data-demo-lock="true">
                 {ES.nav.orders}
               </Link>
-              <button type="button" className="header-link header-link-button" onClick={logout}>
+              <button type="button" className="header-link header-link-button" data-demo-lock="true" onClick={logout}>
                 {ES.buttons.logout}
               </button>
             </>
           ) : (
             <>
-              <Link to="/login" className="header-link">
+              <Link to="/login" className="header-link" data-demo-lock="true">
                 {ES.nav.account}
               </Link>
-              <Link to="/register" className="header-link">
+              <Link to="/register" className="header-link" data-demo-lock="true">
                 {ES.buttons.createAccount}
               </Link>
             </>
@@ -86,6 +86,7 @@ export function Header() {
               className={`header-link cart-link cart-trigger cart-button ${cartTriggerClass}`}
               data-testid="cart-trigger"
               data-tour="cart-button"
+              data-demo-lock="true"
               onClick={() => {
                 if (isMiniCartOpen) {
                   setManualOpenKey(null);
@@ -113,6 +114,7 @@ export function Header() {
                 <button
                   type="button"
                   className="mini-cart-close"
+                  data-demo-lock="true"
                   onClick={() => {
                     setManualOpenKey(null);
                     setDismissedTick(cartAttentionTick);
@@ -149,13 +151,14 @@ export function Header() {
                     </div>
                     {lastAddedItem ? <p className="mini-cart-highlight">{ES.cart.addedToCart(lastAddedItem.productName)}</p> : null}
                     <div className="mini-cart-actions">
-                      <Link to="/cart" className="mini-cart-link">
+                      <Link to="/cart" className="mini-cart-link" data-demo-lock="true">
                         {ES.buttons.viewCart}
                       </Link>
                       <button
                         type="button"
                         data-testid="mini-cart-checkout"
                         className="button button-primary"
+                        data-demo-lock="true"
                         onClick={() => navigate(cart.items.length ? "/checkout" : "/cart")}
                       >
                         {ES.buttons.checkout}
@@ -167,7 +170,7 @@ export function Header() {
                 <div className="mini-cart-empty">
                   <strong>{ES.cart.emptyTitle}</strong>
                   <p>{ES.cart.emptyDescription}</p>
-                  <Link to="/products" className="mini-cart-link">
+                  <Link to="/products" className="mini-cart-link" data-demo-lock="true">
                     {ES.buttons.viewCatalog}
                   </Link>
                 </div>
@@ -195,6 +198,7 @@ export function Header() {
             <button
               type="button"
               className="mini-cart-close"
+              data-demo-lock="true"
               onClick={() => {
                 setManualOpenKey(null);
                 setDismissedTick(cartAttentionTick);
@@ -235,12 +239,13 @@ export function Header() {
               <strong>{formatCurrency(cart.total)}</strong>
             </div>
             <div className="mini-cart-actions">
-              <Link to="/cart" className="mini-cart-link">
+              <Link to="/cart" className="mini-cart-link" data-demo-lock="true">
                 {ES.buttons.viewCart}
               </Link>
               <button
                 type="button"
                 className="button button-primary"
+                data-demo-lock="true"
                 onClick={() => navigate(cart.items.length ? "/checkout" : "/products")}
               >
                 {ES.buttons.continue}

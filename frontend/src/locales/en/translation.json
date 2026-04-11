@@ -399,6 +399,7 @@
   },
   "demo": {
     "startTour": "Start Demo Tour",
+    "exit": "Exit Demo",
     "skip": "Skip",
     "roleSwitchLabel": "Demo role switcher",
     "steps": {
@@ -406,6 +407,7 @@
       "searchBar": "Use the search bar to find laptops, phones, and accessories in seconds.",
       "productCard": "Browse real products from multiple sellers and review trust signals before buying.",
       "cartButton": "The cart lets you simulate a complete checkout flow without leaving the demo.",
+      "checkout": "The demo checkout keeps the flow linear so the purchase path can be shown without manual setup.",
       "roleSwitch": "Switch roles instantly to explore the customer, seller, and admin experiences.",
       "dashboardLink": "Use this shortcut to jump into the active dashboard and inspect each operating surface.",
       "sellerOverview": "This seller workspace centralizes catalog, order, and inventory operations.",
@@ -452,7 +454,9 @@
     "sortNameDesc": "Name Z-A",
     "allCategories": "All",
     "emptyTitle": "No products found",
-    "emptyDescription": "Adjust search, category or sorting to discover more products."
+    "emptyDescription": "Adjust search, category or sorting to discover more products.",
+    "errorTitle": "Products could not be loaded",
+    "errorDescription": "Try again to recover the demo catalog."
   },
   "categoryPage": {
     "description": "Showing {{count}} products with store filters separated from admin views.",

@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
+import { STORE_BADGES } from "@/config/store";
 import type { Product } from "@/features/api/types";
 import { getPromoBadge, getStockLabel } from "@/features/catalog/product-display";
 import { formatCurrency } from "@/lib/format";
+import { applyImageFallback, DEFAULT_PRODUCT_IMAGE } from "@/lib/images";
 import { buildProductPath } from "@/lib/storefront-routes";
 
 type ProductCardProps = {
@@ -24,10 +26,11 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
       <Link to={productPath} className="product-card-image-link" aria-label={product.name}>
         <img
           className="product-card-image"
-          src={product.images[0] ?? "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80"}
+          src={product.images[0] ?? DEFAULT_PRODUCT_IMAGE}
           alt={product.name}
           loading="lazy"
           decoding="async"
+          onError={applyImageFallback}
         />
         <div className="product-card-flags">
           {promoBadge ? <span className="product-badge">{promoBadge}</span> : null}
@@ -45,7 +48,7 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
         </div>
         <p className="product-card-meta">{stock.urgency}</p>
         <div className="product-card-trust">
-          <span>{t("product.deliveryOnReceipt")}</span>
+          <span>{STORE_BADGES.COD}</span>
           <span>{t("product.satisfactionGuarantee")}</span>
         </div>
         <div className="product-card-actions">

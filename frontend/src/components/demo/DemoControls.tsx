@@ -13,7 +13,8 @@ const demoRoles: DemoRole[] = ["customer", "seller", "admin"];
 
 export function DemoControls({ className }: DemoControlsProps) {
   const { t } = useTranslation();
-  const { currentRole, isDemoMode, isSwitchingRole, restartDemoTour, switchDemoRole } = useDemoTour();
+  const { currentRole, exitDemo, isDemoMode, isInteractionLocked, isSwitchingRole, restartDemoTour, switchDemoRole } =
+    useDemoTour();
 
   if (!isDemoMode) {
     return null;
@@ -21,21 +22,36 @@ export function DemoControls({ className }: DemoControlsProps) {
 
   return (
     <div className={clsx("demo-controls", className)}>
-      <div className="demo-role-switch role-switch" data-tour="role-switch" aria-label={t("demo.roleSwitchLabel")}>
+      <div
+        className="demo-role-switch role-switch"
+        data-tour="role-switch"
+        data-demo-lock="true"
+        aria-label={t("demo.roleSwitchLabel")}
+      >
         {demoRoles.map((demoRole) => (
           <button
             key={demoRole}
             type="button"
             className={clsx("demo-role-button", currentRole === demoRole && "is-active")}
             onClick={() => void switchDemoRole(demoRole)}
-            disabled={isSwitchingRole}
+            disabled={isSwitchingRole || isInteractionLocked}
+            data-demo-lock="true"
           >
             {USER_ROLE_LABELS[demoRole]}
           </button>
         ))}
       </div>
-      <Button variant="ghost" className="demo-tour-button" onClick={restartDemoTour}>
+      <Button
+        variant="ghost"
+        className="demo-tour-button"
+        onClick={restartDemoTour}
+        disabled={isInteractionLocked}
+        data-demo-lock="true"
+      >
         {t("demo.startTour")}
+      </Button>
+      <Button variant="ghost" className="demo-exit-button" onClick={exitDemo}>
+        {t("demo.exit")}
       </Button>
     </div>
   );

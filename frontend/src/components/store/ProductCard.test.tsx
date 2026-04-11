@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { STORE_BADGES } from "@/config/store";
 import { ProductCard } from "@/components/store/ProductCard";
 import type { Product } from "@/features/api/types";
 
@@ -34,6 +35,7 @@ describe("ProductCard", () => {
     expect(screen.getByText("TechZone", { exact: false })).toBeInTheDocument();
     expect(screen.getByText("Más vendido")).toBeInTheDocument();
     expect(screen.getByText("Stock limitado")).toBeInTheDocument();
+    expect(screen.getByText(STORE_BADGES.COD)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Añadir al carrito" }));
 

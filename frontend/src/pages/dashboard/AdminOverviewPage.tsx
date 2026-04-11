@@ -39,9 +39,9 @@ export function AdminOverviewPage() {
   return (
     <div className="stack-lg">
       <div className="metrics-grid">
-        <MetricCard label={t("dashboard.adminOverview.productsLabel")} value={String(productsQuery.data?.products.length ?? 0)} description={t("dashboard.adminOverview.productsDescription")} />
-        <MetricCard label={t("dashboard.adminOverview.usersLabel")} value={String(usersQuery.data?.users.length ?? 0)} description={t("dashboard.adminOverview.usersDescription")} />
-        <MetricCard label={t("dashboard.adminOverview.ordersLabel")} value={String(ordersQuery.data?.orders.length ?? 0)} description={t("dashboard.adminOverview.ordersDescription")} />
+        <MetricCard label={t("dashboard.adminOverview.productsLabel")} value={String(productsQuery.data?.products?.length ?? 0)} description={t("dashboard.adminOverview.productsDescription")} />
+        <MetricCard label={t("dashboard.adminOverview.usersLabel")} value={String(usersQuery.data?.users?.length ?? 0)} description={t("dashboard.adminOverview.usersDescription")} />
+        <MetricCard label={t("dashboard.adminOverview.ordersLabel")} value={String(ordersQuery.data?.orders?.length ?? 0)} description={t("dashboard.adminOverview.ordersDescription")} />
         <MetricCard label={t("dashboard.adminOverview.outboxLabel")} value={String(metricsQuery.data?.email_outbox_pending ?? 0)} description={t("dashboard.adminOverview.outboxDescription")} />
       </div>
       <SurfaceCard title={t("dashboard.adminOverview.risksTitle")} description={t("dashboard.adminOverview.risksDescription")}>

@@ -33,3 +33,15 @@ export function removeStorage(key: string) {
 
   window.localStorage.removeItem(`${STORAGE_PREFIX}${key}`);
 }
+
+export function clearStoragePrefix(prefix = STORAGE_PREFIX) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const keysToRemove = Object.keys(window.localStorage).filter((key) => key.startsWith(prefix));
+
+  for (const key of keysToRemove) {
+    window.localStorage.removeItem(key);
+  }
+}

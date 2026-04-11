@@ -2,6 +2,8 @@ import { defineConfig } from "@playwright/test";
 
 const useViteFrontend = process.env.E2E_USE_VITE === "true";
 const baseURL = process.env.E2E_FRONTEND_URL ?? (useViteFrontend ? "http://localhost:5173" : "http://localhost");
+const demoModeFlag = process.env.E2E_DEMO_MODE === "true" ? "true" : "false";
+const backendPort = process.env.BACKEND_PORT ?? "5000";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -18,7 +20,7 @@ export default defineConfig({
   },
   webServer: useViteFrontend
     ? {
-        command: "npm run dev",
+        command: `VITE_DEMO_MODE=${demoModeFlag} BACKEND_PORT=${backendPort} npm run dev`,
         port: 5173,
         reuseExistingServer: true
       }

@@ -61,18 +61,31 @@ export async function readLocalSession(page: Page) {
   });
 }
 
-export async function trackFrontendErrors(page: Page) {
+type TrackFrontendErrorsOptions = {
+  ignoreConsolePatterns?: RegExp[];
+};
+
+export async function trackFrontendErrors(page: Page, options: TrackFrontendErrorsOptions = {}) {
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
+  const ignoreConsolePatterns = options.ignoreConsolePatterns ?? [];
 
   page.on("pageerror", (error) => {
     pageErrors.push(error.message);
   });
 
   page.on("console", (message) => {
-    if (message.type() === "error") {
-      consoleErrors.push(message.text());
+    if (message.type() !== "error") {
+      return;
     }
+
+    const text = message.text();
+
+    if (ignoreConsolePatterns.some((pattern) => pattern.test(text))) {
+      return;
+    }
+
+    consoleErrors.push(text);
   });
 
   return {

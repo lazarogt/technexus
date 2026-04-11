@@ -34,10 +34,10 @@ export function SellerOverviewPage() {
   return (
     <div className="stack-lg">
       <div className="metrics-grid">
-        <MetricCard label={t("dashboard.sellerOverview.productsLabel")} value={String(productsQuery.data?.products.length ?? 0)} description={t("dashboard.sellerOverview.productsDescription")} />
-        <MetricCard label={t("dashboard.sellerOverview.ordersLabel")} value={String(ordersQuery.data?.orders.length ?? 0)} description={t("dashboard.sellerOverview.ordersDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.productsLabel")} value={String(productsQuery.data?.products?.length ?? 0)} description={t("dashboard.sellerOverview.productsDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.ordersLabel")} value={String(ordersQuery.data?.orders?.length ?? 0)} description={t("dashboard.sellerOverview.ordersDescription")} />
         <MetricCard label={t("dashboard.sellerOverview.billingLabel")} value={formatCurrency(sellerSubtotal)} description={t("dashboard.sellerOverview.billingDescription")} />
-        <MetricCard label={t("dashboard.sellerOverview.alertsLabel")} value={String(alertsQuery.data?.alerts.length ?? 0)} description={t("dashboard.sellerOverview.alertsDescription")} />
+        <MetricCard label={t("dashboard.sellerOverview.alertsLabel")} value={String(alertsQuery.data?.alerts?.length ?? 0)} description={t("dashboard.sellerOverview.alertsDescription")} />
       </div>
       <SurfaceCard title={t("dashboard.sellerOverview.risksTitle")} description={t("dashboard.sellerOverview.risksDescription")}>
         <ul className="compact-list">

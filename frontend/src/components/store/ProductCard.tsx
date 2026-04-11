@@ -2,6 +2,7 @@ import { clsx } from "clsx";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
+import { STORE_BADGES } from "@/config/store";
 import { ProductRating } from "@/components/store/ProductRating";
 import { BadgePill } from "@/components/store/BadgePill";
 import { getStoreBadgeLabel, getStoreBadgeTone, type StoreBadge } from "@/components/store/storefront-data";
@@ -66,6 +67,7 @@ export function ProductCard({
         <ProductRating rating={product.averageRating} count={product.reviewCount} compact />
         <p className="store-product-price">{formatCurrency(product.price)}</p>
         <p className="store-product-seller">{sellerLabel ?? ES.product.soldBy(product.sellerName)}</p>
+        <p className="store-product-trust-badge">{STORE_BADGES.COD}</p>
         <p className="store-product-urgency">{stock.urgency}</p>
         <div className="store-product-actions">
           <Button

@@ -21,7 +21,7 @@ export function AccountOverviewPage() {
   return (
     <div className="stack-lg">
       <div className="metrics-grid">
-        <MetricCard label={t("dashboard.accountOverview.ordersLabel")} value={String(ordersQuery.data?.orders.length ?? 0)} description={t("dashboard.accountOverview.ordersDescription")} />
+        <MetricCard label={t("dashboard.accountOverview.ordersLabel")} value={String(ordersQuery.data?.orders?.length ?? 0)} description={t("dashboard.accountOverview.ordersDescription")} />
         <MetricCard label={t("dashboard.accountOverview.spentLabel")} value={formatCurrency(totalSpent)} description={t("dashboard.accountOverview.spentDescription")} />
         <MetricCard label={t("dashboard.accountOverview.activeStatusLabel")} value={String((ordersQuery.data?.orders ?? []).filter((order) => order.status !== "delivered").length)} description={t("dashboard.accountOverview.activeStatusDescription")} />
       </div>

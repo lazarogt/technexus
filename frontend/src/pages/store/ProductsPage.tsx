@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { startTransition, useDeferredValue, useEffect, useMemo } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { PageSeo } from "@/components/seo/PageSeo";
+import { Button } from "@/components/shared/Button";
 import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeader } from "@/components/store/SectionHeader";
 import { buildStorefrontCollections, getProductBadges } from "@/components/store/storefront-data";
@@ -47,6 +48,7 @@ export function ProductsPage() {
   const { t } = useTranslation();
   const { addItem } = useCart();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const deferredSearch = useDeferredValue(searchParams.get("search") ?? "");
   const page = Number(searchParams.get("page") ?? 1);
   const sort = searchParams.get("sort") ?? "latest";
@@ -97,14 +99,26 @@ export function ProductsPage() {
   const productsQuery = useQuery({
     queryKey: ["products", page, deferredSearch, sort, categoryId ?? "pending"],
     enabled: categoryId !== null,
-    queryFn: () =>
-      listProducts({
-        page,
-        limit: 12,
-        search: deferredSearch,
-        sort,
-        categoryId: categoryId || undefined
-      })
+    retry: false,
+    queryFn: async () => {
+      try {
+        setStatus("loading");
+
+        const response = await listProducts({
+          page,
+          limit: 12,
+          search: deferredSearch,
+          sort,
+          categoryId: categoryId || undefined
+        });
+
+        setStatus("success");
+        return response;
+      } catch (error) {
+        setStatus("error");
+        throw error;
+      }
+    }
   });
 
   const products = useMemo(() => productsQuery.data?.products ?? [], [productsQuery.data?.products]);
@@ -190,7 +204,15 @@ export function ProductsPage() {
         ))}
       </div>
 
-      {productsQuery.isLoading ? (
+      {status === "error" ? (
+        <div className="empty-state products-error-state">
+          <h3>{t("productsPage.errorTitle")}</h3>
+          <p>{t("productsPage.errorDescription")}</p>
+          <Button variant="secondary" onClick={() => void productsQuery.refetch()}>
+            {t("buttons.retry")}
+          </Button>
+        </div>
+      ) : productsQuery.isLoading || status === "loading" ? (
         <ProductRailSkeleton count={8} />
       ) : products.length ? (
         <>

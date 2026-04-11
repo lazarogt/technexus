@@ -24,7 +24,7 @@ export function Topbar({ title, subtitle }: TopbarProps) {
           <Bell size={16} />
           <span>{user?.email}</span>
         </div>
-        <button type="button" className="header-link header-link-button" onClick={logout}>
+        <button type="button" className="header-link header-link-button" data-demo-lock="true" onClick={logout}>
           <LogOut size={16} />
           {t("dashboard.topbar.logout")}
         </button>

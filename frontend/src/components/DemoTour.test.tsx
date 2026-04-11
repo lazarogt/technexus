@@ -62,6 +62,17 @@ describe("DemoTour", () => {
     joyrideProps = null;
     window.localStorage.clear();
     mockCreateDemoSession.mockReset();
+    mockCreateDemoSession.mockResolvedValue({
+      token: "customer-token",
+      user: {
+        id: "customer-1",
+        name: "Demo Customer",
+        email: "customer.one@technexus.local",
+        role: "customer",
+        isBlocked: false,
+        createdAt: "2026-04-01T00:00:00.000Z"
+      }
+    });
     mockUseAuth.mockReset();
     vi.resetModules();
   });
@@ -148,7 +159,7 @@ describe("DemoTour", () => {
 
   it("falls back to a centered step when a dashboard target is missing", async () => {
     vi.stubEnv("VITE_DEMO_MODE", "true");
-    window.localStorage.setItem("technexus:demoTourStep", JSON.stringify(6));
+    window.localStorage.setItem("technexus:demoTourStep", JSON.stringify(5));
 
     mockUseAuth.mockReturnValue({
       applySession: vi.fn(),
@@ -167,7 +178,7 @@ describe("DemoTour", () => {
 
     await waitFor(() => {
       const steps = joyrideProps?.steps as Array<{ target: string }>;
-      expect(steps[6]?.target).toBe("body");
+      expect(steps[5]?.target).toBe("body");
     }, { timeout: 4_000 });
   });
 
