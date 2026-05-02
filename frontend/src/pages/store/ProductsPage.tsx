@@ -13,6 +13,8 @@ import { Pagination } from "@/components/shared/Pagination";
 import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import type { Category } from "@/features/api/types";
+import { DEMO_MODE } from "@/demo/demo-env";
+import { DEMO_PRODUCTS } from "@/demo/demo-marketplace";
 import { useCart } from "@/features/cart/cart-context";
 import { ES } from "@/i18n/es";
 
@@ -121,7 +123,14 @@ export function ProductsPage() {
     }
   });
 
-  const products = useMemo(() => productsQuery.data?.products ?? [], [productsQuery.data?.products]);
+  const fallbackProducts = useMemo(() => DEMO_PRODUCTS.slice(0, 12), []);
+  const products = useMemo(() => {
+    if (status === "error" && DEMO_MODE) {
+      return fallbackProducts;
+    }
+
+    return productsQuery.data?.products ?? [];
+  }, [fallbackProducts, productsQuery.data?.products, status]);
   const pagination = productsQuery.data?.pagination;
   const collections = useMemo(() => buildStorefrontCollections(products), [products]);
 
@@ -204,7 +213,7 @@ export function ProductsPage() {
         ))}
       </div>
 
-      {status === "error" ? (
+      {status === "error" && !DEMO_MODE ? (
         <div className="empty-state products-error-state">
           <h3>{t("productsPage.errorTitle")}</h3>
           <p>{t("productsPage.errorDescription")}</p>
@@ -216,6 +225,15 @@ export function ProductsPage() {
         <ProductRailSkeleton count={8} />
       ) : products.length ? (
         <>
+          {status === "error" && DEMO_MODE ? (
+            <div className="empty-state products-error-state">
+              <h3>{t("productsPage.errorTitle")}</h3>
+              <p>{t("productsPage.errorDescription")}</p>
+              <Button variant="secondary" onClick={() => void productsQuery.refetch()}>
+                {t("buttons.retry")}
+              </Button>
+            </div>
+          ) : null}
           <div className="store-product-grid">
             {products.map((product) => (
               <ProductCard
@@ -226,7 +244,7 @@ export function ProductsPage() {
               />
             ))}
           </div>
-          {pagination ? (
+          {pagination && status !== "error" ? (
             <Pagination
               pagination={pagination}
               onChange={(nextPage) => {

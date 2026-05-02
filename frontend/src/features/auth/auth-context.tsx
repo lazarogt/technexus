@@ -1,7 +1,8 @@
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
-import { getProfile, createGuestSession, login as loginRequest, register as registerRequest } from "@/features/api/auth-api";
+import { getProfile, createDemoSession, createGuestSession, login as loginRequest, register as registerRequest } from "@/features/api/auth-api";
 import type { AuthResponse, GuestResponse, PublicUser, UserRole } from "@/features/api/types";
 import { identify } from "@/features/analytics/analytics";
+import { DEMO_MODE } from "@/demo/demo-env";
 import { removeStorage, readStorage, writeStorage } from "@/lib/storage";
 
 type UserSession = {
@@ -77,6 +78,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const current = readStorage<SessionState>(SESSION_KEY);
 
       if (!current) {
+        if (DEMO_MODE) {
+          try {
+            const demoSession = await createDemoSession({ role: "customer" });
+
+            if (!cancelled) {
+              setSession(persistUserSession(demoSession));
+              setIsBootstrapping(false);
+            }
+            return;
+          } catch {
+            // Fall through to unauthenticated state in demo mode when the API is unavailable.
+          }
+        }
+
         if (!cancelled) {
           setSession(null);
           setIsBootstrapping(false);

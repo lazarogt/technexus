@@ -204,3 +204,12 @@ GitHub Actions CI lives in `.github/workflows/ci.yml`.
 - SEO metadata is client-rendered with `react-helmet-async`; the storefront remains an SPA, not an SSR build.
 - `npm run build` generates `public/robots.txt` and `public/sitemap.xml` before Vite writes the final `dist/` bundle.
 - If Docker-owned files in `backend/uploads` cause host permission issues during smoke runs, use `UPLOADS_DIR=/tmp/technexus-uploads`.
+
+## Demo marketplace resilience
+
+When `VITE_DEMO_MODE=true`, the storefront now behaves like a realistic always-on marketplace:
+
+- automatically signs in the seeded `customer` demo identity on first load if no session exists
+- keeps guided role-switching flows intact using seeded backend demo users
+- shows a fallback demo catalog in `/products` when the products API fails, so add-to-cart and checkout demos remain usable
+- includes predefined demo entities (`products`, `sellers`, `orders`) under `src/demo/demo-marketplace.ts` for deterministic walkthroughs
