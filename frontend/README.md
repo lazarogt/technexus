@@ -213,3 +213,13 @@ When `VITE_DEMO_MODE=true`, the storefront now behaves like a realistic always-o
 - keeps guided role-switching flows intact using seeded backend demo users
 - shows a fallback demo catalog in `/products` when the products API fails, so add-to-cart and checkout demos remain usable
 - includes predefined demo entities (`products`, `sellers`, `orders`) under `src/demo/demo-marketplace.ts` for deterministic walkthroughs
+
+## Storefront browsing UX (dense marketplace mode)
+
+The `/products` experience is optimized for high-density browsing and conversion:
+
+- denser product grid with responsive columns (mobile 2+, tablet 3-4, desktop 5+ where space allows)
+- prominent search surface with instant focus feedback and suggestion datalist
+- instant category filtering via client-side URL state updates (no full-page reload feel)
+- product-shaped skeleton cards while catalog data is loading
+- quick actions on cards (`Add to cart` + `View details`) with subtle hover transitions
