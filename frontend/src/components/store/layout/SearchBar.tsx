@@ -11,6 +11,7 @@ type SearchBarProps = {
   className?: string;
   compact?: boolean;
   onSubmit?: (value: string) => void;
+  suggestions?: string[];
 };
 
 export function SearchBar({
@@ -18,11 +19,13 @@ export function SearchBar({
   placeholder,
   className,
   compact = false,
-  onSubmit
+  onSubmit,
+  suggestions = []
 }: SearchBarProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [value, setValue] = useState(initialValue);
+  const [focused, setFocused] = useState(false);
 
   useEffect(() => {
     setValue(initialValue);
@@ -49,7 +52,7 @@ export function SearchBar({
       data-demo-lock="true"
       onSubmit={handleSubmit}
     >
-      <label className="store-search-input-shell">
+      <label className={clsx("store-search-input-shell", focused && "is-focused")}> 
         <Search size={18} />
         <input
           aria-label={t("search.ariaLabel")}
@@ -57,12 +60,22 @@ export function SearchBar({
           data-demo-lock="true"
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setTimeout(() => setFocused(false), 120)}
           placeholder={placeholder ?? t("search.placeholder")}
+          list={suggestions.length ? "store-search-suggestions" : undefined}
         />
       </label>
       <button type="submit" data-demo-lock="true">
         {t("buttons.search")}
       </button>
+      {suggestions.length ? (
+        <datalist id="store-search-suggestions">
+          {suggestions.map((suggestion) => (
+            <option value={suggestion} key={suggestion} />
+          ))}
+        </datalist>
+      ) : null}
     </form>
   );
 }

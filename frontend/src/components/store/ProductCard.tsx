@@ -1,4 +1,5 @@
 import { clsx } from "clsx";
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/shared/Button";
@@ -21,7 +22,7 @@ type ProductCardProps = {
   priorityImage?: boolean;
 };
 
-export function ProductCard({
+function ProductCardView({
   product,
   onAddToCart,
   badges = [],
@@ -80,8 +81,13 @@ export function ProductCard({
           >
             {t("buttons.addToCart")}
           </Button>
+          <Link to={productPath} className="store-product-secondary-action">
+            {t("buttons.viewDetails")}
+          </Link>
         </div>
       </div>
     </article>
   );
 }
+
+export const ProductCard = memo(ProductCardView);

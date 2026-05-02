@@ -10,7 +10,7 @@ import { buildStorefrontCollections, getProductBadges } from "@/components/store
 import { SearchBar } from "@/components/store/layout/SearchBar";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Pagination } from "@/components/shared/Pagination";
-import { ProductRailSkeleton } from "@/components/shared/ProductRailSkeleton";
+import { StoreSkeletonCard } from "@/components/store/StoreSkeletonCard";
 import { listCategories, listProducts } from "@/features/api/catalog-api";
 import type { Category } from "@/features/api/types";
 import { DEMO_MODE } from "@/demo/demo-env";
@@ -133,6 +133,10 @@ export function ProductsPage() {
   }, [fallbackProducts, productsQuery.data?.products, status]);
   const pagination = productsQuery.data?.pagination;
   const collections = useMemo(() => buildStorefrontCollections(products), [products]);
+  const searchSuggestions = useMemo(
+    () => categories.slice(0, 5).map((category) => category.name),
+    [categories]
+  );
 
   return (
     <div className="store-page stack-lg">
@@ -149,10 +153,10 @@ export function ProductsPage() {
 
       <div className="catalog-toolbar">
         <SearchBar
-          compact
           className="catalog-search-surface"
           initialValue={searchParams.get("search") ?? ""}
           placeholder={ES.search.catalogPlaceholder}
+          suggestions={searchSuggestions}
           onSubmit={(value) => {
             startTransition(() => {
               const next = new URLSearchParams(searchParams);
@@ -183,36 +187,38 @@ export function ProductsPage() {
         </select>
       </div>
 
-      <div className="chip-row">
-        <button
-          type="button"
-          className={categoryId ? "chip" : "chip is-active"}
-          onClick={() => {
-            const next = new URLSearchParams(searchParams);
-            next.delete("categoryId");
-            next.set("page", "1");
-            setSearchParams(next);
-          }}
-        >
-          {t("productsPage.allCategories")}
-        </button>
-        {categories.map((category) => (
+      <div className="catalog-content-layout">
+        <aside className="catalog-category-sidebar" aria-label={t("productsPage.allCategories")}>
           <button
-            key={category.id}
             type="button"
-            className={categoryId === category.id ? "chip is-active" : "chip"}
+            className={categoryId ? "chip" : "chip is-active"}
             onClick={() => {
               const next = new URLSearchParams(searchParams);
-              next.set("categoryId", category.id);
+              next.delete("categoryId");
               next.set("page", "1");
               setSearchParams(next);
             }}
           >
-            {category.name}
+            {t("productsPage.allCategories")}
           </button>
-        ))}
-      </div>
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              type="button"
+              className={categoryId === category.id ? "chip is-active" : "chip"}
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.set("categoryId", category.id);
+                next.set("page", "1");
+                setSearchParams(next);
+              }}
+            >
+              {category.name}
+            </button>
+          ))}
+        </aside>
 
+      <section>
       {status === "error" && !DEMO_MODE ? (
         <div className="empty-state products-error-state">
           <h3>{t("productsPage.errorTitle")}</h3>
@@ -222,7 +228,11 @@ export function ProductsPage() {
           </Button>
         </div>
       ) : productsQuery.isLoading || status === "loading" ? (
-        <ProductRailSkeleton count={8} />
+        <div className="store-product-grid">
+          {Array.from({ length: 12 }, (_, index) => (
+            <StoreSkeletonCard key={`skeleton-${index}`} />
+          ))}
+        </div>
       ) : products.length ? (
         <>
           {status === "error" && DEMO_MODE ? (
@@ -258,6 +268,8 @@ export function ProductsPage() {
       ) : (
         <EmptyState title={t("productsPage.emptyTitle")} description={t("productsPage.emptyDescription")} />
       )}
+      </section>
+      </div>
     </div>
   );
 }
