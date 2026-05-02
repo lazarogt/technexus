@@ -40,7 +40,7 @@ Standalone React + TypeScript + Vite frontend for TechNexus. It consumes the exi
 
 ## Docker runtime
 
-The default local stack is production-like and Docker-first:
+The default local demo stack is Docker-first:
 
 ```bash
 docker compose up -d --build
@@ -54,16 +54,16 @@ You can automate the full local bootstrap, port-conflict handling, validation, P
 
 Runtime endpoints:
 
-- frontend: `http://localhost:3000`
-- backend: `http://localhost:5000`
+- frontend: `http://localhost:5173`
+- backend: `http://localhost:5000` for local health/debug only
 
-The frontend is served through nginx and proxies both `/api/*` and `/uploads/*` to the backend container on port `5000`, so the existing route contracts stay unchanged.
+The frontend runs on the Vite dev server and proxies both `/api/*` and `/uploads/*` to the backend container on port `5000`, so the existing route contracts stay unchanged.
 
 The compose stack uses service-local Dockerfiles at `backend/Dockerfile` and `frontend/Dockerfile`, `postgres:16-alpine`, `redis:7-alpine`, and a named `postgres_data` volume for persistence.
 
 The backend applies Prisma migrations, bootstraps the seeded users when missing, and runs `npm run db:demo` only when the catalog is empty, so restarts stay stable while fresh volumes still come up with demo data. PostgreSQL is internal-only in Docker; validation goes through `docker compose exec postgres ...` rather than a host-published database port.
 
-The public demo endpoints stay fixed at `http://localhost:3000` and `http://localhost:5000`.
+The client-facing demo URL stays on `http://localhost:5173`. Keep backend access on `:5000` local-only for health checks, scripts, and debugging.
 
 ## Local development
 
@@ -80,7 +80,7 @@ npm install
 npm run dev
 ```
 
-Vite proxies both `/api` and `/uploads` to the backend, so the frontend can use backend-relative paths without rewriting contracts.
+Vite proxies both `/api` and `/uploads` to the backend, so the frontend can use backend-relative paths without rewriting contracts. Use `http://localhost:5173/?demo=true` to force the guided demo tour from the beginning.
 
 SEO-specific env values:
 
@@ -89,7 +89,7 @@ SEO-specific env values:
   - set it explicitly for CI and production builds
 - `VITE_SITEMAP_API_URL`
   - backend origin used by the prebuild sitemap generator
-  - defaults to `VITE_API_URL` when present, otherwise `http://localhost:4000` for local Vite-backed builds
+  - defaults to `http://localhost:5000` for local builds
 - `SEO_ASSETS_ALLOW_FALLBACK`
   - optional local Docker build escape hatch for sitemap generation when the catalog API is not reachable during image build
   - keep this disabled in CI/production so full sitemap generation still fails loudly when misconfigured
@@ -134,7 +134,7 @@ Tracked events:
 
 The Playwright suite lives in `e2e/` and runs against the real frontend plus real backend APIs. It does not mock `/api/*`.
 
-- Default local mode targets the dockerized nginx frontend on `http://localhost:3000`
+- Default local mode targets the dockerized Vite frontend on `http://localhost:5173`
 - `e2e/global-setup.ts` brings up `postgres`, `redis`, `backend`, and `frontend`, resets PostgreSQL through the backend container, reseeds the database, provisions E2E users/catalog data, and waits for both backend and frontend readiness
 - Vite mode remains available for CI or fast local runs with `E2E_USE_VITE=true`
 - Vite mode still uses the Dockerized backend and database services
@@ -147,13 +147,13 @@ cd frontend
 npm run test:e2e
 ```
 
-For the full automated local validation against Docker + nginx, use:
+For the full automated local validation against Docker + Vite, use:
 
 ```bash
 ./scripts/dev/start-local.sh
 ```
 
-Use the old Vite target explicitly with:
+Use a host-run Vite server explicitly with:
 
 ```bash
 cd frontend
@@ -184,7 +184,7 @@ GitHub Actions CI lives in `.github/workflows/ci.yml`.
 - Builds backend and frontend
 - Runs backend unit tests, smoke tests, and Playwright E2E
 - Starts the backend before Playwright and expects the configured local backend port to be reachable
-- Runs Playwright in external-services mode with `E2E_USE_VITE=true`, so CI keeps its current managed-backend path while local default stays nginx on `:80`
+- Runs Playwright in external-services mode with `E2E_USE_VITE=true`, so CI keeps its current managed-backend path while local default uses the dockerized frontend on `:5173`
 
 ## Architecture
 

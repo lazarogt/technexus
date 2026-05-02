@@ -41,3 +41,4 @@ data/postgres/
 
 .git/objects
 .codex
+.tenets.yaml

@@ -33,7 +33,7 @@ export function ProductCard({
   const productPath = buildProductPath(product);
 
   return (
-    <article className="store-product-card product-card" data-testid={`store-product-card-${product.id}`} data-tour="product-card">
+    <article className="store-product-card product-card" data-testid="product-card" data-tour="product-card">
       <Link to={productPath} className="store-product-overlay" aria-label={t("product.viewAria", { productName: product.name })} />
       <Link to={productPath} className="store-product-media-link" aria-label={product.name}>
         <div className="store-product-media">
@@ -71,7 +71,8 @@ export function ProductCard({
         <p className="store-product-urgency">{stock.urgency}</p>
         <div className="store-product-actions">
           <Button
-            data-testid={`add-to-cart-${product.id}`}
+            data-testid="add-to-cart"
+            data-tour="add-to-cart"
             className="store-product-cta"
             onClick={() => onAddToCart?.(product.id)}
             disabled={product.stock <= 0}

@@ -21,7 +21,7 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
   const productPath = buildProductPath(product);
 
   return (
-    <article className="product-card" data-testid={`product-card-${product.id}`}>
+    <article className="product-card" data-testid="product-card">
       <Link to={productPath} className="product-card-overlay-link" aria-label={t("product.viewAria", { productName: product.name })} />
       <Link to={productPath} className="product-card-image-link" aria-label={product.name}>
         <img
@@ -53,7 +53,8 @@ export function ProductCard({ product, onAddToCart, badge }: ProductCardProps) {
         </div>
         <div className="product-card-actions">
           <Button
-            data-testid={`add-to-cart-${product.id}`}
+            data-testid="add-to-cart"
+            data-tour="add-to-cart"
             className="product-card-cta"
             onClick={() => onAddToCart?.(product.id)}
             disabled={product.stock <= 0}

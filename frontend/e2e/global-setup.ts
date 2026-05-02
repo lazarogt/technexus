@@ -13,6 +13,8 @@ const useViteFrontend = process.env.E2E_USE_VITE === "true";
 const composeArgs = ["compose", "--env-file", ".env.docker"];
 
 process.env.DEMO_MODE = process.env.E2E_DEMO_MODE === "true" ? "true" : process.env.DEMO_MODE ?? "false";
+process.env.RATE_LIMIT_MAX_REQUESTS ??= "1000";
+process.env.AUTH_RATE_LIMIT_MAX_REQUESTS ??= "100";
 
 function runCommand(command: string, args: string[], cwd: string, timeout?: number) {
   execFileSync(command, args, {

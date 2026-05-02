@@ -31,7 +31,7 @@ test.describe("Storefront Flow", () => {
     const productCard = page.locator(".product-card", { has: page.getByText(TEST_PRODUCTS.storefront, { exact: true }) }).first();
     await expect(productCard).toBeVisible({ timeout: 15000 });
     await expect(productCard.getByText("Pago contra entrega", { exact: true })).toBeVisible();
-    await expect(productCard.locator(".product-stock-pill")).toContainText(/En stock|Pocas unidades|Sin stock/);
+    await expect(productCard.locator(".store-stock-chip, .product-stock-pill")).toContainText(/En stock|Pocas unidades|Sin stock/);
 
     const initialTransform = await productCard.evaluate((element) => window.getComputedStyle(element).transform);
     await productCard.hover();
@@ -43,7 +43,7 @@ test.describe("Storefront Flow", () => {
     await expect(page.getByTestId("buybox")).toBeVisible();
     await expect(page.getByTestId("product-stock-highlight")).toContainText(/En stock|Pocas unidades|Sin stock/);
     await expect(page.getByTestId("buybox")).toContainText("Compra segura");
-    await expect(page.getByTestId("buybox")).toContainText("Pago contra entrega");
+    await expect(page.getByTestId("buybox")).toContainText(/pago contra entrega/i);
 
     await page.getByTestId("buybox-add-to-cart").click();
     const miniCartPanel = page.getByTestId("mini-cart-panel");
@@ -60,8 +60,8 @@ test.describe("Storefront Flow", () => {
       await page.getByTestId("cart-trigger").click();
     }
     await expect(miniCartPanel).toBeVisible();
-    await expect(miniCartPanel).toContainText("Checkout rapido");
-    await expect(miniCartPanel).toContainText(/pago contra entrega/i);
+    await expect(miniCartPanel).toContainText(/Compra rápida|Fast purchase/);
+    await expect(miniCartPanel).toContainText(/confirmación de entrega|delivery confirmation/i);
   });
 
   test("filters storefront categories by category ID and clears back to all products", async ({ page }) => {
@@ -97,9 +97,9 @@ test.describe("Storefront Flow", () => {
     await productCard.getByText(TEST_PRODUCTS.storefront, { exact: true }).click();
 
     await expect(page.getByTestId("mobile-buybar")).toBeVisible();
-    await expect(page.getByTestId("mobile-buybar")).toContainText("Agregar al carrito");
+    await expect(page.getByTestId("mobile-buybar")).toContainText(/Añadir al carrito|Add to cart/);
     const currentCartCount = Number.parseInt((await page.getByTestId("cart-count").textContent()) ?? "0", 10);
-    await page.getByTestId("mobile-buybar").getByRole("button", { name: "Agregar al carrito" }).click();
+    await page.getByTestId("mobile-buybar").getByRole("button", { name: /Añadir al carrito|Add to cart/i }).click();
     await expect(page.getByTestId("cart-count")).toHaveText(String(currentCartCount + 1));
 
     const miniCartSheet = page.getByTestId("mini-cart-sheet");
@@ -107,6 +107,6 @@ test.describe("Storefront Flow", () => {
       await page.getByTestId("cart-trigger").click();
     }
     await expect(miniCartSheet).toBeVisible();
-    await expect(miniCartSheet).toContainText("Checkout rapido");
+    await expect(miniCartSheet).toContainText(/Entrega segura|Secure delivery/);
   });
 });

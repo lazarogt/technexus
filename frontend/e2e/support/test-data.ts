@@ -1,10 +1,7 @@
-const useViteFrontend = process.env.E2E_USE_VITE === "true";
-
-export const FRONTEND_URL =
-  process.env.E2E_FRONTEND_URL ?? (useViteFrontend ? "http://localhost:5173" : "http://localhost:3000");
+export const FRONTEND_URL = process.env.E2E_FRONTEND_URL ?? "http://localhost:5173";
 export const API_URL = process.env.E2E_API_URL ?? "http://localhost:5000/api";
 export const HEALTH_URL = process.env.E2E_HEALTH_URL ?? "http://localhost:5000/health";
-export const FRONTEND_HEALTH_URL = process.env.E2E_FRONTEND_HEALTH_URL ?? `${FRONTEND_URL}/healthz`;
+export const FRONTEND_HEALTH_URL = process.env.E2E_FRONTEND_HEALTH_URL ?? FRONTEND_URL;
 
 export const TEST_USERS = {
   admin: {

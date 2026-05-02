@@ -7,12 +7,8 @@ const projectRoot = path.resolve(__dirname, "..");
 const publicDir = path.join(projectRoot, "public");
 
 const siteUrlEnv = process.env.VITE_SITE_URL?.trim();
-const siteUrl = (siteUrlEnv || "http://localhost:3000").replace(/\/$/, "");
-const apiBaseUrl = (
-  process.env.VITE_SITEMAP_API_URL?.trim() ||
-  process.env.VITE_API_URL?.trim() ||
-  "http://localhost:4000"
-).replace(/\/$/, "");
+const siteUrl = (siteUrlEnv || "http://localhost:5173").replace(/\/$/, "");
+const apiBaseUrl = (process.env.VITE_SITEMAP_API_URL?.trim() || "http://localhost:5000").replace(/\/$/, "");
 const allowFallbackSitemap = process.env.SEO_ASSETS_ALLOW_FALLBACK === "true";
 
 if (process.env.CI === "true" && !siteUrlEnv) {

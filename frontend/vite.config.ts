@@ -4,9 +4,14 @@ import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
-  const backendPort = env.BACKEND_PORT ?? "4000";
+  const backendPort = env.BACKEND_PORT ?? "5000";
   const frontendPort = Number(env.FRONTEND_PORT ?? 5173);
-  const apiTarget = env.VITE_API_TARGET ?? `http://127.0.0.1:${backendPort}`;
+  const apiTarget = env.VITE_API_TARGET?.trim() || `http://localhost:${backendPort}`;
+  const proxyOptions = {
+    target: apiTarget,
+    changeOrigin: true,
+    secure: false
+  };
 
   return {
     plugins: [react()],
@@ -16,13 +21,15 @@ export default defineConfig(({ mode }) => {
       }
     },
     server: {
+      host: "0.0.0.0",
       port: frontendPort,
       proxy: {
-        "/api": apiTarget,
-        "/uploads": apiTarget
+        "/api": proxyOptions,
+        "/uploads": proxyOptions
       }
     },
     preview: {
+      host: "0.0.0.0",
       port: frontendPort
     },
     test: {

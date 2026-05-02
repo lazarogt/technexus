@@ -107,6 +107,34 @@ describe("DemoTour", () => {
     });
   });
 
+  it("forces the guided demo from the start when /?demo=true is present", async () => {
+    vi.stubEnv("VITE_DEMO_MODE", "true");
+    window.localStorage.setItem("technexus:demoTourSeen", JSON.stringify(true));
+    window.localStorage.setItem("technexus:demoTourStep", JSON.stringify(5));
+
+    mockUseAuth.mockReturnValue({
+      applySession: vi.fn(),
+      role: null
+    });
+
+    const { DemoTourProvider, DemoTour } = await importDemoModules();
+
+    render(
+      <MemoryRouter initialEntries={["/?demo=true"]}>
+        <DemoTourProvider>
+          <div className="navbar" />
+          <DemoTour />
+        </DemoTourProvider>
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("joyride-probe")).toBeInTheDocument();
+      expect(joyrideProps?.run).toBe(true);
+      expect(joyrideProps?.stepIndex).toBe(0);
+    });
+  });
+
   it("does not render when demo mode is disabled", async () => {
     vi.stubEnv("VITE_DEMO_MODE", "false");
     mockUseAuth.mockReturnValue({

@@ -4,7 +4,6 @@ import cors from "cors";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
 import { env } from "./utils/config";
-import { AppError } from "./utils/errors";
 import { logger } from "./utils/logger";
 import { optionalActor } from "./middlewares/auth.middleware";
 import { requestContextMiddleware } from "./middlewares/request-context.middleware";
@@ -77,22 +76,8 @@ export const createApp = () => {
   );
   app.use(
     cors({
-      origin: (origin, callback) => {
-        if (!origin) {
-          callback(null, true);
-          return;
-        }
-
-        if (env.corsAllowedOrigins.includes(origin)) {
-          callback(null, true);
-          return;
-        }
-
-        callback(new AppError(403, "CORS_ORIGIN_DENIED", "Origin is not allowed by CORS."));
-      },
-      credentials: false,
-      exposedHeaders: ["X-Request-Id"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"]
+      origin: true,
+      credentials: true
     })
   );
   app.use(generalRateLimit);

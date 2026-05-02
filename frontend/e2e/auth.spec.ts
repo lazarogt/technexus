@@ -8,7 +8,7 @@ test.describe("Auth Flow", () => {
     await loginViaUi(page, TEST_USERS.admin.email, TEST_USERS.admin.password);
 
     await expect(page).toHaveURL(/\/admin$/);
-    await expect(page.getByRole("heading", { name: "Admin control center" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Centro de administración|Admin center/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /Operaciones/ })).toBeVisible();
   });
 
@@ -16,7 +16,7 @@ test.describe("Auth Flow", () => {
     await loginViaUi(page, TEST_USERS.sellerOne.email, TEST_USERS.sellerOne.password);
 
     await expect(page).toHaveURL(/\/seller$/);
-    await expect(page.getByRole("heading", { name: "Seller workspace" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Centro de vendedores|Seller center/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /Inventario/ })).toBeVisible();
   });
 

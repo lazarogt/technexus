@@ -94,10 +94,11 @@ export function DemoTourProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { applySession, role } = useAuth();
   const steps = useMemo(() => getDemoTourSteps(t), [t]);
-  const initialRun = DEMO_MODE && readStorage<boolean>(DEMO_TOUR_SEEN_KEY) !== true;
+  const forceDemoEntry = DEMO_MODE && new URLSearchParams(location.search).get("demo") === "true";
+  const initialRun = DEMO_MODE && (forceDemoEntry || readStorage<boolean>(DEMO_TOUR_SEEN_KEY) !== true);
   const [run, setRun] = useState(initialRun);
-  const [stepIndex, setStepIndex] = useState<number>(() => (DEMO_MODE ? getStoredStepIndex() : 0));
-  const [currentPhase, setCurrentPhase] = useState<DemoStep>(() => steps[getStoredStepIndex()]?.phase ?? "DONE");
+  const [stepIndex, setStepIndex] = useState<number>(() => (DEMO_MODE ? (forceDemoEntry ? 0 : getStoredStepIndex()) : 0));
+  const [currentPhase, setCurrentPhase] = useState<DemoStep>(() => steps[forceDemoEntry ? 0 : getStoredStepIndex()]?.phase ?? "DONE");
   const [isPreparing, setIsPreparing] = useState(false);
   const [isSwitchingRole, setIsSwitchingRole] = useState(false);
   const [stepOverride, setStepOverride] = useState<Step | null>(null);
@@ -233,9 +234,15 @@ export function DemoTourProvider({ children }: { children: ReactNode }) {
     initializedRef.current = true;
 
     if (initialRun) {
-      void prepareStep(getStoredStepIndex());
+      if (forceDemoEntry) {
+        removeStorage(DEMO_TOUR_SEEN_KEY);
+        removeStorage(DEMO_TOUR_STEP_KEY);
+        writeStorage(DEMO_TOUR_ROLE_KEY, "customer");
+      }
+
+      void prepareStep(forceDemoEntry ? 0 : getStoredStepIndex());
     }
-  }, [initialRun, prepareStep]);
+  }, [forceDemoEntry, initialRun, prepareStep]);
 
   const startDemoTour = useCallback(() => {
     if (!DEMO_MODE) {

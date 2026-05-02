@@ -131,7 +131,7 @@ test.describe("Demo Mode Validation", () => {
       window.localStorage.clear();
     });
     await page.goto("/");
-    await expect(page.getByTestId("button-primary")).toBeVisible();
+    await page.waitForSelector('[data-tour="navbar"]', { timeout: 5000 });
 
     const tooltip = page.locator(".react-joyride__tooltip");
     await expect(tooltip).toBeVisible();

@@ -4,7 +4,7 @@ export async function loginViaUi(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Correo").fill(email);
   await page.getByLabel("Contraseña").fill(password);
-  await page.getByRole("button", { name: "Ingresar" }).click();
+  await page.getByRole("button", { name: /Ingresar|Iniciar sesión|Sign in/i }).click();
   await page.waitForFunction(() => window.localStorage.getItem("technexus:session") !== null);
   await page.waitForURL((url) => !url.pathname.endsWith("/login"));
 }

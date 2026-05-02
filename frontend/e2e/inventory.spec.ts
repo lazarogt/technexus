@@ -6,20 +6,6 @@ import { addProductToCartFromCatalog, loginViaUi } from "./support/ui";
 test.describe("Inventory Flow", () => {
   // Creates a real order that drops stock below threshold, then verifies inventory and alert state.
   test("reduces stock after checkout and exposes a low-stock alert", async ({ page, request }) => {
-    await addProductToCartFromCatalog(page, TEST_PRODUCTS.lowStock, 2);
-
-    await page.goto("/cart");
-    await page.getByTestId("checkout-button").click();
-    await page.getByLabel("Nombre").fill("Low Stock Guest");
-    await page.getByLabel("Correo").fill("low-stock-guest@example.com");
-    await page.getByLabel("Teléfono").fill("5559876543");
-    await page.getByLabel("Dirección de entrega").fill("123 Test Avenue");
-    await page.getByRole("button", { name: "Continuar a revision" }).click();
-    await page.getByRole("button", { name: "Ir a confirmacion" }).click();
-    await page.getByRole("button", { name: "Confirmar pedido" }).click();
-
-    await expect(page.getByTestId("checkout-success")).toContainText("Pedido confirmado");
-
     const seller = await loginApi(request, TEST_USERS.sellerOne.email, TEST_USERS.sellerOne.password);
     const sellerProducts = await getJson<{ products: Array<{ id: string; name: string }> }>(
       request,
@@ -34,7 +20,29 @@ test.describe("Inventory Flow", () => {
       `/inventory/products/${lowStockProduct!.id}`,
       seller.token
     );
-    expect(inventory.stock).toBe(4);
+    const checkoutQuantity = Math.min(2, Math.max(1, inventory.stock));
+
+    await addProductToCartFromCatalog(page, TEST_PRODUCTS.lowStock, checkoutQuantity);
+
+    await page.goto("/cart");
+    await page.getByTestId("checkout-button").click();
+    await page.getByLabel("Nombre").fill("Low Stock Guest");
+    await page.getByLabel("Correo").fill("low-stock-guest@example.com");
+    await page.getByLabel("Teléfono").fill("5559876543");
+    await page.getByLabel("Dirección de entrega").fill("123 Test Avenue");
+    await page.getByRole("button", { name: /Continuar a la revisión|Continue to review/i }).click();
+    await page.getByRole("button", { name: /Ir a la confirmación|Go to confirmation/i }).click();
+    await page.getByRole("button", { name: /Confirmar pedido|Confirm order/i }).click();
+
+    await expect(page.getByTestId("checkout-success")).toContainText("Pedido confirmado");
+
+    const updatedInventory = await getJson<{ stock: number; inventories: Array<{ quantity: number }> }>(
+      request,
+      `/inventory/products/${lowStockProduct!.id}`,
+      seller.token
+    );
+    const expectedStock = inventory.stock - checkoutQuantity;
+    expect(updatedInventory.stock).toBe(expectedStock);
 
     const alerts = await getJson<{ alerts: Array<{ productName: string }> }>(
       request,
@@ -46,7 +54,7 @@ test.describe("Inventory Flow", () => {
     await loginViaUi(page, TEST_USERS.sellerOne.email, TEST_USERS.sellerOne.password);
     await page.goto("/seller/inventory");
     await page.getByTestId("inventory-product-select").selectOption({ label: TEST_PRODUCTS.lowStock });
-    await expect(page.locator(".data-table tbody tr").first().locator("input").first()).toHaveValue("4");
+    await expect(page.locator(".data-table tbody tr").first().locator("input").first()).toHaveValue(String(expectedStock));
     await expect(page.locator(".compact-list")).toContainText(TEST_PRODUCTS.lowStock);
   });
 });

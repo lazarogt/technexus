@@ -1,7 +1,7 @@
 import { defineConfig } from "@playwright/test";
 
 const useViteFrontend = process.env.E2E_USE_VITE === "true";
-const baseURL = process.env.E2E_FRONTEND_URL ?? (useViteFrontend ? "http://localhost:5173" : "http://localhost");
+const baseURL = process.env.E2E_FRONTEND_URL ?? "http://localhost:5173";
 const demoModeFlag = process.env.E2E_DEMO_MODE === "true" ? "true" : "false";
 const backendPort = process.env.BACKEND_PORT ?? "5000";
 

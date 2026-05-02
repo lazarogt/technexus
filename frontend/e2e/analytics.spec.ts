@@ -12,13 +12,13 @@ test.describe("Analytics Flow", () => {
     test.setTimeout(90_000);
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Todo tu stack comercial/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Encuentra tu próximo dispositivo|Find your next device/i })).toBeVisible();
     await addProductToCartFromCatalog(page, TEST_PRODUCTS.storefront);
     await page.goto("/cart");
     await expect(page.getByTestId("cart-total")).toBeVisible();
     await page.goto("/checkout");
     await expect(page.getByTestId("checkout-steps")).toBeVisible();
-    await expect(page.getByTestId("checkout-step-1")).toContainText("Envio");
+    await expect(page.getByTestId("checkout-step-1")).toContainText(/Envío|Shipping/);
 
     const admin = await loginApi(request, TEST_USERS.admin.email, TEST_USERS.admin.password);
 
@@ -50,7 +50,7 @@ test.describe("Analytics Flow", () => {
     await expect(page.getByTestId("admin-analytics-page")).toBeVisible();
     await expect(page.getByTestId("analytics-metrics")).toBeVisible();
     await expect(page.getByText("Sesiones", { exact: true })).toBeVisible();
-    await expect(page.getByText("Add to cart")).toBeVisible();
+    await expect(page.getByText(/Añadidos al carrito|Add to cart/)).toBeVisible();
   });
 
   // Confirms the posthog build/runtime stays healthy while the local dashboard shows the expected informational state.
@@ -62,6 +62,6 @@ test.describe("Analytics Flow", () => {
     await expect(page.getByTestId("admin-analytics-page")).toBeVisible();
     await expect(page.getByTestId("analytics-provider-info")).toContainText("posthog");
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Todo tu stack comercial/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Encuentra tu próximo dispositivo|Find your next device/i })).toBeVisible();
   });
 });

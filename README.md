@@ -1,8 +1,8 @@
 # TechNexus Docker Demo
 
-Production-style Docker setup for the TechNexus marketplace:
+Demo-ready Docker setup for the TechNexus marketplace:
 
-- Frontend: React + Vite served by nginx on `http://localhost:3000`
+- Frontend: React + Vite on `http://localhost:5173`
 - Backend: Node.js + Express on `http://localhost:5000`
 - Health: `http://localhost:5000/health`
 - Database: PostgreSQL 16 Alpine
@@ -14,7 +14,15 @@ Production-style Docker setup for the TechNexus marketplace:
 docker compose up -d --build
 ```
 
-This is the supported demo startup path. PostgreSQL stays internal to the Compose network, so no host database port is required.
+This is the supported demo startup path. PostgreSQL stays internal to the Compose network, so no host database port is required. The frontend is the only public demo entry, and all browser API traffic goes through the Vite `/api` proxy.
+
+For a public tunnel with the bundled ngrok service:
+
+```bash
+docker compose --profile ngrok up -d --build
+```
+
+Inspect the tunnel locally at `http://localhost:4040`.
 
 ## Logs
 
@@ -31,6 +39,7 @@ Every response also exposes `X-Request-Id` for correlation.
 curl http://localhost:5000/health
 curl http://localhost:5000/observability/metrics
 curl http://localhost:5000/metrics
+curl http://localhost:5173/
 ```
 
 - `GET /health` returns backend, database, Redis, and uptime status.
@@ -73,7 +82,8 @@ docker compose up -d --build
 - The backend waits for PostgreSQL, applies Prisma migrations, seeds demo data when the catalog is empty, and then starts the app.
 - Prisma migrations are the only schema bootstrap path for the Docker stack.
 - Docker Compose runs the backend in `production` with structured logs, compiled `dist/` output, and internal database connectivity through the `postgres` service name.
-- The frontend image is built with `npm run build` and served by nginx in production mode; browser requests stay on `http://localhost:3000` while `/api` and `/uploads` are proxied internally to `http://backend:5000`.
+- The frontend container runs the Vite dev server on `5173` and proxies `/api` and `/uploads` internally to `http://backend:5000`, so ngrok only needs to expose the frontend.
+- The backend still publishes `5000` locally for health checks, smoke tests, and debugging, but it is not the demo URL shared with clients.
 - `POST /api/products` validates product fields and related record ids server-side, derives the seller from the authenticated context for seller accounts, and returns `400` for invalid input/foreign-key issues or `409` for write conflicts instead of surfacing a generic `500`.
 - Frontend UI is currently shipped in Spanish (`es`) and is prepared for future i18n expansion through the lightweight constants module in `frontend/src/i18n/es.ts`.
 - Demo-only backend credentials are seeded automatically:
@@ -83,7 +93,7 @@ docker compose up -d --build
 ## Security Defaults
 
 - Express now disables `X-Powered-By`, applies explicit Helmet CSP headers, denies framing, and enables HSTS only in production.
-- CORS accepts only exact origins listed in `CORS_ORIGIN`. The current auth model remains bearer-token based, so `credentials` stay disabled.
+- CORS now reflects the incoming origin and allows credentials so changing ngrok domains do not break the demo flow.
 - Global rate limiting defaults to `100` requests per `15` minutes, and `/api/auth/login`, `/api/auth/register`, `/login`, and `/register` are further restricted to `10` requests per `15` minutes.
 - Request payload validation is centralized in Zod. Invalid auth payloads, product writes, and query params return `400` before reaching Prisma.
 - Product uploads remain under `/uploads`, but uploads are restricted to image MIME types, safe server-generated filenames, `5MB` per file, and five files per request.
@@ -92,18 +102,26 @@ docker compose up -d --build
 ## Required Backend Environment
 
 - `JWT_SECRET` must be a strong non-placeholder secret. Production startup now rejects weak values such as `changeme`.
-- `CORS_ORIGIN` must be a comma-separated list of `http` or `https` origins.
 - `REQUEST_BODY_LIMIT` and `URLENCODED_PARAMETER_LIMIT` control parser limits and are validated at startup.
-- See [.env.example](/media/rebeca-lazaro/1CB41B1EB41AF9CA3/Dev/Proyectos sistemas web/TechNexus/.env.example) for the current baseline values.
+- See [.env.example](/media/rebeca-lazaro/1CB41B1EB41AF9CA4/Dev/Proyectos sistemas web/TechNexus/.env.example) for the current baseline values.
 
 ## Validation
 
 ```bash
 docker compose ps
 curl http://localhost:5000/health
-curl http://localhost:3000/healthz
-curl http://localhost:3000/api/products
+curl http://localhost:5173/
+curl http://localhost:5173/api/products
 docker compose exec postgres pg_isready -U technexus -d technexus
+```
+
+## Demo Entry
+
+- Open `http://localhost:5173/?demo=true` to force the guided demo tour from the first step.
+- If the bundled ngrok container is unstable on your machine, run local ngrok instead:
+
+```bash
+ngrok http 5173
 ```
 
 ## Backend Tests

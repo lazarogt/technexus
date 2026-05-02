@@ -51,6 +51,7 @@ services:
 
   backend:
     build: ./backend
+    container_name: technexus-backend
     restart: unless-stopped
     logging: *default-logging
     mem_limit: 512m
@@ -75,9 +76,10 @@ services:
       REDIS_ENABLED: "true"
       REDIS_URL: redis://redis:6379
       JWT_SECRET: ${JWT_SECRET:-technexus-local-docker-jwt-secret-2026}
-      CORS_ORIGIN: http://localhost:3000,http://127.0.0.1:3000
       ANALYTICS_PROVIDER: internal
       DEMO_MODE: ${DEMO_MODE:-false}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      AUTH_RATE_LIMIT_MAX_REQUESTS: ${AUTH_RATE_LIMIT_MAX_REQUESTS:-10}
       EMAIL_ENABLED: "false"
       TECHNEXUS_ADMIN_EMAIL: admin@example.com
       TECHNEXUS_ADMIN_PASSWORD: DemoAdmin123!
@@ -101,32 +103,69 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_API_URL: http://localhost:5000
-        VITE_SITE_URL: http://localhost:3000
-        SEO_ASSETS_ALLOW_FALLBACK: "true"
-        VITE_ANALYTICS_PROVIDER: internal
-        VITE_POSTHOG_KEY: ""
-        VITE_POSTHOG_HOST: https://app.posthog.com
-        VITE_DEMO_MODE: ${DEMO_MODE:-false}
+      target: dev
+    container_name: technexus-frontend
+    working_dir: /app
+    command:
+      [
+        "sh",
+        "-c",
+        "npm run dev -- --host 0.0.0.0 --port 5173"
+      ]
     restart: unless-stopped
     logging: *default-logging
-    mem_limit: 256m
+    mem_limit: 512m
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 512M
     depends_on:
       backend:
         condition: service_healthy
+    environment:
+      FRONTEND_PORT: 5173
+      BACKEND_PORT: 5000
+      VITE_API_TARGET: http://backend:5000
+      VITE_ANALYTICS_PROVIDER: internal
+      VITE_POSTHOG_KEY: ""
+      VITE_POSTHOG_HOST: https://app.posthog.com
+      VITE_DEMO_MODE: ${DEMO_MODE:-false}
+      CHOKIDAR_USEPOLLING: "true"
     ports:
-      - "3000:80"
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:5173').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 20s
+      start_period: 45s
+    networks:
+      - technexus_internal
+
+  ngrok:
+    profiles: ["ngrok"]
+    image: ngrok/ngrok:latest
+    container_name: technexus-ngrok
+    restart: unless-stopped
+    depends_on:
+      frontend:
+        condition: service_healthy
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}
+    command: http host.docker.internal:5173
+    ports:
+      - "4040:4040"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - technexus_internal
 
@@ -184,3 +223,4 @@ networks:
 volumes:
   postgres_data:
   grafana_data:
+  frontend_node_modules:
