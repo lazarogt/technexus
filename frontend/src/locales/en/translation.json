@@ -399,6 +399,7 @@
   },
   "demo": {
     "startTour": "Start Demo Tour",
+    "restartTour": "Restart Tour",
     "exit": "Exit Demo",
     "skip": "Skip",
     "roleSwitchLabel": "Demo role switcher",

@@ -75,9 +75,10 @@ services:
       DATABASE_URL: postgresql://technexus:technexus@postgres:5432/technexus?schema=public
       REDIS_ENABLED: "true"
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-technexus-local-docker-jwt-secret-2026}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env before deployment}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173,http://127.0.0.1:5173}
       ANALYTICS_PROVIDER: internal
-      DEMO_MODE: ${DEMO_MODE:-false}
+      DEMO_MODE: ${DEMO_MODE:-true}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
       AUTH_RATE_LIMIT_MAX_REQUESTS: ${AUTH_RATE_LIMIT_MAX_REQUESTS:-10}
       EMAIL_ENABLED: "false"
@@ -103,15 +104,17 @@ services:
   frontend:
     build:
       context: ./frontend
-      target: dev
+      target: runner
+      args:
+        VITE_SITE_URL: ${VITE_SITE_URL:-http://localhost:5173}
+        VITE_SITEMAP_API_URL: ${VITE_SITEMAP_API_URL:-http://backend:5000}
+        SEO_ASSETS_ALLOW_FALLBACK: ${SEO_ASSETS_ALLOW_FALLBACK:-true}
+        VITE_ANALYTICS_PROVIDER: ${VITE_ANALYTICS_PROVIDER:-internal}
+        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY:-}
+        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST:-https://app.posthog.com}
+        VITE_DEMO_MODE: ${DEMO_MODE:-true}
+        VITE_DEMO_AUTO_START: ${VITE_DEMO_AUTO_START:-false}
     container_name: technexus-frontend
-    working_dir: /app
-    command:
-      [
-        "sh",
-        "-c",
-        "npm run dev -- --host 0.0.0.0 --port 5173"
-      ]
     restart: unless-stopped
     logging: *default-logging
     mem_limit: 512m
@@ -123,27 +126,11 @@ services:
       backend:
         condition: service_healthy
     environment:
-      FRONTEND_PORT: 5173
-      BACKEND_PORT: 5000
-      VITE_API_TARGET: http://backend:5000
-      VITE_ANALYTICS_PROVIDER: internal
-      VITE_POSTHOG_KEY: ""
-      VITE_POSTHOG_HOST: https://app.posthog.com
-      VITE_DEMO_MODE: ${DEMO_MODE:-false}
-      CHOKIDAR_USEPOLLING: "true"
+      FRONTEND_PORT: 80
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app
-      - frontend_node_modules:/app/node_modules
+      - "5173:80"
     healthcheck:
-      test:
-        [
-          "CMD",
-          "node",
-          "-e",
-          "fetch('http://127.0.0.1:5173').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"
-        ]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null 2>&1 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -223,4 +210,3 @@ networks:
 volumes:
   postgres_data:
   grafana_data:
-  frontend_node_modules:

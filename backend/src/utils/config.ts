@@ -54,7 +54,7 @@ const envSchema = z.object({
   REDIS_URL: z.union([urlString(["redis:", "rediss:"]), z.literal("")]).optional(),
   JWT_SECRET: trimString(z.string().min(1)),
   JWT_EXPIRES_IN: trimString(z.string().min(1)).default("7d"),
-  CORS_ORIGIN: trimString(z.string().min(1)).default("http://localhost:3000,http://127.0.0.1:3000"),
+  CORS_ORIGIN: trimString(z.string().min(1)).default("http://localhost:5173,http://127.0.0.1:5173"),
   REQUEST_BODY_LIMIT: bytesLimitString.default("2mb"),
   URLENCODED_PARAMETER_LIMIT: z.coerce.number().int().positive().max(1_000).default(100),
   EMAIL_ENABLED: booleanString("false"),
@@ -123,7 +123,9 @@ const isWeakSecret = (value: string) => {
     "default",
     "secret",
     "jwt-secret",
-    "test-jwt-secret"
+    "test-jwt-secret",
+    "technexus-local-docker-jwt-secret-2026",
+    "replace-with-a-long-random-secret-at-least-32-characters"
   ]).has(normalized);
 };
 

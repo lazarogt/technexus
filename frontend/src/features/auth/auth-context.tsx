@@ -2,7 +2,7 @@ import { createContext, type ReactNode, useContext, useEffect, useMemo, useState
 import { getProfile, createDemoSession, createGuestSession, login as loginRequest, register as registerRequest } from "@/features/api/auth-api";
 import type { AuthResponse, GuestResponse, PublicUser, UserRole } from "@/features/api/types";
 import { identify } from "@/features/analytics/analytics";
-import { DEMO_MODE } from "@/demo/demo-env";
+import { DEMO_AUTO_START, DEMO_MODE } from "@/demo/demo-env";
 import { removeStorage, readStorage, writeStorage } from "@/lib/storage";
 
 type UserSession = {
@@ -78,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const current = readStorage<SessionState>(SESSION_KEY);
 
       if (!current) {
-        if (DEMO_MODE) {
+        if (DEMO_MODE && DEMO_AUTO_START) {
           try {
             const demoSession = await createDemoSession({ role: "customer" });
 

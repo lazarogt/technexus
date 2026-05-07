@@ -2,7 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider, useAuth } from "@/features/auth/auth-context";
 
-vi.mock("@/demo/demo-env", () => ({ DEMO_MODE: true }));
+vi.mock("@/demo/demo-env", () => ({ DEMO_AUTO_START: true, DEMO_MODE: true }));
 vi.mock("@/features/api/auth-api", () => ({
   createDemoSession: vi.fn(),
   createGuestSession: vi.fn(),

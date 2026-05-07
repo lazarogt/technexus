@@ -13,7 +13,7 @@ import type { EventData, Step } from "react-joyride";
 import { ACTIONS, EVENTS, STATUS } from "react-joyride";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { DEMO_MODE } from "@/demo/demo-env";
+import { DEMO_AUTO_START, DEMO_MODE } from "@/demo/demo-env";
 import {
   getDashboardPath,
   getDemoTourSteps,
@@ -95,7 +95,8 @@ export function DemoTourProvider({ children }: { children: ReactNode }) {
   const { applySession, role } = useAuth();
   const steps = useMemo(() => getDemoTourSteps(t), [t]);
   const forceDemoEntry = DEMO_MODE && new URLSearchParams(location.search).get("demo") === "true";
-  const initialRun = DEMO_MODE && (forceDemoEntry || readStorage<boolean>(DEMO_TOUR_SEEN_KEY) !== true);
+  const shouldAutoStart = DEMO_MODE && DEMO_AUTO_START && readStorage<boolean>(DEMO_TOUR_SEEN_KEY) !== true;
+  const initialRun = forceDemoEntry || shouldAutoStart;
   const [run, setRun] = useState(initialRun);
   const [stepIndex, setStepIndex] = useState<number>(() => (DEMO_MODE ? (forceDemoEntry ? 0 : getStoredStepIndex()) : 0));
   const [currentPhase, setCurrentPhase] = useState<DemoStep>(() => steps[forceDemoEntry ? 0 : getStoredStepIndex()]?.phase ?? "DONE");
