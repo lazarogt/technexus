@@ -9,7 +9,7 @@ const publicDir = path.join(projectRoot, "public");
 const siteUrlEnv = process.env.VITE_SITE_URL?.trim();
 const siteUrl = (siteUrlEnv || "http://localhost:5173").replace(/\/$/, "");
 const apiBaseUrl = (process.env.VITE_SITEMAP_API_URL?.trim() || "http://localhost:5000").replace(/\/$/, "");
-const allowFallbackSitemap = process.env.SEO_ASSETS_ALLOW_FALLBACK === "true";
+const allowFallbackSitemap = process.env.SEO_ASSETS_ALLOW_FALLBACK !== "false" && process.env.CI !== "true";
 
 if (process.env.CI === "true" && !siteUrlEnv) {
   throw new Error("VITE_SITE_URL must be set in CI builds so sitemap.xml uses the public site origin.");

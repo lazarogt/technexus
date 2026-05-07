@@ -13,11 +13,37 @@ const demoRoles: DemoRole[] = ["customer", "seller", "admin"];
 
 export function DemoControls({ className }: DemoControlsProps) {
   const { t } = useTranslation();
-  const { currentRole, exitDemo, isDemoMode, isInteractionLocked, isSwitchingRole, restartDemoTour, switchDemoRole } =
-    useDemoTour();
+  const {
+    currentRole,
+    exitDemo,
+    isDemoMode,
+    isInteractionLocked,
+    isSwitchingRole,
+    isTourRunning,
+    restartDemoTour,
+    switchDemoRole
+  } = useDemoTour();
 
   if (!isDemoMode) {
     return null;
+  }
+
+  const hasActiveDemoSession = Boolean(currentRole) || isTourRunning || isSwitchingRole;
+
+  if (!hasActiveDemoSession) {
+    return (
+      <div className={clsx("demo-controls", className)}>
+        <Button
+          variant="ghost"
+          className="demo-tour-button"
+          onClick={restartDemoTour}
+          disabled={isInteractionLocked}
+          data-demo-lock="true"
+        >
+          {t("demo.startTour")}
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -48,7 +74,7 @@ export function DemoControls({ className }: DemoControlsProps) {
         disabled={isInteractionLocked}
         data-demo-lock="true"
       >
-        {t("demo.startTour")}
+        {t("demo.restartTour")}
       </Button>
       <Button variant="ghost" className="demo-exit-button" onClick={exitDemo}>
         {t("demo.exit")}

@@ -399,6 +399,7 @@
   },
   "demo": {
     "startTour": "Iniciar tour demo",
+    "restartTour": "Reiniciar tour",
     "exit": "Salir demo",
     "skip": "Omitir",
     "roleSwitchLabel": "Cambio de rol demo",

@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "@/components/store/layout/Header";
+import { DemoTourProvider } from "@/demo/demo-tour-context";
 import { useAuth } from "@/features/auth/auth-context";
 import { useCart } from "@/features/cart/cart-context";
 
@@ -40,7 +41,9 @@ describe("Header", () => {
   it("keeps search visible and exposes account, orders and cart actions", () => {
     render(
       <MemoryRouter>
-        <Header />
+        <DemoTourProvider>
+          <Header />
+        </DemoTourProvider>
       </MemoryRouter>
     );
 

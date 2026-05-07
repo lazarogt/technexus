@@ -84,6 +84,7 @@ describe("DemoTour", () => {
 
   it("auto-starts only when demo mode is enabled and the tour was not seen", async () => {
     vi.stubEnv("VITE_DEMO_MODE", "true");
+    vi.stubEnv("VITE_DEMO_AUTO_START", "true");
     mockUseAuth.mockReturnValue({
       applySession: vi.fn(),
       role: null
@@ -102,6 +103,38 @@ describe("DemoTour", () => {
 
     await waitFor(() => {
       expect(screen.getByTestId("joyride-probe")).toBeInTheDocument();
+      expect(joyrideProps?.run).toBe(true);
+      expect(joyrideProps?.stepIndex).toBe(0);
+    });
+  });
+
+  it("keeps the demo available without auto-starting for regular visitors", async () => {
+    vi.stubEnv("VITE_DEMO_MODE", "true");
+    vi.stubEnv("VITE_DEMO_AUTO_START", "false");
+    mockUseAuth.mockReturnValue({
+      applySession: vi.fn(),
+      role: null
+    });
+
+    const { DemoTourProvider, DemoTour, DemoControls } = await importDemoModules();
+
+    render(
+      <MemoryRouter initialEntries={["/"]}>
+        <DemoTourProvider>
+          <div className="navbar" />
+          <DemoControls />
+          <DemoTour />
+        </DemoTourProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId("joyride-probe")).toBeInTheDocument();
+    expect(joyrideProps?.run).toBe(false);
+    expect(screen.getByRole("button", { name: "Iniciar tour demo" })).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Iniciar tour demo" }));
+
+    await waitFor(() => {
       expect(joyrideProps?.run).toBe(true);
       expect(joyrideProps?.stepIndex).toBe(0);
     });
@@ -177,7 +210,7 @@ describe("DemoTour", () => {
       </MemoryRouter>
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Iniciar tour demo" }));
+    await userEvent.click(screen.getByRole("button", { name: "Reiniciar tour" }));
 
     await waitFor(() => {
       expect(joyrideProps?.run).toBe(true);
@@ -187,6 +220,7 @@ describe("DemoTour", () => {
 
   it("falls back to a centered step when a dashboard target is missing", async () => {
     vi.stubEnv("VITE_DEMO_MODE", "true");
+    vi.stubEnv("VITE_DEMO_AUTO_START", "true");
     window.localStorage.setItem("technexus:demoTourStep", JSON.stringify(5));
 
     mockUseAuth.mockReturnValue({

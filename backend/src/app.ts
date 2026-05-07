@@ -76,7 +76,14 @@ export const createApp = () => {
   );
   app.use(
     cors({
-      origin: true,
+      origin: (origin, callback) => {
+        if (!origin || env.corsAllowedOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+
+        callback(null, false);
+      },
       credentials: true
     })
   );
