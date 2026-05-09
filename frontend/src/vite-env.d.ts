@@ -12,3 +12,19 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+type TechnexusDesktopRequestOptions = {
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  body?: BodyInit | Record<string, unknown> | null;
+  token?: string;
+  headers?: Record<string, string>;
+  searchParams?: Record<string, string | number | boolean | undefined | null>;
+};
+
+interface Window {
+  technexusDesktop?: {
+    isDesktop?: boolean;
+    request?: <T>(path: string, options?: TechnexusDesktopRequestOptions) => Promise<T>;
+    trackAnalytics?: (payload: unknown) => Promise<void> | void;
+  };
+}

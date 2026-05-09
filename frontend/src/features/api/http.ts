@@ -1,22 +1,15 @@
-type RequestOptions = {
+import { ApiError } from "@/features/api/api-error";
+import { desktopRequest, isDesktopRuntime } from "@/features/api/desktop-bridge";
+
+export { ApiError } from "@/features/api/api-error";
+
+export type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: BodyInit | Record<string, unknown> | null;
   token?: string;
   headers?: HeadersInit;
   searchParams?: Record<string, string | number | boolean | undefined | null>;
 };
-
-export class ApiError extends Error {
-  status: number;
-  code?: string;
-
-  constructor(message: string, status: number, code?: string) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-  }
-}
 
 function buildUrl(path: string, searchParams?: RequestOptions["searchParams"]) {
   const url = new URL(path.startsWith("http") ? path : `${window.location.origin}${path}`);
@@ -37,6 +30,10 @@ function buildUrl(path: string, searchParams?: RequestOptions["searchParams"]) {
 }
 
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  if (isDesktopRuntime()) {
+    return desktopRequest<T>(path, options);
+  }
+
   const headers = new Headers(options.headers);
 
   if (options.token) {
