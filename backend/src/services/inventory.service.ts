@@ -120,10 +120,27 @@ export const reserveInventoryForOrderItem = async (
     const inventory = inventories.find((candidate) => candidate.id === allocation.inventoryId)!;
     const nextQuantity = inventory.quantity - allocation.quantity;
 
-    await tx.inventory.update({
-      where: { id: allocation.inventoryId },
-      data: { quantity: nextQuantity }
+    const updated = await tx.inventory.updateMany({
+      where: {
+        id: allocation.inventoryId,
+        quantity: {
+          gte: allocation.quantity
+        }
+      },
+      data: {
+        quantity: {
+          decrement: allocation.quantity
+        }
+      }
     });
+
+    if (updated.count !== 1) {
+      throw new AppError(
+        409,
+        "INSUFFICIENT_STOCK",
+        "One or more products do not have enough stock for checkout."
+      );
+    }
 
     if (nextQuantity <= inventory.lowStockThreshold) {
       await tx.lowStockAlert.create({

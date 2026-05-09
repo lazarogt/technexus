@@ -89,59 +89,100 @@ export const addToCart = async (
   }
 
   const cart = await ensureCart(actor);
-  const product = await prisma.product.findFirst({
-    where: {
-      id: input.productId,
-      deletedAt: null,
-      category: {
-        is: {
-          deletedAt: null
+
+  await prisma.$transaction(async (tx) => {
+    const product = await tx.product.findFirst({
+      where: {
+        id: input.productId,
+        deletedAt: null,
+        category: {
+          is: {
+            deletedAt: null
+          }
+        },
+        seller: {
+          is: {
+            deletedAt: null,
+            isBlocked: false
+          }
         }
       },
-      seller: {
-        is: {
-          deletedAt: null
+      select: { id: true, stock: true }
+    });
+
+    if (!product) {
+      throw new AppError(404, "PRODUCT_NOT_FOUND", "Product was not found.");
+    }
+
+    const current = await tx.cartItem.findUnique({
+      where: {
+        cartId_productId: {
+          cartId: cart.id,
+          productId: input.productId
         }
+      },
+      select: { id: true, quantity: true }
+    });
+
+    if (current) {
+      const updated = await tx.cartItem.update({
+        where: { id: current.id },
+        data: { quantity: { increment: input.quantity } },
+        select: { quantity: true }
+      });
+
+      if (updated.quantity > product.stock) {
+        throw new AppError(
+          409,
+          "INSUFFICIENT_STOCK",
+          "Requested quantity exceeds the available stock."
+        );
       }
+
+      return;
     }
-  });
 
-  if (!product) {
-    throw new AppError(404, "PRODUCT_NOT_FOUND", "Product was not found.");
-  }
-
-  const current = await prisma.cartItem.findUnique({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId: input.productId
-      }
+    if (input.quantity > product.stock) {
+      throw new AppError(
+        409,
+        "INSUFFICIENT_STOCK",
+        "Requested quantity exceeds the available stock."
+      );
     }
-  });
-  const nextQuantity = (current?.quantity ?? 0) + input.quantity;
 
-  if (nextQuantity > product.stock) {
-    throw new AppError(
-      409,
-      "INSUFFICIENT_STOCK",
-      "Requested quantity exceeds the available stock."
-    );
-  }
+    try {
+      await tx.cartItem.create({
+        data: {
+          cartId: cart.id,
+          productId: input.productId,
+          quantity: input.quantity
+        }
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+        const updated = await tx.cartItem.update({
+          where: {
+            cartId_productId: {
+              cartId: cart.id,
+              productId: input.productId
+            }
+          },
+          data: { quantity: { increment: input.quantity } },
+          select: { quantity: true }
+        });
 
-  await prisma.cartItem.upsert({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId: input.productId
+        if (updated.quantity > product.stock) {
+          throw new AppError(
+            409,
+            "INSUFFICIENT_STOCK",
+            "Requested quantity exceeds the available stock."
+          );
+        }
+
+        return;
       }
-    },
-    create: {
-      cartId: cart.id,
-      productId: input.productId,
-      quantity: nextQuantity
-    },
-    update: {
-      quantity: nextQuantity
+
+      throw error;
     }
   });
 

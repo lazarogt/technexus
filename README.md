@@ -144,3 +144,13 @@ docker compose exec backend npm run test:integration
 ```
 
 Test mode uses a separate PostgreSQL database by default: `technexus_test`. Override it with `TEST_POSTGRES_DB` and `TEST_POSTGRES_PORT` if needed. Host-side backend tests expect the Compose PostgreSQL service on `localhost:5433`. The smoke/bootstrap path waits for PostgreSQL, creates the test database when missing, runs `prisma migrate deploy`, and then runs `prisma generate` before seeding.
+
+## Production Hardening Notes
+
+Recent marketplace hardening keeps the existing cash-on-delivery architecture while tightening critical production flows:
+
+- Checkout now validates the live transactional cart before creating an order, rejects unavailable or stale-stock products, consumes cart rows before order creation to prevent duplicate double-submit orders, and reserves inventory with guarded decrement updates.
+- Cart additions use transactional quantity increments and seller availability checks so blocked/deleted seller products cannot be added and concurrent adds do not silently overwrite quantities.
+- Product catalog sorting includes deterministic tie-breakers for stable pagination across repeated requests.
+- The checkout UI blocks invalid shipping totals, stale over-stock cart lines, and repeated submits; failed checkout attempts refresh the server cart snapshot so the user can recover from inventory changes.
+

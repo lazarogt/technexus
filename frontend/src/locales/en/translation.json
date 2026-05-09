@@ -213,7 +213,9 @@
     "progressAria": "Checkout progress",
     "validationNameEmail": "Complete name and email to continue.",
     "validationAddress": "Add a shipping address to continue.",
-    "submitError": "The order could not be processed."
+    "submitError": "The order could not be processed.",
+    "validationShippingCost": "Shipping cost must be a valid non-negative amount.",
+    "validationStock": "One or more cart items exceed available stock. Refresh your cart before checkout."
   },
   "dashboard": {
     "analytics": "Analytics",

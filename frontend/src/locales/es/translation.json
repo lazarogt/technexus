@@ -213,7 +213,9 @@
     "progressAria": "Progreso de la compra",
     "validationNameEmail": "Completa nombre y correo para continuar.",
     "validationAddress": "Agrega una dirección de entrega para continuar.",
-    "submitError": "No se pudo procesar el pedido."
+    "submitError": "No se pudo procesar el pedido.",
+    "validationShippingCost": "El costo de envío debe ser un importe válido y no negativo.",
+    "validationStock": "Uno o más productos superan el inventario disponible. Actualiza el carrito antes de pagar."
   },
   "dashboard": {
     "analytics": "Analítica",

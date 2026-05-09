@@ -1,6 +1,5 @@
 import { OrderStatus, type Prisma, type UserRole } from "@prisma/client";
 import { prisma } from "./prisma.service";
-import { clearCart } from "./cart.service";
 import { reserveInventoryForOrderItem } from "./inventory.service";
 import { enqueueOrderCreatedEmails, enqueueOrderStatusUpdatedEmail } from "./outbox.service";
 import { AppError } from "../utils/errors";
@@ -52,26 +51,30 @@ const orderInclude = {
   }
 };
 
-const getCartForCheckout = async (actor: Actor) => {
-  const cart = await prisma.cart.findFirst({
-    where:
-      actor.type === "user"
-        ? { userId: actor.userId }
-        : { guestSessionId: actor.guestSessionId },
+const checkoutCartInclude = {
+  items: {
+    orderBy: { createdAt: "asc" as const },
     include: {
-      items: {
+      product: {
         include: {
-          product: {
-            include: {
-              seller: true,
-              images: {
-                orderBy: { position: "asc" }
-              }
-            }
+          category: true,
+          seller: true,
+          images: {
+            orderBy: { position: "asc" as const }
           }
         }
       }
     }
+  }
+};
+
+const getCartForCheckout = async (tx: Prisma.TransactionClient, actor: Actor) => {
+  const cart = await tx.cart.findFirst({
+    where:
+      actor.type === "user"
+        ? { userId: actor.userId }
+        : { guestSessionId: actor.guestSessionId },
+    include: checkoutCartInclude
   });
 
   if (!cart || cart.items.length === 0) {
@@ -79,6 +82,37 @@ const getCartForCheckout = async (actor: Actor) => {
   }
 
   return cart;
+};
+
+type CheckoutCart = Awaited<ReturnType<typeof getCartForCheckout>>;
+
+export const validateCheckoutCart = (cart: CheckoutCart) => {
+  for (const cartItem of cart.items) {
+    if (cartItem.quantity <= 0) {
+      throw new AppError(409, "INVALID_CART_ITEM", "One or more cart items have an invalid quantity.");
+    }
+
+    if (
+      cartItem.product.deletedAt ||
+      cartItem.product.category.deletedAt ||
+      cartItem.product.seller.deletedAt ||
+      cartItem.product.seller.isBlocked
+    ) {
+      throw new AppError(
+        409,
+        "PRODUCT_UNAVAILABLE",
+        "One or more products are no longer available for checkout."
+      );
+    }
+
+    if (cartItem.quantity > cartItem.product.stock) {
+      throw new AppError(
+        409,
+        "INSUFFICIENT_STOCK",
+        "One or more products do not have enough stock for checkout."
+      );
+    }
+  }
 };
 
 const validateCheckoutActor = async (
@@ -140,30 +174,44 @@ export const createOrderFromCart = async (
   }
 ) => {
   const owner = await validateCheckoutActor(actor, input);
-  const cart = await getCartForCheckout(actor);
-  const itemsSubtotal = roundCurrency(
-    cart.items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0)
-  );
-  const snapshot = buildPersistedOrderSnapshot({
-    buyerName: owner.buyerName,
-    buyerEmail: owner.buyerEmail,
-    buyerPhone: input.buyerPhone,
-    shippingAddress: input.shippingAddress,
-    shippingCost:
-      input.shippingCost === undefined ? 0 : parsePrice(input.shippingCost, "shippingCost"),
-    itemsSubtotal
-  });
+  const shippingCost = input.shippingCost === undefined ? 0 : parsePrice(input.shippingCost, "shippingCost");
 
   const order = await prisma.$transaction(async (tx) => {
-    for (const cartItem of cart.items) {
-      if (cartItem.quantity > cartItem.product.stock) {
-        throw new AppError(
-          409,
-          "INSUFFICIENT_STOCK",
-          "One or more products do not have enough stock for checkout."
-        );
+    const cart = await getCartForCheckout(tx, actor);
+    validateCheckoutCart(cart);
+
+    const deletedItems = await tx.cartItem.deleteMany({
+      where: {
+        cartId: cart.id,
+        id: {
+          in: cart.items.map((cartItem) => cartItem.id)
+        }
       }
+    });
+
+    if (deletedItems.count !== cart.items.length) {
+      throw new AppError(
+        409,
+        "CHECKOUT_IN_PROGRESS",
+        "This cart is already being checked out. Refresh your cart before trying again."
+      );
     }
+
+    for (const cartItem of cart.items) {
+      await reserveInventoryForOrderItem(tx, cartItem.product.id, cartItem.quantity);
+    }
+
+    const itemsSubtotal = roundCurrency(
+      cart.items.reduce((sum, item) => sum + Number(item.product.price) * item.quantity, 0)
+    );
+    const snapshot = buildPersistedOrderSnapshot({
+      buyerName: owner.buyerName,
+      buyerEmail: owner.buyerEmail,
+      buyerPhone: input.buyerPhone,
+      shippingAddress: input.shippingAddress,
+      shippingCost,
+      itemsSubtotal
+    });
 
     const created = await tx.order.create({
       data: {
@@ -195,11 +243,6 @@ export const createOrderFromCart = async (
       }
     });
 
-    for (const cartItem of cart.items) {
-      await reserveInventoryForOrderItem(tx, cartItem.product.id, cartItem.quantity);
-    }
-
-    await clearCart(tx, actor);
     return findOrderRecord(tx, created.id);
   });
 

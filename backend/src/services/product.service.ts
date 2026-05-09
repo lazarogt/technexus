@@ -161,11 +161,11 @@ export const listProducts = async (input: {
       };
 
       const orderByMap: Record<ProductSort, Prisma.ProductOrderByWithRelationInput[]> = {
-        latest: [{ createdAt: "desc" }],
-        "price-asc": [{ price: "asc" }, { createdAt: "desc" }],
-        "price-desc": [{ price: "desc" }, { createdAt: "desc" }],
-        "name-asc": [{ name: "asc" }, { createdAt: "desc" }],
-        "name-desc": [{ name: "desc" }, { createdAt: "desc" }]
+        latest: [{ createdAt: "desc" }, { id: "asc" }],
+        "price-asc": [{ price: "asc" }, { createdAt: "desc" }, { id: "asc" }],
+        "price-desc": [{ price: "desc" }, { createdAt: "desc" }, { id: "asc" }],
+        "name-asc": [{ name: "asc" }, { createdAt: "desc" }, { id: "asc" }],
+        "name-desc": [{ name: "desc" }, { createdAt: "desc" }, { id: "asc" }]
       };
 
       const [products, total] = await Promise.all([
