@@ -38,6 +38,10 @@ Standalone React + TypeScript + Vite frontend for TechNexus. It consumes the exi
   - storefront tracks product views, cart behavior, checkout start, and order completion
   - admin analytics view reads local metrics from `/api/admin/analytics/overview`
 
+## Desktop offline bridge
+
+Electron/preload runtimes must expose `window.technexusDesktop` when the renderer is packaged for desktop/offline use. In that mode `apiFetch` does not call `fetch`; it routes requests through `window.technexusDesktop.request(path, options)` so the main process can resolve operations through IPC and the local database. If the desktop bridge is missing, API calls fail with the friendly message `Modo sin conexión activo` instead of attempting a backend/network request. Internal analytics also avoids HTTP in desktop mode and delegates to `window.technexusDesktop.trackAnalytics` when provided.
+
 ## Docker runtime
 
 The default local demo stack is Docker-first:

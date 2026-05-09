@@ -1,3 +1,4 @@
+import { isDesktopRuntime, trackDesktopAnalytics } from "@/features/api/desktop-bridge";
 import { readStorage } from "@/lib/storage";
 import type { AnalyticsEventPayload, AnalyticsProvider } from "../analytics";
 
@@ -25,6 +26,11 @@ function getHeaders(token: string | null) {
 export function createInternalAnalyticsProvider(endpoint = "/api/analytics"): AnalyticsProvider {
   return {
     async track(payload: AnalyticsEventPayload) {
+      if (isDesktopRuntime()) {
+        await trackDesktopAnalytics(payload);
+        return;
+      }
+
       const body = JSON.stringify(payload);
       const token = getAuthToken();
 
