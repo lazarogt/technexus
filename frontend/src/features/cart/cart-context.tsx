@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { addCartItem, getCart, removeCartItem } from "@/features/api/cart-api";
 import { checkout as checkoutRequest } from "@/features/api/order-api";
 import type { CartItem, CartSummary, OrderRecord } from "@/features/api/types";
@@ -64,6 +64,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [lastAddedItem, setLastAddedItem] = useState<CartItem | null>(null);
   const [cartAttentionTick, setCartAttentionTick] = useState(0);
+  const checkoutInFlightRef = useRef<Promise<OrderRecord> | null>(null);
   const cartScope = getCartScope(session);
 
   useEffect(() => {
@@ -171,12 +172,31 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setCart(nextCart);
       },
       async checkout(payload) {
-        const activeToken = token ?? (await ensureGuestSession()).token;
-        const response = await checkoutRequest(activeToken, payload);
-        setCart(EMPTY_CART);
-        setLastAddedItem(null);
-        void queryClient.invalidateQueries();
-        return response.order;
+        if (checkoutInFlightRef.current) {
+          return checkoutInFlightRef.current;
+        }
+
+        const checkoutPromise = (async () => {
+          const activeToken = token ?? (await ensureGuestSession()).token;
+
+          try {
+            const response = await checkoutRequest(activeToken, payload);
+            setCart(EMPTY_CART);
+            setLastAddedItem(null);
+            void queryClient.invalidateQueries();
+            return response.order;
+          } catch (error) {
+            await getCart(activeToken)
+              .then(setCart)
+              .catch(() => setCart(EMPTY_CART));
+            throw error;
+          } finally {
+            checkoutInFlightRef.current = null;
+          }
+        })();
+
+        checkoutInFlightRef.current = checkoutPromise;
+        return checkoutPromise;
       }
     }),
     [cart, cartAttentionTick, ensureGuestSession, isLoading, lastAddedItem, queryClient, showToast, token]

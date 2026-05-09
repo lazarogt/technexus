@@ -37,7 +37,8 @@ export function CheckoutPage() {
     shippingCost: "0"
   });
 
-  const shippingTotal = cart.total + Number(form.shippingCost || 0);
+  const shippingCost = Number(form.shippingCost || 0);
+  const shippingTotal = cart.total + (Number.isFinite(shippingCost) ? shippingCost : 0);
 
   const validateStepOne = () => {
     if (!isAuthenticated && (!form.buyerName.trim() || !form.buyerEmail.trim())) {
@@ -46,6 +47,14 @@ export function CheckoutPage() {
 
     if (!form.shippingAddress.trim()) {
       return t("checkout.validationAddress");
+    }
+
+    if (!Number.isFinite(shippingCost) || shippingCost < 0) {
+      return t("checkout.validationShippingCost");
+    }
+
+    if (cart.items.some((item) => item.quantity <= 0 || item.quantity > item.productStock)) {
+      return t("checkout.validationStock");
     }
 
     return "";
@@ -76,6 +85,18 @@ export function CheckoutPage() {
       return;
     }
 
+    if (isSubmitting) {
+      return;
+    }
+
+    const validationMessage = validateStepOne();
+
+    if (validationMessage) {
+      setError(validationMessage);
+      setCurrentStep(1);
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -84,7 +105,7 @@ export function CheckoutPage() {
         buyerEmail: isAuthenticated ? undefined : form.buyerEmail,
         buyerPhone: form.buyerPhone,
         shippingAddress: form.shippingAddress,
-        shippingCost: Number(form.shippingCost || 0)
+        shippingCost
       });
 
       track("complete_order", {
@@ -245,7 +266,7 @@ export function CheckoutPage() {
           ))}
           <div className="summary-row">
             <span>{ES.labels.shipping}</span>
-            <strong>{formatCurrency(Number(form.shippingCost || 0))}</strong>
+            <strong>{formatCurrency(shippingCost)}</strong>
           </div>
           <div className="summary-row">
             <span>{ES.labels.total}</span>
